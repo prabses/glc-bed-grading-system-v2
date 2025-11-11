@@ -448,51 +448,55 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
     const pt = weights.performanceTask;
     const as = weights.assessment;
     
-    // Build formula arrays for all columns at once
-    const formulas = [];
-  for (let i = 0; i < numStudentRows; i++) {
+    // OPTIMIZATION: Separate values from formulas
+    // Build student data array (values only - columns A and B)
+    const studentValues = [];
+    // Build formula arrays for formula columns only
+    const formulaColumns = {
+      6: [],  // Column F: 1st Transmuted
+      10: [], // Column J: 2nd Transmuted
+      14: [], // Column N: 3rd Transmuted
+      18: [], // Column R: 4th Transmuted
+      20: []  // Column T: Final Grading
+    };
+    
+    for (let i = 0; i < numStudentRows; i++) {
       const row = startRow + i;
       
-      // OPTIMIZATION: If we have actual student data, populate it
+      // OPTIMIZATION: Get actual student data from STUDENTS DB
       let studentNumber = '';
       let studentName = '';
       
       if (hasStudents && i < students.length) {
         const student = students[i];
+        // Use exact values from STUDENTS DB
         studentNumber = student.studentNumber || '';
         // Format name as: Last Name, First Name Middle Name
         const lastName = student.lastName || '';
         const firstName = student.firstName || '';
         const middleName = student.middleName || '';
-        studentName = `${lastName}${firstName ? ', ' + firstName : ''}${middleName ? ' ' + middleName : ''}`;
+        studentName = `${lastName}${firstName ? ', ' + firstName : ''}${middleName ? ' ' + middleName : ''}`.trim();
       }
       
-      formulas.push([
-        studentNumber, // Student No (Column A)
-        studentName,   // Student Name (Column B)
-        '', // TS1-Written (Column C)
-        '', // TS1-Performance (Column D)
-        '', // TS1-Assessment (Column E)
-        `=IF(AND(C${row}<>"",D${row}<>"",E${row}<>""),ROUND((C${row}*${ww}/100+D${row}*${pt}/100+E${row}*${as}/100),2),"")`, // 1st Transmuted (Column F)
-        '', // TS2-Written (Column G)
-        '', // TS2-Performance (Column H)
-        '', // TS2-Assessment (Column I)
-        `=IF(AND(G${row}<>"",H${row}<>"",I${row}<>""),ROUND((G${row}*${ww}/100+H${row}*${pt}/100+I${row}*${as}/100),2),"")`, // 2nd Transmuted (Column J)
-        '', // TS3-Written (Column K)
-        '', // TS3-Performance (Column L)
-        '', // TS3-Assessment (Column M)
-        `=IF(AND(K${row}<>"",L${row}<>"",M${row}<>""),ROUND((K${row}*${ww}/100+L${row}*${pt}/100+M${row}*${as}/100),2),"")`, // 3rd Transmuted (Column N)
-        '', // TS4-Written (Column O)
-        '', // TS4-Performance (Column P)
-        '', // TS4-Assessment (Column Q)
-        `=IF(AND(O${row}<>"",P${row}<>"",Q${row}<>""),ROUND((O${row}*${ww}/100+P${row}*${pt}/100+Q${row}*${as}/100),2),"")`, // 4th Transmuted (Column R)
-        '', // Column S placeholder
-        `=IF(AND(F${row}<>"",J${row}<>"",N${row}<>"",R${row}<>""),ROUND((F${row}+J${row}+N${row}+R${row})/4,2),"")` // Final Grading (Column T)
-      ]);
+      // Store student values (will use setValues - not formulas)
+      studentValues.push([studentNumber, studentName]);
+      
+      // Build formulas for calculated columns
+      formulaColumns[6].push([`=IF(AND(C${row}<>"",D${row}<>"",E${row}<>""),ROUND((C${row}*${ww}/100+D${row}*${pt}/100+E${row}*${as}/100),2),"")`]); // 1st Transmuted
+      formulaColumns[10].push([`=IF(AND(G${row}<>"",H${row}<>"",I${row}<>""),ROUND((G${row}*${ww}/100+H${row}*${pt}/100+I${row}*${as}/100),2),"")`]); // 2nd Transmuted
+      formulaColumns[14].push([`=IF(AND(K${row}<>"",L${row}<>"",M${row}<>""),ROUND((K${row}*${ww}/100+L${row}*${pt}/100+M${row}*${as}/100),2),"")`]); // 3rd Transmuted
+      formulaColumns[18].push([`=IF(AND(O${row}<>"",P${row}<>"",Q${row}<>""),ROUND((O${row}*${ww}/100+P${row}*${pt}/100+Q${row}*${as}/100),2),"")`]); // 4th Transmuted
+      formulaColumns[20].push([`=IF(AND(F${row}<>"",J${row}<>"",N${row}<>"",R${row}<>""),ROUND((F${row}+J${row}+N${row}+R${row})/4,2),"")`]); // Final Grading
     }
     
-    // OPTIMIZATION: Single API call to write all formulas and data
-    sheet.getRange(startRow, 1, numStudentRows, numCols).setFormulas(formulas);
+    // OPTIMIZATION: Write student values (columns A-B) using setValues to avoid formula interpretation
+    sheet.getRange(startRow, 1, numStudentRows, 2).setValues(studentValues);
+    
+    // OPTIMIZATION: Write formulas for calculated columns only
+    Object.keys(formulaColumns).forEach(colNum => {
+      const col = parseInt(colNum);
+      sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulaColumns[col]);
+    });
     
     // OPTIMIZATION: Batch apply borders and number format
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
@@ -503,7 +507,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
     
     // Update Total Student count in info section
     if (hasStudents) {
-      sheet.getRange(7, 2).setValue(students.length); // Row 7, Column B
+      sheet.getRange(7, 2).setValue(students.length).setHorizontalAlignment('left'); // Row 7, Column B - left aligned
     }
   }
 }

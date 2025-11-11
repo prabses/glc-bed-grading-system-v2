@@ -237,6 +237,7 @@
       let allSections = {};
       let subjects = [];
       let instructors = [];
+      let assignedSubjects = []; // Store assigned subjects for the selected instructor
 
       // Populate dropdowns when page loads - OPTIMIZED: Load all at once
       document.addEventListener('DOMContentLoaded', function() {
@@ -318,13 +319,17 @@
         const gradeLevel = this.value;
         const sectionSelect = document.getElementById('section');
         const instructorSelect = document.getElementById('instructor');
+        const subjectsInfoDiv = document.getElementById('subjectsInfo');
+        
+        // Clear subjects when grade level changes
+        assignedSubjects = [];
+        subjectsInfoDiv.style.display = 'none';
         
         if (!gradeLevel) {
           sectionSelect.innerHTML = '<option value="">Select grade level first...</option>';
           sectionSelect.disabled = true;
           instructorSelect.innerHTML = '<option value="">Select grade level and section first...</option>';
           instructorSelect.disabled = true;
-          document.getElementById('subjectsInfo').style.display = 'none';
           return;
         }
         
@@ -378,11 +383,15 @@
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = this.value;
         const instructorSelect = document.getElementById('instructor');
+        const subjectsInfoDiv = document.getElementById('subjectsInfo');
+        
+        // Clear subjects when section changes
+        assignedSubjects = [];
+        subjectsInfoDiv.style.display = 'none';
         
         if (!gradeLevel || !section) {
           instructorSelect.innerHTML = '<option value="">Select grade level and section first...</option>';
           instructorSelect.disabled = true;
-          document.getElementById('subjectsInfo').style.display = 'none';
           return;
         }
         
@@ -414,31 +423,40 @@
           .getAssignedInstructors(gradeLevel, section);
       });
 
-      // Handle instructor change - load assigned subjects
+      // Handle instructor change - load assigned subjects automatically
       document.getElementById('instructor').addEventListener('change', function() {
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = document.getElementById('section').value;
         const instructor = this.value;
+        const subjectsListDiv = document.getElementById('subjectsList');
+        const subjectsInfoDiv = document.getElementById('subjectsInfo');
         
         if (!gradeLevel || !section || !instructor) {
-          document.getElementById('subjectsInfo').style.display = 'none';
+          assignedSubjects = [];
+          subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d;">Select grade level, section, and instructor to view subjects</p>';
+          subjectsInfoDiv.style.display = 'none';
           return;
         }
         
+        // Show loading state
+        subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d; font-style: italic;">Loading subjects...</p>';
+        subjectsInfoDiv.style.display = 'block';
+        
         google.script.run
           .withSuccessHandler(function(subjects) {
-            assignedSubjects = subjects;
+            assignedSubjects = subjects || [];
             const subjectsListDiv = document.getElementById('subjectsList');
             const subjectsInfoDiv = document.getElementById('subjectsInfo');
             
-            if (subjects.length === 0) {
-              subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d;">No subjects assigned to this instructor</p>';
+            if (assignedSubjects.length === 0) {
+              subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d;">No subjects assigned to this instructor for the selected grade level and section.</p>';
               subjectsInfoDiv.style.display = 'block';
               return;
             }
             
+            // Display subjects automatically
             let html = '<p style="margin: 0 0 10px 0; font-weight: 600;">Subjects that will be generated:</p><ul style="margin: 0; padding-left: 20px;">';
-            subjects.forEach(function(subject) {
+            assignedSubjects.forEach(function(subject) {
               html += '<li>' + subject + '</li>';
             });
             html += '</ul>';
@@ -446,7 +464,9 @@
             subjectsInfoDiv.style.display = 'block';
           })
           .withFailureHandler(function(error) {
-            alert('Error loading subjects: ' + error.toString());
+            assignedSubjects = [];
+            subjectsListDiv.innerHTML = '<p style="margin: 0; color: #e74c3c;">Error loading subjects: ' + error.toString() + '</p>';
+            subjectsInfoDiv.style.display = 'block';
           })
           .getAssignedSubjects(gradeLevel, section, instructor);
       });
