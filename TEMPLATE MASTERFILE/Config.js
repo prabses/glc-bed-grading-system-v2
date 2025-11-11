@@ -19,6 +19,9 @@ const CONFIG = {
     return SpreadsheetApp.getActiveSpreadsheet().getId();
   },
   
+  // STUDENTS DB Spreadsheet Name - Located in the same folder as Template Masterfile
+  STUDENTS_DB_NAME: "STUDENTS_DB",
+  
   // Sheet names
   SHEET_NAMES: {
     MASTER_DATA: 'MASTER_DATA',

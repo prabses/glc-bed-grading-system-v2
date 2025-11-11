@@ -306,8 +306,9 @@ function _saveToMasterData(schoolYear, gradeLevel, section, instructor, template
  * @param {string} subject - The subject
  * @param {string} instructor - The instructor name
  * @param {Object} weights - Grading weights object
+ * @param {Array} students - Array of student objects (optional)
  */
-function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, instructor, weights) {
+function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, instructor, weights, students = []) {
   // Clear the sheet first
   sheet.clear();
   
@@ -331,7 +332,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
   allData.push(padRow(['']));
   
   // Row 3-8: Info rows (matching Excel format exactly)
-  allData.push(padRow(['Instructor Nam:', instructor]));
+  allData.push(padRow(['Instructor Name:', instructor]));
   allData.push(padRow(['School Year:', schoolYear]));
   allData.push(padRow(['Level:', gradeLevel]));
   allData.push(padRow(['Section:', section]));
@@ -435,8 +436,10 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
   // Freeze header rows
   sheet.setFrozenRows(10);
   
-  // OPTIMIZATION: Add student rows with formulas
-  const numStudentRows = CONFIG.TEMPLATE.NUM_STUDENT_ROWS;
+  // OPTIMIZATION: Add student rows with formulas and actual student data
+  // Use actual student count or fallback to default
+  const hasStudents = students && students.length > 0;
+  const numStudentRows = hasStudents ? Math.max(students.length, CONFIG.TEMPLATE.NUM_STUDENT_ROWS) : CONFIG.TEMPLATE.NUM_STUDENT_ROWS;
   const startRow = 11;
   
   if (numStudentRows > 0) {
@@ -449,9 +452,24 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
     const formulas = [];
     for (let i = 0; i < numStudentRows; i++) {
       const row = startRow + i;
+      
+      // OPTIMIZATION: If we have actual student data, populate it
+      let studentNumber = '';
+      let studentName = '';
+      
+      if (hasStudents && i < students.length) {
+        const student = students[i];
+        studentNumber = student.studentNumber || '';
+        // Format name as: Last Name, First Name Middle Name
+        const lastName = student.lastName || '';
+        const firstName = student.firstName || '';
+        const middleName = student.middleName || '';
+        studentName = `${lastName}${firstName ? ', ' + firstName : ''}${middleName ? ' ' + middleName : ''}`;
+      }
+      
       formulas.push([
-        '', // Student No (Column A)
-        '', // Student Name (Column B)
+        studentNumber, // Student No (Column A)
+        studentName,   // Student Name (Column B)
         '', // TS1-Written (Column C)
         '', // TS1-Performance (Column D)
         '', // TS1-Assessment (Column E)
@@ -482,6 +500,11 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
     
     // Number format only for grading columns (C-T, columns 3-20)
     sheet.getRange(startRow, 3, numStudentRows, 18).setNumberFormat('0.00');
+    
+    // Update Total Student count in info section
+    if (hasStudents) {
+      sheet.getRange(7, 2).setValue(students.length); // Row 7, Column B
+    }
   }
 }
 
@@ -501,6 +524,97 @@ function _findOrCreateFolder(parentFolder, folderName) {
   } else {
     // Folder doesn't exist, create it
     return parentFolder.createFolder(folderName);
+  }
+}
+
+/**
+ * OPTIMIZED function to fetch students from STUDENTS DB spreadsheet
+ * Retrieves students for a specific grade level and section from the academic year sheet
+ * Opens STUDENTS_DB by name from the same folder as Template Masterfile
+ * @param {string} schoolYear - The school year (e.g., "2024-2025")
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @return {Array} Array of student objects [{ studentNumber, lastName, firstName, middleName }]
+ */
+function _getStudentsFromDB(schoolYear, gradeLevel, section) {
+  try {
+    // Get the current spreadsheet's folder
+    const currentSpreadsheet = getSpreadsheet();
+    const currentFile = DriveApp.getFileById(currentSpreadsheet.getId());
+    const parentFolders = currentFile.getParents();
+    
+    if (!parentFolders.hasNext()) {
+      console.warn('Unable to find parent folder. Returning empty student list.');
+      return [];
+    }
+    
+    const parentFolder = parentFolders.next();
+    
+    // Search for STUDENTS_DB spreadsheet in the same folder
+    const studentsDbFiles = parentFolder.getFilesByName(CONFIG.STUDENTS_DB_NAME);
+    
+    if (!studentsDbFiles.hasNext()) {
+      console.warn(`STUDENTS_DB spreadsheet not found in folder. Looking for: "${CONFIG.STUDENTS_DB_NAME}". Returning empty student list.`);
+      return [];
+    }
+    
+    const studentsDbFile = studentsDbFiles.next();
+    const studentsSpreadsheet = SpreadsheetApp.openById(studentsDbFile.getId());
+    
+    // Convert school year to academic year sheet name format
+    // e.g., "2024-2025" → "A.Y. 2024-2025"
+    const academicYearSheet = `A.Y. ${schoolYear}`;
+    
+    // Get the sheet
+    const sheet = studentsSpreadsheet.getSheetByName(academicYearSheet);
+    if (!sheet) {
+      console.warn(`Academic year sheet not found: ${academicYearSheet}`);
+      return [];
+    }
+    
+    const lastRow = sheet.getLastRow();
+    
+    // OPTIMIZATION: Early return if no data
+    if (lastRow < 3) {  // Row 3 is where data starts (after 2 header rows)
+      return [];
+    }
+    
+    // OPTIMIZATION: Only read necessary columns (A-F)
+    // A: Student Number, B: Last Name, C: First Name, D: Middle Name, E: Grade Level, F: Section
+    const startRow = 3;  // Data starts at row 3
+    const numRows = lastRow - 2;
+    const data = sheet.getRange(startRow, 1, numRows, 6).getValues();
+    
+    const students = [];
+    
+    // OPTIMIZATION: Single pass filtering
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const rowGradeLevel = row[4]; // Column E (Grade Level)
+      const rowSection = row[5];    // Column F (Section)
+      
+      // Filter by grade level and section
+      if (rowGradeLevel === gradeLevel && rowSection === section) {
+        students.push({
+          studentNumber: row[0] || '', // Column A
+          lastName: row[1] || '',      // Column B
+          firstName: row[2] || '',     // Column C
+          middleName: row[3] || ''     // Column D
+        });
+      }
+    }
+    
+    // Sort students by student number for consistent ordering
+    students.sort((a, b) => {
+      const numA = String(a.studentNumber);
+      const numB = String(b.studentNumber);
+      return numA.localeCompare(numB);
+    });
+    
+    return students;
+  } catch (error) {
+    console.error('Error fetching students from STUDENTS DB:', error);
+    return [];
   }
 }
 
@@ -551,6 +665,9 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     targetFolder.addFile(templateFile);
     DriveApp.getRootFolder().removeFile(templateFile); // Remove from root folder
     
+    // OPTIMIZATION: Fetch students from STUDENTS DB (single API call)
+    const students = _getStudentsFromDB(schoolYear, gradeLevel, section);
+    
     // OPTIMIZATION: Pre-fetch all grading weights at once to reduce API calls
     const subjectWeights = {};
     subjects.forEach(subject => {
@@ -562,15 +679,15 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     const firstSubject = subjects[0];
     defaultSheet.setName(firstSubject);
     
-    // Set up the first OGS template sheet
-    _setupOGSTemplate(defaultSheet, schoolYear, gradeLevel, section, firstSubject, instructor, subjectWeights[firstSubject]);
+    // Set up the first OGS template sheet with student data
+    _setupOGSTemplate(defaultSheet, schoolYear, gradeLevel, section, firstSubject, instructor, subjectWeights[firstSubject], students);
     
-    // Create sheets for remaining subjects
+    // Create sheets for remaining subjects with same student data
     const createdSheets = [firstSubject];
     for (let i = 1; i < subjects.length; i++) {
       const subject = subjects[i];
       const newSheet = templateSpreadsheet.insertSheet(subject);
-      _setupOGSTemplate(newSheet, schoolYear, gradeLevel, section, subject, instructor, subjectWeights[subject]);
+      _setupOGSTemplate(newSheet, schoolYear, gradeLevel, section, subject, instructor, subjectWeights[subject], students);
       createdSheets.push(subject);
     }
     
@@ -581,14 +698,16 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     _saveToMasterData(schoolYear, gradeLevel, section, instructor, templateUrl);
     
     const subjectsList = subjects.join(', ');
-    const message = `OGS Template generated successfully!\n\nFolder: ${folderName}\nTemplate: ${templateFileName}\nSchool Year: ${schoolYear}\nGrade Level: ${gradeLevel}\nSection: ${section}\nInstructor: ${instructor}\n\nSubjects (${subjects.length} sheets):\n${subjects.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+    const studentCountMsg = students.length > 0 ? `\nStudents: ${students.length} students loaded from STUDENTS DB` : '\nStudents: No students found (template generated with blank rows)';
+    const message = `OGS Template generated successfully!\n\nFolder: ${folderName}\nTemplate: ${templateFileName}\nSchool Year: ${schoolYear}\nGrade Level: ${gradeLevel}\nSection: ${section}\nInstructor: ${instructor}${studentCountMsg}\n\nSubjects (${subjects.length} sheets):\n${subjects.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
     
     return { 
       success: true, 
       message: message,
       templateUrl: templateUrl,
       subjects: subjects,
-      folderName: folderName
+      folderName: folderName,
+      studentCount: students.length
     };
     
   } catch (error) {
