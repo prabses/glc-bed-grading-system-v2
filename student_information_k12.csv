@@ -1,26 +1,51 @@
 Student Number,Last Name,First Name,Middle Name,Grade Level,Section,Strand,Gender
 SN-0001,Flores,Antonio,Bernardo,Grade 1,A,,Female
-SN-0002,Bautista,Catherine,Esperanza,Grade 2,Loyalty,,Female
-SN-0003,Torres,Daniel,Carlos,Grade 3,Hope,,Female
-SN-0004,Reyes,Miguel,Gabriel,Grade 4,Charity,,Female
-SN-0005,Flores,Carlos,Cruz,Grade 5,Peace,,Male
-SN-0006,Navarro,Catherine,Fernandez,Grade 6,Unity,,Male
-SN-0007,Morales,Antonio,Hernandez,Grade 7,Integrity,,Female
-SN-0008,Flores,Rafael,Jesus,Grade 8,Harmony,,Female
-SN-0009,Torres,Carlos,Kenneth,Grade 9,Wisdom,,Female
-SN-0010,Dela Cruz,Francis,Thomas,Grade 10,Faith,,Female
-SN-0011,Castillo,Juan,Carlos,Grade 11,Charity,HUMSS,Male
-SN-0012,Gonzales,Rafael,Bernardo,Grade 12,Loyalty,HUMSS,Male
+SN-0002,Bautista,Catherine,Esperanza,Grade 1,A,,Female
+SN-0003,Torres,Daniel,Carlos,Grade 1,A,,Female
+SN-0004,Reyes,Miguel,Gabriel,Grade 1,A,,Female
+SN-0005,Flores,Carlos,Cruz,Grade 1,A,,Male
+SN-0006,Navarro,Catherine,Fernandez,Grade 1,A,,Male
+SN-0007,Morales,Antonio,Hernandez,Grade 1,A,,Female
+SN-0008,Flores,Rafael,Jesus,Grade 1,A,,Female
+SN-0009,Torres,Carlos,Kenneth,Grade 1,A,,Female
+SN-0010,Dela Cruz,Francis,Thomas,Grade 1,A,,Female
+SN-0011,Castillo,Juan,Carlos,Grade 1,A,,Male
+SN-0012,Gonzales,Rafael,Bernardo,Grade 1,A,,Male
 SN-0013,Gonzales,Carlos,Fernando,Grade 1,A,,Male
-SN-0014,Garcia,Carlos,Jesus,Grade 2,Peace,,Male
-SN-0015,Morales,Lucia,Isabel,Grade 3,Unity,,Male
-SN-0016,Castillo,Pedro,Santos,Grade 4,Integrity,,Male
-SN-0017,Ramos,Andrea,Quincy,Grade 5,Harmony,,Male
-SN-0018,Domingo,Miguel,Fernandez,Grade 6,Wisdom,,Female
-SN-0019,Cruz,Pedro,Hernandez,Grade 7,Faith,,Male
-SN-0020,Navarro,Angela,Sofia,Grade 8,Loyalty,,Male
-SN-0021,Santos,Marco,Antonio,Grade 9,Hope,STEM,Male
-SN-0022,Lopez,Isabella,Rose,Grade 10,Charity,ABM,Female
-SN-0023,Mendoza,Diego,Andres,Grade 11,Peace,STEM,Male
-SN-0024,Silva,Valentina,Marie,Grade 12,Unity,HUMSS,Female
+SN-0014,Garcia,Carlos,Jesus,Grade 1,A,,Male
+SN-0015,Morales,Lucia,Isabel,Grade 1,A,,Male
+SN-0016,Castillo,Pedro,Santos,Grade 1,A,,Male
+SN-0017,Ramos,Andrea,Quincy,Grade 1,A,,Male
+SN-0018,Domingo,Miguel,Fernandez,Grade 1,A,,Female
+SN-0019,Cruz,Pedro,Hernandez,Grade 1,A,,Male
+SN-0020,Navarro,Angela,Sofia,Grade 1,A,,Male
+SN-0021,Santos,Marco,Antonio,Grade 1,A,,Male
+SN-0022,Lopez,Isabella,Rose,Grade 1,A,,Female
+SN-0023,Mendoza,Diego,Andres,Grade 1,A,,Male
+SN-0024,Silva,Valentina,Marie,Grade 1,A,,Female
 SN-0025,Martinez,Sebastian,Luis,Grade 1,A,,Male
+SN-0026,Villanueva,Patricia,Marie,Grade 1,A,,Female
+SN-0027,Alvarez,James,Michael,Grade 1,A,,Male
+SN-0028,Rivera,Sophia,Grace,Grade 1,A,,Female
+SN-0029,Sanchez,Matthew,John,Grade 1,A,,Male
+SN-0030,Castro,Emma,Christine,Grade 1,A,,Female
+SN-0031,Ramos,Noah,David,Grade 1,A,,Male
+SN-0032,Del Rosario,Olivia,Anne,Grade 1,A,,Female
+SN-0033,Manalo,Ethan,Paul,Grade 1,A,,Male
+SN-0034,De Guzman,Amelia,Jane,Grade 1,A,,Female
+SN-0035,Salazar,Lucas,Mark,Grade 1,A,,Male
+SN-0036,Valdez,Charlotte,May,Grade 1,A,,Female
+SN-0037,Enriquez,Alexander,James,Grade 1,A,,Male
+SN-0038,Corpuz,Harper,Lynn,Grade 1,A,,Female
+SN-0039,Bautista,Benjamin,Joseph,Grade 1,A,,Male
+SN-0040,Macapagal,Evelyn,Rose,Grade 1,A,,Female
+SN-0041,Quizon,Daniel,Peter,Grade 1,A,,Male
+SN-0042,Abad,Victoria,Louise,Grade 1,A,,Female
+SN-0043,Manuel,Henry,Robert,Grade 1,A,,Male
+SN-0044,Acosta,Scarlett,Faith,Grade 1,A,,Female
+SN-0045,Delos Santos,Jack,William,Grade 1,A,,Male
+SN-0046,Espiritu,Maya,Elizabeth,Grade 1,A,,Female
+SN-0047,Galang,Oliver,Thomas,Grade 1,A,,Male
+SN-0048,Magbanua,Luna,Marie,Grade 1,A,,Female
+SN-0049,Palma,Leo,Anthony,Grade 1,A,,Male
+SN-0050,Salvador,Aria,Claire,Grade 1,A,,Female

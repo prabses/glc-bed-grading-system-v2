@@ -396,15 +396,10 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
   // Info rows (3-8) - batch style operations
   sheet.getRange(3, 1, 6, 1).setFontWeight('bold'); // Labels bold
   
-  // OPTIMIZATION: Batch background colors in one call
-  const infoBgRanges = [
-    sheet.getRange(3, 2), // Row 3
-    sheet.getRange(4, 2), // Row 4
-    sheet.getRange(6, 2), // Row 6 (skip row 5)
-    sheet.getRange(7, 2), // Row 7
-    sheet.getRange(8, 2)  // Row 8
-  ];
-  infoBgRanges.forEach(range => range.setBackground('#f3f3f3'));
+  // OPTIMIZATION: Batch background colors - combine into single range where possible
+  // Rows 3-4 and 6-8 can be batched
+  sheet.getRange(3, 2, 2, 1).setBackground('#f3f3f3'); // Rows 3-4
+  sheet.getRange(6, 2, 3, 1).setBackground('#f3f3f3'); // Rows 6-8
   
   // Row 9: Grading period headers - merge and style
   sheet.getRange(9, 3, 1, 4).merge();   // 1ST GRADING
@@ -425,10 +420,13 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
     .setHorizontalAlignment('center')
     .setBorder(true, true, true, true, true, true);
   
-  // OPTIMIZATION: Batch set column widths
+  // OPTIMIZATION: Batch set column widths (minimize API calls)
   sheet.setColumnWidth(1, 120);  // Student No
   sheet.setColumnWidth(2, 250);  // Student Name
-  // Set all grading columns at once (columns 3-19)
+  // Set all grading columns (3-19) - batch operation
+  const gradingCols = sheet.getRange(1, 3, 1, 17); // Row 1, columns 3-19, 1 row, 17 columns
+  // Note: setColumnWidths is not available, but individual calls are fast for small ranges
+  // Using direct column indices is already optimized
   for (let c = 3; c <= 19; c++) {
     sheet.setColumnWidth(c, 130);
   }
@@ -511,15 +509,50 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulaColumns[col]);
     });
     
-    // PROTECTION: Lock formula columns to prevent modification
-    // Protect transmuted columns (F, J, N, R) and final grading column (S)
-    const formulaColumnsToProtect = [6, 10, 14, 18, 19]; // F, J, N, R, S
-    formulaColumnsToProtect.forEach(colNum => {
-      const formulaRange = sheet.getRange(startRow, colNum, numStudentRows, 1);
-      // Lock the cells (prevents editing)
-      formulaRange.protect()
-        .setDescription(`Protected formula column ${String.fromCharCode(64 + colNum)}`)
-        .setWarningOnly(false); // false = prevent editing, true = warn but allow
+    // PROTECTION: Lock protected ranges to prevent modification
+    // Protect: entire columns A and B, rows 9-10, and entire columns F, J, N, R, S
+    // Only the creator can edit these protected ranges
+    // OPTIMIZATION: Protect from row 1 to endRow + buffer (covers entire column in practice, much faster than maxRows)
+    // OPTIMIZATION: Skip editor management for new files - protections automatically have script owner as editor
+    const creatorEmail = Session.getActiveUser().getEmail();
+    const endRow = startRow + numStudentRows - 1; // Last row with student data
+    const protectToRow = Math.max(endRow + 100, 200); // Protect to endRow + 100 or minimum 200 rows
+    
+    // OPTIMIZATION: Create protections without editor management (much faster - saves 21 API calls per sheet)
+    // For new files, protections automatically have the script owner as editor
+    const createProtection = (range, description) => {
+      return range.protect()
+        .setDescription(description)
+        .setWarningOnly(false);
+      // Skip editor management - new file protections already have correct permissions
+    };
+    
+    // 1. Protect entire columns A and B (from row 1 to protectToRow)
+    const colABRange = sheet.getRange(1, 1, protectToRow, 2);
+    createProtection(colABRange, 'Protected Student Number and Name columns (entire columns)');
+    
+    // 2. Protect rows 9-10 (header rows - entire row)
+    const headerRowsRange = sheet.getRange(9, 1, 2, numCols);
+    createProtection(headerRowsRange, 'Protected header rows (9-10)');
+    
+    // 3. Protect entire formula columns F, J, N, R, S (from row 1 to protectToRow)
+    const formulaCols = [6, 10, 14, 18, 19]; // F, J, N, R, S
+    const colNames = ['F', 'J', 'N', 'R', 'S'];
+    const colDescriptions = ['1st Transmuted', '2nd Transmuted', '3rd Transmuted', '4th Transmuted', 'Final Grading'];
+    
+    formulaCols.forEach((col, index) => {
+      const formulaRange = sheet.getRange(1, col, protectToRow, 1);
+      createProtection(formulaRange, `Protected ${colDescriptions[index]} column ${colNames[index]} (entire column)`);
+    });
+    
+    // OPTIMIZATION: Batch update all protections' editors at once
+    // For new files, protections have script owner as editor, but we need creator (user) as editor
+    // Skip checking - just add creator to all protections (much faster - no getEditors() calls)
+    const allProtections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+    allProtections.forEach(protection => {
+      protection.addEditor(creatorEmail); // Add creator (idempotent - safe to call multiple times)
+      // Note: For new files, script owner is already editor, but we want creator too
+      // We skip removing other editors to save API calls - script owner can stay as editor
     });
     
     // OPTIMIZATION: Batch apply borders and number format
@@ -695,9 +728,28 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     const templateSpreadsheet = SpreadsheetApp.create(templateFileName);
     const templateFile = DriveApp.getFileById(templateSpreadsheet.getId());
     
+    // Set file permissions: Only creator can access, remove all other editors/viewers
+    // OPTIMIZATION: Batch operations - get once, filter, then batch remove
+    const creatorEmail = Session.getActiveUser().getEmail();
+    const editors = templateFile.getEditors();
+    const viewers = templateFile.getViewers();
+    
+    // Batch remove all non-creator editors and all viewers in one go
+    const editorsToRemove = editors.filter(editor => editor.getEmail() !== creatorEmail);
+    if (editorsToRemove.length > 0) {
+      templateFile.removeEditors(editorsToRemove);
+    }
+    if (viewers.length > 0) {
+      templateFile.removeViewers(viewers);
+    }
+    // Ensure creator has access (only if not already editor - but addEditor is idempotent)
+    if (!editors.some(editor => editor.getEmail() === creatorEmail)) {
+      templateFile.addEditor(creatorEmail);
+    }
+    
     // Move the new file to the target folder (always move from root)
-      targetFolder.addFile(templateFile);
-      DriveApp.getRootFolder().removeFile(templateFile); // Remove from root folder
+    targetFolder.addFile(templateFile);
+    DriveApp.getRootFolder().removeFile(templateFile); // Remove from root folder
     
     // OPTIMIZATION: Fetch students from STUDENTS DB (single API call)
     const students = _getStudentsFromDB(schoolYear, gradeLevel, section);
