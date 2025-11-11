@@ -488,9 +488,15 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
       
       const setProtectionWithOnlyCreator = (protection, creatorEmail) => {
         try {
+          // Remove all existing editors (including script owner) to ensure only creator can edit
+          const currentEditors = protection.getEditors();
+          if (currentEditors.length > 0) {
+            protection.removeEditors(currentEditors);
+          }
+          // Add only the creator as editor
           protection.addEditor(creatorEmail);
         } catch (e) {
-          console.log('Note: Could not add editor to protection:', e.message);
+          console.log('Note: Could not set protection editors:', e.message);
         }
       };
       
@@ -521,6 +527,38 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
     if (hasStudents) {
       sheet.getRange(7, 2).setValue(students.length).setHorizontalAlignment('left');
     }
+  }
+}
+
+/**
+ * Helper function to get instructor email from INSTRUCTORS_REFERENCE sheet
+ * @param {string} instructorName - The instructor's full name
+ * @return {string} The instructor's email, or empty string if not found
+ */
+function _getInstructorEmail(instructorName) {
+  try {
+    const sheet = getSheet(CONFIG.SHEET_NAMES.INSTRUCTORS_REFERENCE);
+    if (!sheet) {
+      console.warn('INSTRUCTORS_REFERENCE sheet not found');
+      return '';
+    }
+    
+    // Read data starting from row 3 (after 2 header rows)
+    const data = sheet.getDataRange().getValues();
+    const startRow = CONFIG.DATA_START_ROW - 1; // Convert to 0-based index (row 3 = index 2)
+    const dataRows = data.slice(startRow);
+    
+    // Find instructor by name (column A = 0, Email = column B = 1)
+    const match = dataRows.find(row => row[0] === instructorName);
+    
+    if (match && match[1]) {
+      return match[1].toString().trim(); // Return email (column B)
+    }
+    
+    return '';
+  } catch (error) {
+    console.error('Error getting instructor email:', error);
+    return '';
   }
 }
 
@@ -683,30 +721,42 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     const templateSpreadsheet = SpreadsheetApp.create(templateFileName);
     const templateFile = DriveApp.getFileById(templateSpreadsheet.getId());
     
-    // Set file permissions: Initially private (only creator), ready to share later
-    // File can be shared manually with teachers/staff after generation
-    // Range protections ensure only you can edit protected cells even when shared
+    // Set file permissions: Creator and instructor have edit access
+    // Protected ranges will only allow creator to edit (instructor can edit unprotected cells)
     const creatorEmail = Session.getActiveUser().getEmail();
+    
+    // Get instructor email from INSTRUCTORS_REFERENCE sheet
+    const instructorEmail = _getInstructorEmail(instructor);
+    
     const editors = templateFile.getEditors();
     const viewers = templateFile.getViewers();
     
-    // Batch remove all non-creator editors and all viewers in one go (2 API calls max)
-    const editorsToRemove = editors.filter(editor => editor.getEmail() !== creatorEmail);
+    // Batch remove all non-creator/non-instructor editors and all viewers
+    const allowedEmails = [creatorEmail];
+    if (instructorEmail) {
+      allowedEmails.push(instructorEmail);
+    }
+    
+    const editorsToRemove = editors.filter(editor => !allowedEmails.includes(editor.getEmail()));
     if (editorsToRemove.length > 0) {
       templateFile.removeEditors(editorsToRemove); // Single batch operation
     }
     if (viewers.length > 0) {
       templateFile.removeViewers(viewers); // Single batch operation
     }
-    // Ensure creator has access (idempotent - safe to call even if already editor)
-    templateFile.addEditor(creatorEmail);
     
-    // NOTE: After generation, you can share this file with teachers/staff
-    // Protected ranges will remain locked to only you, while others can edit grading columns
+    // Ensure creator and instructor have access (idempotent - safe to call even if already editor)
+    templateFile.addEditor(creatorEmail);
+    if (instructorEmail) {
+      templateFile.addEditor(instructorEmail);
+    }
+    
+    // NOTE: Protected ranges (student data, formulas, headers) are locked to only creator
+    // Instructor can edit unprotected grading input columns (C, D, E, G, H, I, K, L, M, O, P, Q)
     
     // Move the new file to the target folder (always move from root)
-    targetFolder.addFile(templateFile);
-    DriveApp.getRootFolder().removeFile(templateFile); // Remove from root folder
+      targetFolder.addFile(templateFile);
+      DriveApp.getRootFolder().removeFile(templateFile); // Remove from root folder
     
     // OPTIMIZATION: Fetch students from STUDENTS DB (single API call)
     const students = _getStudentsFromDB(schoolYear, gradeLevel, section);
