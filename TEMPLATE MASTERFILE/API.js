@@ -450,7 +450,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
     
     // Build formula arrays for all columns at once
     const formulas = [];
-    for (let i = 0; i < numStudentRows; i++) {
+  for (let i = 0; i < numStudentRows; i++) {
       const row = startRow + i;
       
       // OPTIMIZATION: If we have actual student data, populate it
@@ -662,8 +662,8 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     const templateFile = DriveApp.getFileById(templateSpreadsheet.getId());
     
     // Move the new file to the target folder (always move from root)
-    targetFolder.addFile(templateFile);
-    DriveApp.getRootFolder().removeFile(templateFile); // Remove from root folder
+      targetFolder.addFile(templateFile);
+      DriveApp.getRootFolder().removeFile(templateFile); // Remove from root folder
     
     // OPTIMIZATION: Fetch students from STUDENTS DB (single API call)
     const students = _getStudentsFromDB(schoolYear, gradeLevel, section);

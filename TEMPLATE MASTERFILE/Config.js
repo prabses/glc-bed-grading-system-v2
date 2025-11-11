@@ -20,7 +20,7 @@ const CONFIG = {
   },
   
   // STUDENTS DB Spreadsheet Name - Located in the same folder as Template Masterfile
-  STUDENTS_DB_NAME: "STUDENTS_DB",
+  STUDENTS_DB_NAME: "STUDENTS DB",
   
   // Sheet names
   SHEET_NAMES: {
