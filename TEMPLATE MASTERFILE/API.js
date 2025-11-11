@@ -384,101 +384,103 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
   const dataRange = sheet.getRange(1, 1, numRows, numCols);
   dataRange.setValues(allData);
   
-  // Apply styles in batch - optimized for performance
-  // Title row
-  const titleRange = sheet.getRange(1, 1, 1, numCols);
-  titleRange.merge();
-  titleRange.setFontSize(18).setFontWeight('bold').setHorizontalAlignment('center');
+  // OPTIMIZATION: Apply styles in batch - minimized API calls
+  // Title row - chain methods for single API call
+  sheet.getRange(1, 1, 1, numCols)
+    .merge()
+    .setFontSize(18)
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
   
   // Info rows (3-8) - batch style operations
-  const infoRowsRange = sheet.getRange(3, 1, 6, 1); // Rows 3-8, Column 1
-  infoRowsRange.setFontWeight('bold');
-  // Background for info row values (skip row 5)
-  sheet.getRange(3, 2).setBackground('#f3f3f3'); // Row 3
-  sheet.getRange(4, 2).setBackground('#f3f3f3'); // Row 4
-  // Row 5 skipped (Total Student)
-  sheet.getRange(6, 2).setBackground('#f3f3f3'); // Row 6
-  sheet.getRange(7, 2).setBackground('#f3f3f3'); // Row 7
-  sheet.getRange(8, 2).setBackground('#f3f3f3'); // Row 8
+  sheet.getRange(3, 1, 6, 1).setFontWeight('bold'); // Labels bold
   
-  // Row 9: Grading period headers - merge and style in batch
-  sheet.getRange(9, 3, 1, 4).merge(); // 1ST GRADING
-  sheet.getRange(9, 7, 1, 4).merge(); // 2ND GRADING
-  sheet.getRange(9, 11, 1, 4).merge(); // 3RD GRADING
-  sheet.getRange(9, 15, 1, 4).merge(); // 4TH GRADING
-  const gradingHeaderRange = sheet.getRange(9, 3, 1, 16);
-  gradingHeaderRange.setFontWeight('bold').setHorizontalAlignment('center').setBackground('#e6e6e6');
+  // OPTIMIZATION: Batch background colors in one call
+  const infoBgRanges = [
+    sheet.getRange(3, 2), // Row 3
+    sheet.getRange(4, 2), // Row 4
+    sheet.getRange(6, 2), // Row 6 (skip row 5)
+    sheet.getRange(7, 2), // Row 7
+    sheet.getRange(8, 2)  // Row 8
+  ];
+  infoBgRanges.forEach(range => range.setBackground('#f3f3f3'));
   
-  // Row 10: Header row - batch all styles
-  const headerRange = sheet.getRange(10, 1, 1, numCols);
-  headerRange.setFontWeight('bold').setBackground('#d9d9d9').setHorizontalAlignment('center').setBorder(true, true, true, true, true, true);
+  // Row 9: Grading period headers - merge and style
+  sheet.getRange(9, 3, 1, 4).merge();   // 1ST GRADING
+  sheet.getRange(9, 7, 1, 4).merge();   // 2ND GRADING
+  sheet.getRange(9, 11, 1, 4).merge();  // 3RD GRADING
+  sheet.getRange(9, 15, 1, 4).merge();  // 4TH GRADING
   
-  // Set column widths (Google Sheets API doesn't support batch setColumnWidths, but this is fast)
+  // OPTIMIZATION: Chain all header styles
+  sheet.getRange(9, 3, 1, 16)
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center')
+    .setBackground('#e6e6e6');
+  
+  // Row 10: Header row - chain all styles
+  sheet.getRange(10, 1, 1, numCols)
+    .setFontWeight('bold')
+    .setBackground('#d9d9d9')
+    .setHorizontalAlignment('center')
+    .setBorder(true, true, true, true, true, true);
+  
+  // OPTIMIZATION: Batch set column widths
   sheet.setColumnWidth(1, 120);  // Student No
-  sheet.setColumnWidth(2, 250);   // Student Name
+  sheet.setColumnWidth(2, 250);  // Student Name
+  // Set all grading columns at once (columns 3-20)
   for (let c = 3; c <= 20; c++) {
-    sheet.setColumnWidth(c, 130); // All grading columns
+    sheet.setColumnWidth(c, 130);
   }
   
   // Freeze header rows
   sheet.setFrozenRows(10);
   
-  // Add student rows with formulas
+  // OPTIMIZATION: Add student rows with formulas
   const numStudentRows = CONFIG.TEMPLATE.NUM_STUDENT_ROWS;
   const startRow = 11;
   
-  // Prepare student data array
-  const studentData = [];
-  
-  for (let i = 0; i < numStudentRows; i++) {
-    const studentRow = Array(numCols).fill('');
-    studentData.push(studentRow);
-  }
-  
-  // Write student data
-  if (studentData.length > 0) {
-    // Batch write all data at once
-    sheet.getRange(startRow, 1, numStudentRows, numCols).setValues(studentData);
+  if (numStudentRows > 0) {
+    // OPTIMIZATION: Pre-build all formulas as strings (reuse weight values)
+    const ww = weights.writtenWork;
+    const pt = weights.performanceTask;
+    const as = weights.assessment;
     
-    // Batch apply borders to all student rows
-    sheet.getRange(startRow, 1, numStudentRows, numCols).setBorder(true, true, true, true, true, true);
+    // Build formula arrays for all columns at once
+    const formulas = [];
+    for (let i = 0; i < numStudentRows; i++) {
+      const row = startRow + i;
+      formulas.push([
+        '', // Student No (Column A)
+        '', // Student Name (Column B)
+        '', // TS1-Written (Column C)
+        '', // TS1-Performance (Column D)
+        '', // TS1-Assessment (Column E)
+        `=IF(AND(C${row}<>"",D${row}<>"",E${row}<>""),ROUND((C${row}*${ww}/100+D${row}*${pt}/100+E${row}*${as}/100),2),"")`, // 1st Transmuted (Column F)
+        '', // TS2-Written (Column G)
+        '', // TS2-Performance (Column H)
+        '', // TS2-Assessment (Column I)
+        `=IF(AND(G${row}<>"",H${row}<>"",I${row}<>""),ROUND((G${row}*${ww}/100+H${row}*${pt}/100+I${row}*${as}/100),2),"")`, // 2nd Transmuted (Column J)
+        '', // TS3-Written (Column K)
+        '', // TS3-Performance (Column L)
+        '', // TS3-Assessment (Column M)
+        `=IF(AND(K${row}<>"",L${row}<>"",M${row}<>""),ROUND((K${row}*${ww}/100+L${row}*${pt}/100+M${row}*${as}/100),2),"")`, // 3rd Transmuted (Column N)
+        '', // TS4-Written (Column O)
+        '', // TS4-Performance (Column P)
+        '', // TS4-Assessment (Column Q)
+        `=IF(AND(O${row}<>"",P${row}<>"",Q${row}<>""),ROUND((O${row}*${ww}/100+P${row}*${pt}/100+Q${row}*${as}/100),2),"")`, // 4th Transmuted (Column R)
+        '', // Column S placeholder
+        `=IF(AND(F${row}<>"",J${row}<>"",N${row}<>"",R${row}<>""),ROUND((F${row}+J${row}+N${row}+R${row})/4,2),"")` // Final Grading (Column T)
+      ]);
+    }
     
-    // Apply formulas by column - OPTIMIZED: Use setFormulas() for batch operations
-    // This reduces API calls from (numStudentRows × 5) to just 5 calls!
-    const formulaColumns = [6, 10, 14, 18, 20]; // Column indices for formulas (Transmuted columns and Final Grading)
+    // OPTIMIZATION: Single API call to write all formulas and data
+    sheet.getRange(startRow, 1, numStudentRows, numCols).setFormulas(formulas);
     
-    // Build formula arrays for each column
-    formulaColumns.forEach(colNum => {
-      const formulas = [];
-      for (let i = 0; i < numStudentRows; i++) {
-        const row = startRow + i;
-        let formula = '';
-        
-        switch(colNum) {
-          case 6: // 1st Transmuted (Column F)
-            formula = `=IF(AND(C${row}<>"",D${row}<>"",E${row}<>""),ROUND((C${row}*${weights.writtenWork}/100+D${row}*${weights.performanceTask}/100+E${row}*${weights.assessment}/100),2),"")`;
-            break;
-          case 10: // 2nd Transmuted (Column J)
-            formula = `=IF(AND(G${row}<>"",H${row}<>"",I${row}<>""),ROUND((G${row}*${weights.writtenWork}/100+H${row}*${weights.performanceTask}/100+I${row}*${weights.assessment}/100),2),"")`;
-            break;
-          case 14: // 3rd Transmuted (Column N)
-            formula = `=IF(AND(K${row}<>"",L${row}<>"",M${row}<>""),ROUND((K${row}*${weights.writtenWork}/100+L${row}*${weights.performanceTask}/100+M${row}*${weights.assessment}/100),2),"")`;
-            break;
-          case 18: // 4th Transmuted (Column R)
-            formula = `=IF(AND(O${row}<>"",P${row}<>"",Q${row}<>""),ROUND((O${row}*${weights.writtenWork}/100+P${row}*${weights.performanceTask}/100+Q${row}*${weights.assessment}/100),2),"")`;
-            break;
-          case 20: // Final Grading (Column S)
-            formula = `=IF(AND(F${row}<>"",J${row}<>"",N${row}<>"",R${row}<>""),ROUND((F${row}+J${row}+N${row}+R${row})/4,2),"")`;
-            break;
-        }
-        formulas.push([formula]);
-      }
-      
-      // Batch set all formulas for this column at once
-      sheet.getRange(startRow, colNum, numStudentRows, 1).setFormulas(formulas);
-    });
+    // OPTIMIZATION: Batch apply borders and number format
+    const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
+    studentRange.setBorder(true, true, true, true, true, true);
     
-    // Batch format number columns (all grading columns)
+    // Number format only for grading columns (C-T, columns 3-20)
     sheet.getRange(startRow, 3, numStudentRows, 18).setNumberFormat('0.00');
   }
 }
