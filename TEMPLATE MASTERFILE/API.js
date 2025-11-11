@@ -1087,6 +1087,8 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, instructo
     
     // Auto-resize TRAITS column (column 3) based on content
     sheet.autoResizeColumn(3);
+    const currentWidth = sheet.getColumnWidth(3);
+    sheet.setColumnWidth(3, currentWidth + 50); // Add 50 pixels of extra width
     
     // Format borders for student data (matching subject sheet format)
     studentRange.setBorder(true, true, true, true, true, true);
