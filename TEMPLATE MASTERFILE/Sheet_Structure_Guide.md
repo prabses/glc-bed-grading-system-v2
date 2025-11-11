@@ -45,7 +45,7 @@ This document outlines the **Google Sheets-native structure** for the Template M
 
 ## 🎨 System Overview
 
-### **Sheet Count: 7 sheets**
+### **Sheet Count: 8 sheets**
 
 | # | Sheet Name              | User Editable? | Purpose                                    |
 |---|-------------------------|----------------|--------------------------------------------|
@@ -56,6 +56,7 @@ This document outlines the **Google Sheets-native structure** for the Template M
 | 5 | INSTRUCTORS_REFERENCE   | ✅ Yes         | Instructor list with email                 |
 | 6 | SECTIONS_REFERENCE      | ✅ Yes         | Grade levels & sections                    |
 | 7 | GRADING_REFERENCE ⭐    | ✅ Yes         | Dynamic grading rules                      |
+| 8 | ATTENDANCE_MONTHLY_DAYS | ✅ Yes         | Number of school days per month per school year |
 
 ### **🔑 Key Dynamicness Features**
 
@@ -555,18 +556,80 @@ Student | Last Name | First Name | Written Work (30%) | Performance Task (50%) |
 
 ---
 
+### **Sheet 8: ATTENDANCE_MONTHLY_DAYS** (Reference Sheet)
 
+**Purpose:** Defines the total number of school days for each month per school year. Used as the base for calculating attendance percentages in OGS templates.
+
+**👥 USER-EDITABLE - Admins configure monthly school days here**
+
+**Sheet Structure with Parent Headers:**
+
+```
+Row 1 (Parent Header):
+┌─────────────────────────────────────────────────────────────┐
+│                  MONTHLY SCHOOL DAYS INFORMATION            │
+└─────────────────────────────────────────────────────────────┘
+                          Col A-C
+
+Row 2 (Column Headers):
+School Year | Month | Number of School Days
+```
+
+**Column Details:**
+
+| Column | Field Name         | Parent Header         | Description                                    | Example                  |
+|--------|-------------------|-----------------------|------------------------------------------------|--------------------------|
+| A      | School Year       | Monthly School Days   | School year this applies to                    | 2024-2025                |
+| B      | Month             | Monthly School Days   | Month name (full or abbreviated)              | June                     |
+| C      | Number of School Days | Monthly School Days | Total school days for this month              | 22                       |
+
+**Sample Data:**
+
+```
+Row 1: MONTHLY SCHOOL DAYS INFORMATION (merged across A-C)
+Row 2: School Year | Month  | Number of School Days
+Row 3: 2024-2025   | June    | 22
+Row 4: 2024-2025   | July    | 23
+Row 5: 2024-2025   | August  | 21
+Row 6: 2024-2025   | September | 20
+Row 5: 2024-2025   | October | 22
+Row 6: 2024-2025   | November | 19
+Row 7: 2024-2025   | December | 15
+Row 8: 2024-2025   | January | 22
+Row 9: 2024-2025   | February | 20
+Row 10: 2024-2025  | March   | 22
+```
+
+**Key Features:**
+- ✅ Defines total school days per month per school year
+- ✅ Used as denominator for attendance percentage calculations
+- ✅ School year-specific configuration
+- ✅ Accounts for varying month lengths and school calendar
+
+**Usage:**
+- Scripts read this when generating OGS templates to populate the "School DAYS" column in the Attendance sheet
+- The Attendance sheet is automatically added to OGS templates when the instructor is an advisor for the class
+- School DAYS values are pre-filled from this sheet for each month
+- Days PRESENT and Days ABSENT are entered manually by the instructor
+
+**💡 Pro Tip:** 
+- Include all months in the school year (typically June to March)
+- Number of school days should exclude weekends and holidays
+- These values are automatically populated in the Attendance sheet's "School DAYS" columns
+
+---
 
 ## 🔧 Setup Instructions (Simplified)
 
 ### **Step 1: Create the Spreadsheet**
 1. Create a new Google Spreadsheet
 2. Name it: "Template Masterfile - 2024-2025"
-3. Create **5 reference sheets** with these exact names (MASTER_DATA, ASSIGNMENTS, and ADVISORY are auto-created by scripts):
+3. Create **6 reference sheets** with these exact names (MASTER_DATA, ASSIGNMENTS, and ADVISORY are auto-created by scripts):
    - SUBJECTS_REFERENCE
    - INSTRUCTORS_REFERENCE
    - SECTIONS_REFERENCE
    - GRADING_REFERENCE
+   - ATTENDANCE_MONTHLY_DAYS
 
 ### **Step 2: Set Up Headers**
 
@@ -577,7 +640,7 @@ Student | Last Name | First Name | Written Work (30%) | Performance Task (50%) |
 - Data starts at **Row 2**
 - ADVISORY sheet columns: Instructor | Grade Level | Section | Status | Created | Modified | Created By
 
-**For reference sheets (SUBJECTS_REFERENCE, INSTRUCTORS_REFERENCE, SECTIONS_REFERENCE, GRADING_REFERENCE), create TWO header rows:**
+**For reference sheets (SUBJECTS_REFERENCE, INSTRUCTORS_REFERENCE, SECTIONS_REFERENCE, GRADING_REFERENCE, ATTENDANCE_MONTHLY_DAYS), create TWO header rows:**
 
 **Row 1:** Parent Headers (merged cells across related columns)
 - Format: Bold, larger font (12-14pt), centered, background color (#f3f3f3)
@@ -630,6 +693,7 @@ Leave these **UNPROTECTED** (users need to edit):
 - INSTRUCTORS_REFERENCE
 - SECTIONS_REFERENCE
 - GRADING_REFERENCE
+- ATTENDANCE_MONTHLY_DAYS
 
 ### **Step 5: Set Up Conditional Formatting (Optional but Recommended)**
 
@@ -1166,4 +1230,5 @@ For questions or issues with this structure:
 | INSTRUCTORS_REFERENCE   | 3       | ✅ Yes        | Instructors + emails                   |
 | SECTIONS_REFERENCE      | 3       | ✅ Yes        | Grade levels, sections & level tags   |
 | GRADING_REFERENCE       | 5       | ✅ Yes        | Dynamic grading weights                |
+| ATTENDANCE_MONTHLY_DAYS | 3       | ✅ Yes        | Monthly school days per school year   |
 

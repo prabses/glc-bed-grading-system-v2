@@ -693,6 +693,249 @@ function _getStudentsFromDB(schoolYear, gradeLevel, section) {
 }
 
 /**
+ * Helper function to check if instructor is an advisor for the given class
+ * @param {string} instructor - The instructor name
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @return {boolean} True if instructor is an active advisor for this class
+ */
+function _isInstructorAdvisor(instructor, gradeLevel, section) {
+  try {
+    const advisories = _getAdvisories(instructor);
+    return advisories.some(adv => 
+      adv.instructor === instructor &&
+      adv.gradeLevel === gradeLevel &&
+      adv.section === section &&
+      adv.status === 'Active'
+    );
+  } catch (error) {
+    console.error('Error checking if instructor is advisor:', error);
+    return false;
+  }
+}
+
+/**
+ * Helper function to get monthly school days from ATTENDANCE_MONTHLY_DAYS sheet
+ * @param {string} schoolYear - The school year (e.g., "2024-2025")
+ * @return {Object} Object with month names as keys and school days as values
+ */
+function _getMonthlySchoolDays(schoolYear) {
+  try {
+    const sheet = getSheet(CONFIG.SHEET_NAMES.ATTENDANCE_MONTHLY_DAYS);
+    if (!sheet) {
+      console.warn('ATTENDANCE_MONTHLY_DAYS sheet not found');
+      return {};
+    }
+    
+    // Read data starting from row 3 (after 2 header rows)
+    const data = sheet.getDataRange().getValues();
+    const startRow = CONFIG.DATA_START_ROW - 1; // Convert to 0-based index (row 3 = index 2)
+    const dataRows = data.slice(startRow);
+    
+    const monthlyDays = {};
+    
+    // Filter by school year and build month -> days mapping
+    dataRows.forEach(row => {
+      const rowSchoolYear = row[0]; // Column A: School Year
+      const month = row[1]; // Column B: Month
+      const days = row[2]; // Column C: Number of School Days
+      
+      if (rowSchoolYear === schoolYear && month && days) {
+        // Normalize month name (handle variations like "June", "Jun", etc.)
+        const monthKey = month.toString().trim();
+        monthlyDays[monthKey] = days;
+      }
+    });
+    
+    return monthlyDays;
+  } catch (error) {
+    console.error('Error getting monthly school days:', error);
+    return {};
+  }
+}
+
+/**
+ * Internal function to set up the Attendance sheet structure
+ * @param {Sheet} sheet - The target sheet
+ * @param {string} schoolYear - The school year
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @param {Array} students - Array of student objects
+ */
+function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, students = []) {
+  // Clear the sheet first
+  sheet.clear();
+  
+  // Get monthly school days for the school year
+  const monthlyDays = _getMonthlySchoolDays(schoolYear);
+  
+  // Define months in order (typical school year: June to March)
+  const monthOrder = ['June', 'July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March'];
+  
+  // Filter months that have data in monthlyDays
+  const availableMonths = monthOrder.filter(month => {
+    // Try exact match and variations
+    return monthlyDays[month] || 
+           monthlyDays[month.substring(0, 3)] || 
+           Object.keys(monthlyDays).some(key => 
+             key.toLowerCase().startsWith(month.toLowerCase().substring(0, 3))
+           );
+  });
+  
+  // If no months found, use default months
+  const monthsToUse = availableMonths.length > 0 ? availableMonths : monthOrder;
+  
+  const numCols = 2 + (monthsToUse.length * 3); // Student No + Name + (3 cols per month)
+  const allData = [];
+  
+  // Helper function to pad row to numCols
+  const padRow = (row) => {
+    const padded = [...row];
+    while (padded.length < numCols) {
+      padded.push('');
+    }
+    return padded.slice(0, numCols);
+  };
+  
+  // Row 1: School Year
+  allData.push(padRow(['School Year:', schoolYear]));
+  
+  // Row 2: Level
+  allData.push(padRow(['Level:', gradeLevel]));
+  
+  // Row 3: Section
+  allData.push(padRow(['Section:', section]));
+  
+  // Row 4: Total Student
+  allData.push(padRow(['Total Student:', students.length > 0 ? students.length : '']));
+  
+  // Row 5: Month Start (first month)
+  const firstMonth = monthsToUse.length > 0 ? monthsToUse[0].substring(0, 3) : 'Aug';
+  allData.push(padRow(['Month Start:', firstMonth]));
+  
+  // Rows 6-7: Empty
+  allData.push(padRow(['']));
+  allData.push(padRow(['']));
+  
+  // Row 8: Empty
+  allData.push(padRow(['']));
+  
+  // Row 9: Month headers (merged across 3 columns each)
+  const monthHeaderRow = ['', ''];
+  monthsToUse.forEach(() => {
+    monthHeaderRow.push('', '', ''); // Placeholder for merged cells
+  });
+  allData.push(padRow(monthHeaderRow));
+  
+  // Row 10: Column headers (Student No, Student Name, then for each month: School DAYS, Days PRESENT, Days ABSENT)
+  const headerRow = ['Student No.', 'Student Name'];
+  monthsToUse.forEach(() => {
+    headerRow.push('School DAYS', 'Days PRESENT', 'Days ABSENT');
+  });
+  allData.push(padRow(headerRow));
+  
+  // Write all data at once
+  const numRows = allData.length;
+  const dataRange = sheet.getRange(1, 1, numRows, numCols);
+  dataRange.setValues(allData);
+  
+  // Format metadata rows (1-5)
+  sheet.getRange(1, 1, 5, 1).setFontWeight('bold');
+  
+  // Format "Month Start" value in red
+  sheet.getRange(5, 2).setFontColor('#ff0000');
+  
+  // Row 9: Merge month headers across 3 columns each
+  let colIndex = 3; // Start at column C
+  monthsToUse.forEach((month, index) => {
+    const monthAbbr = month.substring(0, 3);
+    sheet.getRange(9, colIndex, 1, 3).merge();
+    sheet.getRange(9, colIndex).setValue(monthAbbr);
+    sheet.getRange(9, colIndex).setFontWeight('bold').setHorizontalAlignment('center');
+    colIndex += 3;
+  });
+  
+  // Row 10: Format column headers
+  sheet.getRange(10, 1, 1, numCols).setFontWeight('bold').setHorizontalAlignment('center');
+  
+  // Add student data
+  const startRow = 11;
+  const numStudentRows = Math.max(students.length, 30); // At least 30 rows
+  
+  if (students.length > 0) {
+    const studentData = [];
+    students.forEach((student, index) => {
+      const row = [
+        index + 1, // Student No (1-based)
+        `${student.lastName}, ${student.firstName}${student.middleName ? ' ' + student.middleName : ''}`.trim() // Student Name
+      ];
+      // Add empty cells for each month (3 columns each)
+      monthsToUse.forEach(() => {
+        row.push('', '', ''); // School DAYS, Days PRESENT, Days ABSENT
+      });
+      studentData.push(padRow(row));
+    });
+    
+    // Fill remaining rows with empty data
+    for (let i = students.length; i < numStudentRows; i++) {
+      const row = [i + 1, '']; // Student No, empty name
+      monthsToUse.forEach(() => {
+        row.push('', '', ''); // Empty attendance data
+      });
+      studentData.push(padRow(row));
+    }
+    
+    // Write student data
+    const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
+    studentRange.setValues(studentData);
+    
+    // Populate School DAYS for each month from monthlyDays data
+    colIndex = 3; // Start at column C
+    monthsToUse.forEach((month) => {
+      // Find matching month in monthlyDays (try exact match and variations)
+      let schoolDays = monthlyDays[month] || 
+                       monthlyDays[month.substring(0, 3)] ||
+                       Object.keys(monthlyDays).find(key => 
+                         key.toLowerCase().startsWith(month.toLowerCase().substring(0, 3))
+                       ) ? monthlyDays[Object.keys(monthlyDays).find(key => 
+                         key.toLowerCase().startsWith(month.toLowerCase().substring(0, 3))
+                       )] : '';
+      
+      if (schoolDays) {
+        // Fill School DAYS column for all student rows
+        const schoolDaysRange = sheet.getRange(startRow, colIndex, numStudentRows, 1);
+        const schoolDaysValues = Array(numStudentRows).fill([schoolDays]);
+        schoolDaysRange.setValues(schoolDaysValues);
+      }
+      colIndex += 3; // Move to next month (skip PRESENT and ABSENT columns)
+    });
+  } else {
+    // No students - create empty rows
+    const emptyRows = [];
+    for (let i = 0; i < numStudentRows; i++) {
+      const row = [i + 1, '']; // Student No, empty name
+      monthsToUse.forEach(() => {
+        row.push('', '', ''); // Empty attendance data
+      });
+      emptyRows.push(padRow(row));
+    }
+    const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
+    studentRange.setValues(emptyRows);
+  }
+  
+  // Format borders
+  const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
+  studentRange.setBorder(true, true, true, true, true, true);
+  
+  // Set column widths
+  sheet.setColumnWidth(1, 100); // Student No
+  sheet.setColumnWidth(2, 250); // Student Name
+  for (let c = 3; c <= numCols; c++) {
+    sheet.setColumnWidth(c, 100); // Attendance columns
+  }
+}
+
+/**
  * Internal function to generate OGS template based on provided parameters
  * Creates a new Google Sheet file with one sheet per subject for the instructor
  * Organizes files into folders: "YYYY-YYYY Grade XY" format
@@ -804,6 +1047,13 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
       createdSheets.push(subject);
     }
     
+    // Check if instructor is advisor for this class - if yes, add Attendance sheet
+    const isAdvisor = _isInstructorAdvisor(instructor, gradeLevel, section);
+    if (isAdvisor) {
+      const attendanceSheet = templateSpreadsheet.insertSheet('Attendance');
+      _setupAttendanceSheet(attendanceSheet, schoolYear, gradeLevel, section, students);
+    }
+    
     // Get the template file URL
     const templateUrl = templateSpreadsheet.getUrl();
     
@@ -812,7 +1062,8 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     
     const subjectsList = subjects.join(', ');
     const studentCountMsg = students.length > 0 ? `\nStudents: ${students.length} students loaded from STUDENTS DB` : '\nStudents: No students found (template generated with blank rows)';
-    const message = `OGS Template generated successfully!\n\nFolder: ${folderName}\nTemplate: ${templateFileName}\nSchool Year: ${schoolYear}\nGrade Level: ${gradeLevel}\nSection: ${section}\nInstructor: ${instructor}${studentCountMsg}\n\nSubjects (${subjects.length} sheets):\n${subjects.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+    const attendanceMsg = isAdvisor ? '\nAttendance sheet included (instructor is advisor for this class)' : '';
+    const message = `OGS Template generated successfully!\n\nFolder: ${folderName}\nTemplate: ${templateFileName}\nSchool Year: ${schoolYear}\nGrade Level: ${gradeLevel}\nSection: ${section}\nInstructor: ${instructor}${studentCountMsg}${attendanceMsg}\n\nSubjects (${subjects.length} sheets):\n${subjects.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
     
     return { 
       success: true, 
