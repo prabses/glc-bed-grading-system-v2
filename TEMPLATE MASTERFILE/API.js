@@ -313,7 +313,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
   sheet.clear();
   
   // Build all data in memory first for batch operations
-  const numCols = 20; // Fixed number of columns
+  const numCols = 19; // Fixed number of columns: A-S (Student No, Student Name, 4 grading periods × 4 cols each, Final Grading)
   const allData = [];
   
   // Helper function to pad row to numCols
@@ -428,8 +428,8 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
   // OPTIMIZATION: Batch set column widths
   sheet.setColumnWidth(1, 120);  // Student No
   sheet.setColumnWidth(2, 250);  // Student Name
-  // Set all grading columns at once (columns 3-20)
-  for (let c = 3; c <= 20; c++) {
+  // Set all grading columns at once (columns 3-19)
+  for (let c = 3; c <= 19; c++) {
     sheet.setColumnWidth(c, 130);
   }
   
@@ -457,10 +457,10 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
       10: [], // Column J: 2nd Transmuted
       14: [], // Column N: 3rd Transmuted
       18: [], // Column R: 4th Transmuted
-      20: []  // Column T: Final Grading
+      19: []  // Column S: Final Grading
     };
-    
-    for (let i = 0; i < numStudentRows; i++) {
+  
+  for (let i = 0; i < numStudentRows; i++) {
       const row = startRow + i;
       
       // OPTIMIZATION: Get actual student data from STUDENTS DB
@@ -481,29 +481,53 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
       // Store student values (will use setValues - not formulas)
       studentValues.push([studentNumber, studentName]);
       
-      // Build formulas for calculated columns
-      formulaColumns[6].push([`=IF(AND(C${row}<>"",D${row}<>"",E${row}<>""),ROUND((C${row}*${ww}/100+D${row}*${pt}/100+E${row}*${as}/100),2),"")`]); // 1st Transmuted
-      formulaColumns[10].push([`=IF(AND(G${row}<>"",H${row}<>"",I${row}<>""),ROUND((G${row}*${ww}/100+H${row}*${pt}/100+I${row}*${as}/100),2),"")`]); // 2nd Transmuted
-      formulaColumns[14].push([`=IF(AND(K${row}<>"",L${row}<>"",M${row}<>""),ROUND((K${row}*${ww}/100+L${row}*${pt}/100+M${row}*${as}/100),2),"")`]); // 3rd Transmuted
-      formulaColumns[18].push([`=IF(AND(O${row}<>"",P${row}<>"",Q${row}<>""),ROUND((O${row}*${ww}/100+P${row}*${pt}/100+Q${row}*${as}/100),2),"")`]); // 4th Transmuted
-      formulaColumns[20].push([`=IF(AND(F${row}<>"",J${row}<>"",N${row}<>"",R${row}<>""),ROUND((F${row}+J${row}+N${row}+R${row})/4,2),"")`]); // Final Grading
+      // Build formulas for calculated columns using weights from GRADING_REFERENCE
+      // Transmuted = (Written Work × Written Work %) + (Performance Task × Performance Task %) + (Assessment × Assessment %)
+      // Weights (ww, pt, as) are percentages from GRADING_REFERENCE sheet, divided by 100 to convert to decimal
+      formulaColumns[6].push([`=IF(AND(C${row}<>"",D${row}<>"",E${row}<>""),ROUND((C${row}*${ww}/100+D${row}*${pt}/100+E${row}*${as}/100),2),"")`]); // 1st Transmuted (Column F)
+      formulaColumns[10].push([`=IF(AND(G${row}<>"",H${row}<>"",I${row}<>""),ROUND((G${row}*${ww}/100+H${row}*${pt}/100+I${row}*${as}/100),2),"")`]); // 2nd Transmuted (Column J)
+      formulaColumns[14].push([`=IF(AND(K${row}<>"",L${row}<>"",M${row}<>""),ROUND((K${row}*${ww}/100+L${row}*${pt}/100+M${row}*${as}/100),2),"")`]); // 3rd Transmuted (Column N)
+      formulaColumns[18].push([`=IF(AND(O${row}<>"",P${row}<>"",Q${row}<>""),ROUND((O${row}*${ww}/100+P${row}*${pt}/100+Q${row}*${as}/100),2),"")`]); // 4th Transmuted (Column R)
+      
+      // Final Grading = Average of the 4 transmuted values
+      formulaColumns[19].push([`=IF(AND(F${row}<>"",J${row}<>"",N${row}<>"",R${row}<>""),ROUND((F${row}+J${row}+N${row}+R${row})/4,2),"")`]); // Final Grading (Column S)
     }
     
     // OPTIMIZATION: Write student values (columns A-B) using setValues to avoid formula interpretation
     sheet.getRange(startRow, 1, numStudentRows, 2).setValues(studentValues);
     
-    // OPTIMIZATION: Write formulas for calculated columns only
+    // OPTIMIZATION: Explicitly set empty values for all grading input columns (not formulas)
+    // Columns C, D, E (TS1), G, H, I (TS2), K, L, M (TS3), O, P, Q (TS4) are empty values
+    // Only columns F, J, N, R (Transmuted) and S (Final Grading) have formulas
+    const emptyColumns = [3, 4, 5, 7, 8, 9, 11, 12, 13, 15, 16, 17]; // C, D, E, G, H, I, K, L, M, O, P, Q
+    const emptyValues = Array(numStudentRows).fill(['']); // Array of empty strings for each row
+    emptyColumns.forEach(col => {
+      sheet.getRange(startRow, col, numStudentRows, 1).setValues(emptyValues);
+    });
+    
+    // OPTIMIZATION: Write formulas ONLY for calculated columns (Transmuted and Final Grading)
     Object.keys(formulaColumns).forEach(colNum => {
       const col = parseInt(colNum);
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulaColumns[col]);
+    });
+    
+    // PROTECTION: Lock formula columns to prevent modification
+    // Protect transmuted columns (F, J, N, R) and final grading column (S)
+    const formulaColumnsToProtect = [6, 10, 14, 18, 19]; // F, J, N, R, S
+    formulaColumnsToProtect.forEach(colNum => {
+      const formulaRange = sheet.getRange(startRow, colNum, numStudentRows, 1);
+      // Lock the cells (prevents editing)
+      formulaRange.protect()
+        .setDescription(`Protected formula column ${String.fromCharCode(64 + colNum)}`)
+        .setWarningOnly(false); // false = prevent editing, true = warn but allow
     });
     
     // OPTIMIZATION: Batch apply borders and number format
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setBorder(true, true, true, true, true, true);
     
-    // Number format only for grading columns (C-T, columns 3-20)
-    sheet.getRange(startRow, 3, numStudentRows, 18).setNumberFormat('0.00');
+    // Number format only for grading columns (C-S, columns 3-19)
+    sheet.getRange(startRow, 3, numStudentRows, 17).setNumberFormat('0.00');
     
     // Update Total Student count in info section
     if (hasStudents) {
@@ -656,9 +680,15 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     // Check if template file already exists in the target folder
     const existingFiles = targetFolder.getFilesByName(templateFileName);
     if (existingFiles.hasNext()) {
-      // Delete existing file if it exists
+      // File already exists - return error without creating or writing to MASTER_DATA
       const existingFile = existingFiles.next();
-      existingFile.setTrashed(true);
+      const existingFileUrl = existingFile.getUrl();
+      return {
+        success: false,
+        message: `Template file already exists!\n\nFile: ${templateFileName}\nFolder: ${folderName}\n\nPlease delete the existing file first if you want to regenerate it.\n\nExisting file: ${existingFileUrl}`,
+        templateUrl: existingFileUrl,
+        folderName: folderName
+      };
     }
     
     // Create new Google Sheet file
