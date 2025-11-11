@@ -938,6 +938,175 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, instructo
 }
 
 /**
+ * Helper function to get active traits from CHARACTERS_REFERENCE sheet
+ * @return {Array} Array of active trait names
+ */
+function _getActiveTraits() {
+  try {
+    return _getActiveItems(CONFIG.SHEET_NAMES.CHARACTERS_REFERENCE, 0);
+  } catch (error) {
+    console.error('Error getting active traits:', error);
+    return [];
+  }
+}
+
+/**
+ * Internal function to set up the Characters sheet structure
+ * @param {Sheet} sheet - The target sheet
+ * @param {string} schoolYear - The school year
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @param {string} instructor - The instructor/advisor name
+ * @param {Array} students - Array of student objects
+ */
+function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, instructor, students = []) {
+  // Clear the sheet first
+  sheet.clear();
+  
+  // Get active traits from CHARACTERS_REFERENCE sheet
+  const traits = _getActiveTraits();
+  
+  // Fixed number of columns: Student No, Student Name, TRAITS, 1st Grade, 1st EQ, 2nd Grade, 2nd EQ, 3rd Grade, 3rd EQ, 4th Grade, 4th EQ, Final Grading, Final EQ
+  const numCols = 13;
+  const allData = [];
+  
+  // Helper function to pad row to numCols
+  const padRow = (row) => {
+    const padded = [...row];
+    while (padded.length < numCols) {
+      padded.push('');
+    }
+    return padded.slice(0, numCols);
+  };
+  
+  // Row 1-5: Info rows (matching subject sheet format)
+  allData.push(padRow(['Advisor Name:', instructor]));
+  allData.push(padRow(['School Year:', schoolYear]));
+  allData.push(padRow(['Level:', gradeLevel]));
+  allData.push(padRow(['Section:', section]));
+  allData.push(padRow(['Total Student:', students.length > 0 ? students.length : '']));
+  
+  // Row 6: Column headers
+  const headerRow = [
+    'Student No',
+    'Student Name',
+    'TRAITS',
+    '1st Grade',
+    '1st EQ',
+    '2nd Grade',
+    '2nd EQ',
+    '3rd Grade',
+    '3rd EQ',
+    '4th Grade',
+    '4th EQ',
+    'Final Grading',
+    'Final EQ'
+  ];
+  allData.push(padRow(headerRow));
+  
+  // Write all data at once
+  const numRows = allData.length;
+  const dataRange = sheet.getRange(1, 1, numRows, numCols);
+  dataRange.setValues(allData);
+  
+  // Info rows (1-5) - matching subject sheet format
+  sheet.getRange(1, 1, 5, 1).setFontWeight('bold');
+  sheet.getRange(1, 2, 2, 1).setBackground('#f3f3f3'); // Advisor Name, School Year
+  sheet.getRange(3, 2, 1, 1).setBackground('#f3f3f3'); // Level
+  sheet.getRange(4, 2, 2, 1).setBackground('#f3f3f3'); // Section, Total Student
+  
+  // Total Student value should be left-aligned
+  sheet.getRange(5, 2).setHorizontalAlignment('left');
+  
+  // Row 6: Format column headers (matching subject sheet format)
+  sheet.getRange(6, 1, 1, numCols)
+    .setFontWeight('bold')
+    .setBackground('#d9d9d9')
+    .setHorizontalAlignment('center')
+    .setBorder(true, true, true, true, true, true);
+  
+  // Set column widths (matching subject sheet format)
+  sheet.setColumnWidth(1, 120); // Student No
+  sheet.setColumnWidth(2, 250); // Student Name
+  // TRAITS column will be auto-resized after data is written
+  for (let c = 4; c <= numCols; c++) {
+    sheet.setColumnWidth(c, 130); // Grade and EQ columns
+  }
+  
+  // Freeze rows at row 6 (matching subject sheet format)
+  sheet.setFrozenRows(6);
+  
+  // Add student data - each student gets one row per active trait
+  const hasStudents = students && students.length > 0;
+  const hasTraits = traits && traits.length > 0;
+  const startRow = 7;
+  
+  if (hasStudents && hasTraits) {
+    const studentValues = [];
+    
+    // For each student, create one row per active trait
+    students.forEach((student) => {
+      const studentNumber = student.studentNumber || '';
+      const lastName = student.lastName || '';
+      const firstName = student.firstName || '';
+      const middleName = student.middleName || '';
+      const studentName = `${lastName}${firstName ? ', ' + firstName : ''}${middleName ? ' ' + middleName : ''}`.trim();
+      
+      // Create one row for each active trait
+      traits.forEach((trait) => {
+        const row = [
+          studentNumber, // Student No (duplicated for each trait)
+          studentName,   // Student Name (duplicated for each trait)
+          trait,         // TRAITS - the trait name from CHARACTERS_REFERENCE
+          '', '', // 1st Grade, 1st EQ
+          '', '', // 2nd Grade, 2nd EQ
+          '', '', // 3rd Grade, 3rd EQ
+          '', '', // 4th Grade, 4th EQ
+          '',     // Final Grading - empty (could add formula later if needed)
+          ''      // Final EQ - empty (could add formula later if needed)
+        ];
+        studentValues.push(padRow(row));
+      });
+    });
+    
+    // Add empty rows if needed to reach minimum
+    const totalRows = studentValues.length;
+    const minRows = CONFIG.TEMPLATE.NUM_STUDENT_ROWS * (hasTraits ? traits.length : 1);
+    if (totalRows < minRows) {
+      const emptyRowsNeeded = minRows - totalRows;
+      for (let i = 0; i < emptyRowsNeeded; i++) {
+        const row = ['', '', '', '', '', '', '', '', '', '', '', '', '']; // All 13 columns empty
+        studentValues.push(padRow(row));
+      }
+    }
+    
+    // Write student data
+    const numStudentRows = studentValues.length;
+    const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
+    studentRange.setValues(studentValues);
+    
+    // Auto-resize TRAITS column (column 3) based on content
+    sheet.autoResizeColumn(3);
+    
+    // Format borders for student data (matching subject sheet format)
+    studentRange.setBorder(true, true, true, true, true, true);
+  } else {
+    // No students or no traits - create empty rows
+    const numStudentRows = CONFIG.TEMPLATE.NUM_STUDENT_ROWS * (hasTraits ? traits.length : 1);
+    const emptyValues = [];
+    for (let i = 0; i < numStudentRows; i++) {
+      const row = ['', '', '', '', '', '', '', '', '', '', '', '', '']; // All 13 columns empty
+      emptyValues.push(padRow(row));
+    }
+    const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
+    studentRange.setValues(emptyValues);
+    
+    // Format borders for student data (matching subject sheet format)
+    studentRange.setBorder(true, true, true, true, true, true);
+  }
+}
+
+/**
  * Internal function to generate OGS template based on provided parameters
  * Creates a new Google Sheet file with one sheet per subject for the instructor
  * Organizes files into folders: "YYYY-YYYY Grade XY" format
@@ -1049,11 +1218,14 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
       createdSheets.push(subject);
     }
     
-    // Check if instructor is advisor for this class - if yes, add Attendance sheet
+    // Check if instructor is advisor for this class - if yes, add Attendance and Characters sheets
     const isAdvisor = _isInstructorAdvisor(instructor, gradeLevel, section);
     if (isAdvisor) {
       const attendanceSheet = templateSpreadsheet.insertSheet('Attendance');
       _setupAttendanceSheet(attendanceSheet, schoolYear, gradeLevel, section, instructor, students);
+      
+      const charactersSheet = templateSpreadsheet.insertSheet('Character');
+      _setupCharactersSheet(charactersSheet, schoolYear, gradeLevel, section, instructor, students);
     }
     
     // Get the template file URL
@@ -1064,8 +1236,8 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     
     const subjectsList = subjects.join(', ');
     const studentCountMsg = students.length > 0 ? `\nStudents: ${students.length} students loaded from STUDENTS DB` : '\nStudents: No students found (template generated with blank rows)';
-    const attendanceMsg = isAdvisor ? '\nAttendance sheet included (instructor is advisor for this class)' : '';
-    const message = `OGS Template generated successfully!\n\nFolder: ${folderName}\nTemplate: ${templateFileName}\nSchool Year: ${schoolYear}\nGrade Level: ${gradeLevel}\nSection: ${section}\nInstructor: ${instructor}${studentCountMsg}${attendanceMsg}\n\nSubjects (${subjects.length} sheets):\n${subjects.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+    const advisorSheetsMsg = isAdvisor ? '\nAttendance and Characters sheets included (instructor is advisor for this class)' : '';
+    const message = `OGS Template generated successfully!\n\nFolder: ${folderName}\nTemplate: ${templateFileName}\nSchool Year: ${schoolYear}\nGrade Level: ${gradeLevel}\nSection: ${section}\nInstructor: ${instructor}${studentCountMsg}${advisorSheetsMsg}\n\nSubjects (${subjects.length} sheets):\n${subjects.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
     
     return { 
       success: true, 

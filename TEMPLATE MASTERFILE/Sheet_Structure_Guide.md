@@ -45,7 +45,7 @@ This document outlines the **Google Sheets-native structure** for the Template M
 
 ## 🎨 System Overview
 
-### **Sheet Count: 8 sheets**
+### **Sheet Count: 9 sheets**
 
 | # | Sheet Name              | User Editable? | Purpose                                    |
 |---|-------------------------|----------------|--------------------------------------------|
@@ -57,6 +57,7 @@ This document outlines the **Google Sheets-native structure** for the Template M
 | 6 | SECTIONS_REFERENCE      | ✅ Yes         | Grade levels & sections                    |
 | 7 | GRADING_REFERENCE ⭐    | ✅ Yes         | Dynamic grading rules                      |
 | 8 | ATTENDANCE_MONTHLY_DAYS | ✅ Yes         | Number of school days per month per school year |
+| 9 | CHARACTERS_REFERENCE    | ✅ Yes         | Character traits list                      |
 
 ### **🔑 Key Dynamicness Features**
 
@@ -619,17 +620,69 @@ Row 10: 2024-2025  | March   | 22
 
 ---
 
+### **Sheet 9: CHARACTERS_REFERENCE** (Reference Sheet)
+
+**Purpose:** Simple list of character traits used for character grading in OGS templates. Similar structure to SUBJECTS_REFERENCE.
+
+**👥 USER-EDITABLE - Admins can add/edit character traits here**
+
+**Sheet Structure with Parent Headers:**
+
+```
+Row 1 (Parent Header):
+┌─────────────────────────────────────────┐
+│         CHARACTER TRAITS INFORMATION   │
+└─────────────────────────────────────────┘
+              Col A-B
+
+Row 2 (Column Headers):
+Trait Name | Active
+```
+
+**Column Details:**
+
+| Column | Field Name    | Parent Header         | Description                    | Example         |
+|--------|---------------|-----------------------|--------------------------------|-----------------|
+| A      | Trait Name    | Character Traits Info  | Full trait name                 | Respect         |
+| B      | Active        | Character Traits Info  | ✓ or blank (hide if inactive)  | ✓               |
+
+**Sample Data:**
+
+```
+Row 1: CHARACTER TRAITS INFORMATION (merged across A-B)
+Row 2: Trait Name      | Active
+Row 3: Respect         | ✓
+Row 4: Responsibility  | ✓
+Row 5: Honesty         | ✓
+Row 6: Cooperation     | ✓
+Row 7: Old Trait       |     ← Inactive, won't show in templates
+```
+
+**Key Features:**
+- ✅ Simple two-column structure (Trait Name, Active)
+- ✅ Managed like SUBJECTS_REFERENCE
+- ✅ Only active traits are used in OGS template Characters sheet
+- ✅ Easy to add/remove traits by adding rows and marking Active
+
+**Usage:**
+- Scripts read this when generating Characters sheet in OGS templates
+- Only traits marked as Active (✓) are considered
+- Characters sheet is automatically added to OGS templates when instructor is advisor for the class
+
+---
+
 ## 🔧 Setup Instructions (Simplified)
 
 ### **Step 1: Create the Spreadsheet**
 1. Create a new Google Spreadsheet
 2. Name it: "Template Masterfile - 2024-2025"
-3. Create **6 reference sheets** with these exact names (MASTER_DATA, ASSIGNMENTS, and ADVISORY are auto-created by scripts):
+3. Create **7 reference sheets** with these exact names (MASTER_DATA, ASSIGNMENTS, and ADVISORY are auto-created by scripts):
    - SUBJECTS_REFERENCE
    - INSTRUCTORS_REFERENCE
    - SECTIONS_REFERENCE
    - GRADING_REFERENCE
    - ATTENDANCE_MONTHLY_DAYS
+   - CHARACTERS_REFERENCE
 
 ### **Step 2: Set Up Headers**
 
@@ -640,7 +693,7 @@ Row 10: 2024-2025  | March   | 22
 - Data starts at **Row 2**
 - ADVISORY sheet columns: Instructor | Grade Level | Section | Status | Created | Modified | Created By
 
-**For reference sheets (SUBJECTS_REFERENCE, INSTRUCTORS_REFERENCE, SECTIONS_REFERENCE, GRADING_REFERENCE, ATTENDANCE_MONTHLY_DAYS), create TWO header rows:**
+**For reference sheets (SUBJECTS_REFERENCE, INSTRUCTORS_REFERENCE, SECTIONS_REFERENCE, GRADING_REFERENCE, ATTENDANCE_MONTHLY_DAYS, CHARACTERS_REFERENCE), create TWO header rows:**
 
 **Row 1:** Parent Headers (merged cells across related columns)
 - Format: Bold, larger font (12-14pt), centered, background color (#f3f3f3)
@@ -694,6 +747,7 @@ Leave these **UNPROTECTED** (users need to edit):
 - SECTIONS_REFERENCE
 - GRADING_REFERENCE
 - ATTENDANCE_MONTHLY_DAYS
+- CHARACTERS_REFERENCE
 
 ### **Step 5: Set Up Conditional Formatting (Optional but Recommended)**
 
@@ -1231,4 +1285,5 @@ For questions or issues with this structure:
 | SECTIONS_REFERENCE      | 3       | ✅ Yes        | Grade levels, sections & level tags   |
 | GRADING_REFERENCE       | 5       | ✅ Yes        | Dynamic grading weights                |
 | ATTENDANCE_MONTHLY_DAYS | 3       | ✅ Yes        | Monthly school days per school year   |
+| CHARACTERS_REFERENCE    | 2       | ✅ Yes        | Character traits list                 |
 
