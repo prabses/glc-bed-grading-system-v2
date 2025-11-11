@@ -484,8 +484,28 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
 }
 
 /**
+ * Helper function to find or create a folder by name within a parent folder
+ * @param {Folder} parentFolder - The parent folder to search in
+ * @param {string} folderName - The name of the folder to find or create
+ * @return {Folder} The found or created folder
+ */
+function _findOrCreateFolder(parentFolder, folderName) {
+  // Search for existing folder with the exact name
+  const folders = parentFolder.getFoldersByName(folderName);
+  
+  if (folders.hasNext()) {
+    // Folder exists, return it
+    return folders.next();
+  } else {
+    // Folder doesn't exist, create it
+    return parentFolder.createFolder(folderName);
+  }
+}
+
+/**
  * Internal function to generate OGS template based on provided parameters
  * Creates a new Google Sheet file with one sheet per subject for the instructor
+ * Organizes files into folders: "YYYY-YYYY Grade XY" format
  * @param {string} schoolYear - The school year (e.g., "2024-2025")
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
@@ -509,9 +529,14 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     // Get the parent folder of the master spreadsheet
     const masterFile = DriveApp.getFileById(masterSpreadsheet.getId());
     const parentFolders = masterFile.getParents();
-    const targetFolder = parentFolders.hasNext() ? parentFolders.next() : DriveApp.getRootFolder();
+    const baseFolder = parentFolders.hasNext() ? parentFolders.next() : DriveApp.getRootFolder();
     
-    // Check if template file already exists in the folder
+    // OPTIMIZATION: Create folder structure: "YYYY-YYYY Grade XY"
+    // Example: "2025-2026 Grade 1A"
+    const folderName = `${schoolYear} ${gradeLevel}${section}`;
+    const targetFolder = _findOrCreateFolder(baseFolder, folderName);
+    
+    // Check if template file already exists in the target folder
     const existingFiles = targetFolder.getFilesByName(templateFileName);
     if (existingFiles.hasNext()) {
       // Delete existing file if it exists
@@ -523,12 +548,9 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     const templateSpreadsheet = SpreadsheetApp.create(templateFileName);
     const templateFile = DriveApp.getFileById(templateSpreadsheet.getId());
     
-    // Move the new file to the same folder as the master spreadsheet
-    if (targetFolder.getId() !== DriveApp.getRootFolder().getId()) {
-      // Only move if not already in root
-      targetFolder.addFile(templateFile);
-      DriveApp.getRootFolder().removeFile(templateFile); // Remove from root folder
-    }
+    // Move the new file to the target folder (always move from root)
+    targetFolder.addFile(templateFile);
+    DriveApp.getRootFolder().removeFile(templateFile); // Remove from root folder
     
     // OPTIMIZATION: Pre-fetch all grading weights at once to reduce API calls
     const subjectWeights = {};
@@ -560,13 +582,14 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     _saveToMasterData(schoolYear, gradeLevel, section, instructor, templateUrl);
     
     const subjectsList = subjects.join(', ');
-    const message = `OGS Template generated successfully!\n\nTemplate: ${templateFileName}\nSchool Year: ${schoolYear}\nGrade Level: ${gradeLevel}\nSection: ${section}\nInstructor: ${instructor}\n\nSubjects (${subjects.length} sheets):\n${subjects.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+    const message = `OGS Template generated successfully!\n\nFolder: ${folderName}\nTemplate: ${templateFileName}\nSchool Year: ${schoolYear}\nGrade Level: ${gradeLevel}\nSection: ${section}\nInstructor: ${instructor}\n\nSubjects (${subjects.length} sheets):\n${subjects.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
     
     return { 
       success: true, 
       message: message,
       templateUrl: templateUrl,
-      subjects: subjects
+      subjects: subjects,
+      folderName: folderName
     };
     
   } catch (error) {
