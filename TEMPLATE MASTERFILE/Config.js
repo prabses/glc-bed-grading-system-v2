@@ -1,0 +1,96 @@
+/**
+ * Configuration file for Template Masterfile System
+ * This centralizes all configuration constants for easy maintenance
+ */
+
+const CONFIG = {
+  // Web App URL - Update this after deploying the script as a web app
+  // To deploy: Deploy > New deployment > Select type: Web app > Execute as: Me > Who has access: Anyone
+  // Then copy the Web App URL (the one ending with /exec) and paste it below
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxS2Gi9OUCOoJcN_lA89f7NuLWk5GjwbeyYBRHbt2dn3b-KdQ20mCzk12U6ve3A7wW1/exec", // Replace with your /exec URL after deployment
+  
+  // API Key for securing the API - This is a unique identifier
+  // Keep this secret and don't share it publicly
+  API_KEY: "YTM0NzhkODItZmU4Zi00YjczLWI5ZGQtZGVhNjYxZGI4ZmFi",
+  
+  // Spreadsheet ID - Will use the active spreadsheet
+  // This is determined dynamically, no need to hardcode
+  get SPREADSHEET_ID() {
+    return SpreadsheetApp.getActiveSpreadsheet().getId();
+  },
+  
+  // Sheet names
+  SHEET_NAMES: {
+    MASTER_DATA: 'MASTER_DATA',
+    ASSIGNMENTS: 'ASSIGNMENTS',
+    SUBJECTS_REFERENCE: 'SUBJECTS_REFERENCE',
+    INSTRUCTORS_REFERENCE: 'INSTRUCTORS_REFERENCE',
+    SECTIONS_REFERENCE: 'SECTIONS_REFERENCE',
+    GRADING_REFERENCE: 'GRADING_REFERENCE'
+  },
+  
+  // Column mapping for MASTER_DATA (0-based index)
+  MASTER_DATA_COLUMNS: {
+    SCHOOL_YEAR: 0,      // Column A
+    GRADE_LEVEL: 1,      // Column B
+    SECTION: 2,          // Column C
+    INSTRUCTOR: 3,       // Column D
+    TEMPLATE_LINK: 4,    // Column E
+    CREATED: 5,          // Column F
+    MODIFIED: 6,         // Column G
+    CREATED_BY: 7        // Column H
+  },
+  
+  // Column mapping for GRADING_REFERENCE (0-based index)
+  GRADING_COLUMNS: {
+    SUBJECT_NAME: 0,      // Column A
+    WRITTEN_WORK: 1,      // Column B
+    PERFORMANCE_TASK: 2,  // Column C
+    ASSESSMENT: 3,        // Column D
+    ACTIVE: 4             // Column E
+  },
+  
+  // Column mapping for ASSIGNMENTS (0-based index)
+  ASSIGNMENTS_COLUMNS: {
+    GRADE_LEVEL: 0,       // Column A
+    SECTION: 1,          // Column B
+    INSTRUCTOR: 2,       // Column C
+    SUBJECT: 3,          // Column D
+    STATUS: 4,            // Column E
+    CREATED: 5,           // Column F
+    MODIFIED: 6,          // Column G
+    CREATED_BY: 7         // Column H
+  },
+  
+  // Fixed grading components
+  GRADING_COMPONENTS: ['Written Work', 'Performance Task', 'Assessment'],
+  
+  // Data row configuration
+  DATA_START_ROW: 3,  // Data starts from row 3 (after 2 header rows)
+  HEADER_ROWS: 2,     // Rows 1-2 contain parent header and column headers
+  
+  // Status values
+  STATUS: {
+    ACTIVE: 'Active',
+    ARCHIVED: 'Archived'
+  },
+  
+  // Background colors for status
+  COLORS: {
+    ACTIVE: '#d9ead3',    // Green background
+    ARCHIVED: '#efefef'   // Gray background
+  },
+  
+  // Template configuration
+  TEMPLATE: {
+    NUM_STUDENT_ROWS: 30,           // Number of student rows to pre-create
+    PASSING_GRADE: 75,               // Minimum passing grade
+    STUDENT_COLUMNS: [               // Standard student information columns
+      'Student Number',
+      'Last Name',
+      'First Name',
+      'Middle Name'
+    ]
+  }
+};
+

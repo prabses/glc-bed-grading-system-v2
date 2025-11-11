@@ -1,0 +1,10 @@
+STUDENTS DB
+
+Import function
+- Click Actions button, then the Import Student Data button
+- Select from the sheets for import
+- Select a csv file that followed the desired format
+- Append data to row for every import of student details
+- If student number exists during import, stop the import and state as duplicate
+- If no student number exists, append the new imported student data
+- Column data is in linear order while import

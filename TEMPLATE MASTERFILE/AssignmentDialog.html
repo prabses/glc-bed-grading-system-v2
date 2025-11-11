@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <title>Manage Assignments</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        max-width: 100%;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      .header h2 {
+        color: #333;
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+      }
+
+      .form-group {
+        margin-bottom: 18px;
+      }
+
+      .form-label {
+        display: block;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+        background: #fafbfc;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #5568d3;
+      }
+
+      .btn-secondary {
+        background: #6c757d;
+        color: white;
+      }
+
+      .assignments-list {
+        margin-top: 20px;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 10px;
+      }
+
+      .assignment-item {
+        padding: 10px;
+        border-bottom: 1px solid #e1e5e9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .assignment-item:last-child {
+        border-bottom: none;
+      }
+
+      .btn-delete {
+        background: #dc3545;
+        color: white;
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+      }
+
+      .subjects-container {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 10px;
+        background: #fafbfc;
+      }
+
+      .subject-checkbox {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        margin: 4px 0;
+        border-radius: 4px;
+        transition: background 0.2s;
+      }
+
+      .subject-checkbox:hover {
+        background: #e9ecef;
+      }
+
+      .subject-checkbox input[type="checkbox"] {
+        margin-right: 10px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      .subject-checkbox label {
+        cursor: pointer;
+        flex: 1;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>Manage Assignments</h2>
+        <p>Assign instructors to grade levels, sections, and subjects</p>
+      </div>
+
+      <form id="assignmentForm">
+        <div class="form-group">
+          <label class="form-label" for="gradeLevel">
+            Grade Level <span style="color: #e74c3c;">*</span>
+          </label>
+          <select id="gradeLevel" class="form-control" required>
+            <option value="">Select grade level...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="section">
+            Section <span style="color: #e74c3c;">*</span>
+          </label>
+          <select id="section" class="form-control" required disabled>
+            <option value="">Select grade level first...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="instructor">
+            Instructor <span style="color: #e74c3c;">*</span>
+          </label>
+          <select id="instructor" class="form-control" required>
+            <option value="">Select instructor...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            Subjects <span style="color: #e74c3c;">*</span>
+          </label>
+          <div id="subjectsContainer" class="subjects-container">
+            <p style="text-align: center; color: #6c757d; margin: 0;">Loading subjects...</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">
+            Add Assignment
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="google.script.host.close()">
+            Close
+          </button>
+        </div>
+      </form>
+
+      <div class="assignments-list" id="assignmentsList">
+        <p style="text-align: center; color: #6c757d;">Select grade level and section to view assignments</p>
+      </div>
+    </div>
+
+    <script>
+      let gradeLevels = [];
+      let allSections = {};
+      let subjects = [];
+      let instructors = [];
+
+      document.addEventListener('DOMContentLoaded', function() {
+        loadInitialData();
+        
+        document.getElementById('gradeLevel').addEventListener('change', function() {
+          loadSections(this.value);
+          loadAssignments();
+        });
+        
+        document.getElementById('section').addEventListener('change', function() {
+          loadAssignments();
+        });
+      });
+
+      function loadInitialData() {
+        google.script.run
+          .withSuccessHandler(function(data) {
+            gradeLevels = data.gradeLevels || [];
+            subjects = data.subjects || [];
+            instructors = data.instructors || [];
+            
+            const gradeSelect = document.getElementById('gradeLevel');
+            gradeLevels.forEach(function(grade) {
+              const option = document.createElement('option');
+              option.value = grade;
+              option.textContent = grade;
+              gradeSelect.appendChild(option);
+            });
+            
+            const subjectsContainer = document.getElementById('subjectsContainer');
+            subjectsContainer.innerHTML = '';
+            subjects.forEach(function(subject) {
+              const checkboxDiv = document.createElement('div');
+              checkboxDiv.className = 'subject-checkbox';
+              checkboxDiv.innerHTML = `
+                <input type="checkbox" id="subject_${subject}" value="${subject}" name="subjects">
+                <label for="subject_${subject}">${subject}</label>
+              `;
+              subjectsContainer.appendChild(checkboxDiv);
+            });
+            
+            const instructorSelect = document.getElementById('instructor');
+            instructors.forEach(function(instructor) {
+              const option = document.createElement('option');
+              option.value = instructor;
+              option.textContent = instructor;
+              instructorSelect.appendChild(option);
+            });
+          })
+          .withFailureHandler(function(error) {
+            alert('Error loading data: ' + error.toString());
+          })
+          .getAllDropdownData();
+      }
+
+      function loadSections(gradeLevel) {
+        const sectionSelect = document.getElementById('section');
+        if (!gradeLevel) {
+          sectionSelect.innerHTML = '<option value="">Select grade level first...</option>';
+          sectionSelect.disabled = true;
+          return;
+        }
+        
+        sectionSelect.innerHTML = '<option value="">Loading...</option>';
+        sectionSelect.disabled = true;
+        
+        google.script.run
+          .withSuccessHandler(function(sections) {
+            sectionSelect.innerHTML = '<option value="">Select section...</option>';
+            sections.forEach(function(section) {
+              const option = document.createElement('option');
+              option.value = section;
+              option.textContent = section;
+              sectionSelect.appendChild(option);
+            });
+            sectionSelect.disabled = false;
+          })
+          .withFailureHandler(function(error) {
+            alert('Error loading sections: ' + error.toString());
+          })
+          .getSectionsForGrade(gradeLevel);
+      }
+
+      function loadAssignments() {
+        const gradeLevel = document.getElementById('gradeLevel').value;
+        const section = document.getElementById('section').value;
+        
+        if (!gradeLevel || !section) {
+          document.getElementById('assignmentsList').innerHTML = '<p style="text-align: center; color: #6c757d;">Select grade level and section to view assignments</p>';
+          return;
+        }
+        
+        google.script.run
+          .withSuccessHandler(function(assignments) {
+            const listDiv = document.getElementById('assignmentsList');
+            if (assignments.length === 0) {
+              listDiv.innerHTML = '<p style="text-align: center; color: #6c757d;">No assignments found</p>';
+              return;
+            }
+            
+            let html = '<h3 style="margin-top: 0;">Current Assignments:</h3>';
+            assignments.forEach(function(assignment) {
+              html += `
+                <div class="assignment-item">
+                  <div>
+                    <strong>${assignment.instructor}</strong> - ${assignment.subject}
+                  </div>
+                  <button class="btn-delete" onclick="deleteAssignment('${assignment.gradeLevel}', '${assignment.section}', '${assignment.instructor}', '${assignment.subject}')">
+                    Delete
+                  </button>
+                </div>
+              `;
+            });
+            listDiv.innerHTML = html;
+          })
+          .withFailureHandler(function(error) {
+            alert('Error loading assignments: ' + error.toString());
+          })
+          .getAssignments(gradeLevel, section);
+      }
+
+      function deleteAssignment(gradeLevel, section, instructor, subject) {
+        if (!confirm(`Delete assignment: ${instructor} - ${subject}?`)) {
+          return;
+        }
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              loadAssignments();
+            } else {
+              alert('Error: ' + result.message);
+            }
+          })
+          .withFailureHandler(function(error) {
+            alert('Error deleting assignment: ' + error.toString());
+          })
+          .deleteAssignment(gradeLevel, section, instructor, subject);
+      }
+
+      document.getElementById('assignmentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const gradeLevel = document.getElementById('gradeLevel').value;
+        const section = document.getElementById('section').value;
+        const instructor = document.getElementById('instructor').value;
+        
+        // Get selected subjects
+        const checkboxes = document.querySelectorAll('input[name="subjects"]:checked');
+        const selectedSubjects = Array.from(checkboxes).map(cb => cb.value);
+        
+        if (selectedSubjects.length === 0) {
+          alert('Please select at least one subject.');
+          return;
+        }
+        
+        // Disable submit button
+        const submitBtn = document.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Adding...';
+        submitBtn.disabled = true;
+        
+        // OPTIMIZED: Add all assignments in a single batch API call
+        submitBtn.textContent = `Adding ${selectedSubjects.length} assignment(s)...`;
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            
+            if (result.success) {
+              alert(`✅ ${result.message}`);
+              document.getElementById('assignmentForm').reset();
+              document.getElementById('section').disabled = true;
+              // Reload subjects checkboxes
+              loadInitialData();
+              loadAssignments();
+            } else {
+              alert(`❌ Error: ${result.message}`);
+              loadAssignments();
+            }
+          })
+          .withFailureHandler(function(error) {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            alert(`❌ Error: ${error.toString()}`);
+            loadAssignments();
+          })
+          .addAssignmentsBatch(gradeLevel, section, instructor, selectedSubjects);
+      });
+    </script>
+  </body>
+</html>
+

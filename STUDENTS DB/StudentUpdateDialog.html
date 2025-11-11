@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <title>Update Student Information</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        margin: 0;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+      }
+
+      .container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      .header h2 {
+        color: #333;
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+      }
+
+      .header p {
+        color: #666;
+        font-size: 15px;
+        margin: 0;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        display: block;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+        background: #fafbfc;
+        transition: all 0.3s ease;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .form-control:disabled {
+        background: #e9ecef;
+        color: #6c757d;
+        cursor: not-allowed;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 25px;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-secondary {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 2px solid #e9ecef;
+      }
+
+      .btn-secondary:hover {
+        background: #e9ecef;
+        color: #495057;
+      }
+
+      .btn-load {
+        width: 100%;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        margin-top: 25px;
+      }
+
+      .btn-load:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-load:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .student-info {
+        background: #f8f9fa;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .student-info.visible {
+        display: block;
+      }
+
+      .student-info h4 {
+        margin: 0 0 10px 0;
+        color: #333;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        font-size: 13px;
+      }
+
+      .info-item {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .info-label {
+        color: #6c757d;
+        font-weight: 500;
+        margin-bottom: 2px;
+      }
+
+      .info-value {
+        color: #333;
+        font-weight: 600;
+      }
+
+      .divider {
+        height: 1px;
+        background: #e1e5e9;
+        margin: 0 0 20px 0;
+      }
+
+      .update-section {
+        display: none;
+      }
+
+      .update-section.visible {
+        display: block;
+      }
+
+      .current-value-display {
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #856404;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>Update Student Information</h2>
+        <p>Modify student records and track changes</p>
+      </div>
+
+      <form id="updateForm">
+        <!-- Search Section -->
+        <div class="form-group">
+          <label class="form-label" for="academicYear">Academic Year</label>
+          <select id="academicYear" class="form-control" required>
+            <option value="">Select academic year...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="studentNumber">Student Number</label>
+          <select
+            id="studentNumber"
+            class="form-control"
+            required
+          >
+            <option value="">Select student number...</option>
+          </select>
+          <button type="button" class="btn-load" id="loadBtn">
+            Load Student
+          </button>
+        </div>
+
+        <!-- Student Information Display -->
+        <div class="student-info" id="studentInfo">
+          <h4>Current Student Information</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Student Number</span>
+              <span class="info-value" id="infoStudentNumber">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Name</span>
+              <span class="info-value" id="infoLastName">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">First Name</span>
+              <span class="info-value" id="infoFirstName">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Middle Name</span>
+              <span class="info-value" id="infoMiddleName">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Grade Level</span>
+              <span class="info-value" id="infoGradeLevel">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Section</span>
+              <span class="info-value" id="infoSection">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Strand</span>
+              <span class="info-value" id="infoStrand">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Gender</span>
+              <span class="info-value" id="infoGender">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Update Section -->
+        <div class="update-section" id="updateSection">
+          <div class="divider"></div>
+          <div class="form-group">
+            <label class="form-label" for="fieldToUpdate">Field to Update</label>
+            <select id="fieldToUpdate" class="form-control" required>
+              <option value="">Select field...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="currentValue">Current Value</label>
+            <div class="current-value-display" id="currentValue">
+              Select a field to see current value
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newValue">New Value</label>
+            <input
+              type="text"
+              id="newValue"
+              class="form-control"
+              placeholder="Enter new value"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="remarks">Remarks (Optional)</label>
+            <input
+              type="text"
+              id="remarks"
+              class="form-control"
+              placeholder="Reason for update or additional notes"
+            />
+          </div>
+
+          <div class="button-group">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="google.script.host.close()"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" id="updateBtn">
+              Update Information
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      let currentStudentData = null;
+
+      // Populate academic year dropdown when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        google.script.run
+          .withSuccessHandler(function (sheets) {
+            const select = document.getElementById("academicYear");
+            sheets.forEach(function (sheetName) {
+              const option = document.createElement("option");
+              option.value = sheetName;
+              // Remove "A.Y." from display text, keeping only the year part
+              const displayText = sheetName.replace(/A\.Y\.?\s*/gi, "").trim();
+              option.textContent = displayText;
+              select.appendChild(option);
+            });
+          })
+          .withFailureHandler(function (error) {
+            console.error("Error loading sheets:", error);
+          })
+          .getStudentSheets();
+
+        // Populate field dropdown
+        google.script.run
+          .withSuccessHandler(function (fields) {
+            const select = document.getElementById("fieldToUpdate");
+            fields.forEach(function (field) {
+              const option = document.createElement("option");
+              option.value = field;
+              option.textContent = field;
+              select.appendChild(option);
+            });
+          })
+          .withFailureHandler(function (error) {
+            console.error("Error loading fields:", error);
+          })
+          .getStudentFields();
+
+        // Populate student number dropdown when academic year is selected
+        document.getElementById("academicYear").addEventListener("change", function () {
+          const academicYear = this.value;
+          const studentNumberSelect = document.getElementById("studentNumber");
+          
+          // Clear existing options except the first one
+          studentNumberSelect.innerHTML = '<option value="">Select student number...</option>';
+          
+          if (academicYear) {
+            // Show loading state
+            const loadBtn = document.getElementById("loadBtn");
+            const originalText = loadBtn.textContent;
+            loadBtn.textContent = "Loading...";
+            loadBtn.disabled = true;
+            
+            // Get student numbers for the selected academic year
+            google.script.run
+              .withSuccessHandler(function (studentNumbers) {
+                studentNumbers.forEach(function (studentNumber) {
+                  const option = document.createElement("option");
+                  option.value = studentNumber;
+                  option.textContent = studentNumber;
+                  studentNumberSelect.appendChild(option);
+                });
+                loadBtn.textContent = originalText;
+                loadBtn.disabled = false;
+              })
+              .withFailureHandler(function (error) {
+                console.error("Error loading student numbers:", error);
+                alert("Error loading student numbers: " + error.toString());
+                loadBtn.textContent = originalText;
+                loadBtn.disabled = false;
+              })
+              .getStudentNumbers(academicYear);
+          }
+        });
+      });
+
+      // Load student information
+      document.getElementById("loadBtn").addEventListener("click", function () {
+        const academicYear = document.getElementById("academicYear").value;
+        const studentNumber = document.getElementById("studentNumber").value;
+
+        if (!academicYear) {
+          alert("Please select an academic year.");
+          return;
+        }
+
+        if (!studentNumber) {
+          alert("Please select a student number.");
+          return;
+        }
+
+        // Show loading state
+        const loadBtn = document.getElementById("loadBtn");
+        const originalText = loadBtn.textContent;
+        loadBtn.textContent = "Loading...";
+        loadBtn.disabled = true;
+
+        // Load student information
+        google.script.run
+          .withSuccessHandler(function (result) {
+            if (result.success) {
+              currentStudentData = result.studentData;
+              displayStudentInfo(result.studentData);
+              document.getElementById("studentInfo").classList.add("visible");
+              document.getElementById("updateSection").classList.add("visible");
+            } else {
+              alert("Error: " + result.message);
+              currentStudentData = null;
+              document.getElementById("studentInfo").classList.remove("visible");
+              document.getElementById("updateSection").classList.remove("visible");
+            }
+            loadBtn.textContent = originalText;
+            loadBtn.disabled = false;
+          })
+          .withFailureHandler(function (error) {
+            alert("Error: " + error.toString());
+            loadBtn.textContent = originalText;
+            loadBtn.disabled = false;
+          })
+          .getStudentInfo(studentNumber, academicYear);
+      });
+
+      // Display student information
+      function displayStudentInfo(studentData) {
+        document.getElementById("infoStudentNumber").textContent =
+          studentData["Student Number"] || "-";
+        document.getElementById("infoLastName").textContent =
+          studentData["Last Name"] || "-";
+        document.getElementById("infoFirstName").textContent =
+          studentData["First Name"] || "-";
+        document.getElementById("infoMiddleName").textContent =
+          studentData["Middle Name"] || "-";
+        document.getElementById("infoGradeLevel").textContent =
+          studentData["Grade Level"] || "-";
+        document.getElementById("infoSection").textContent =
+          studentData["Section"] || "-";
+        document.getElementById("infoStrand").textContent =
+          studentData["Strand"] || "-";
+        document.getElementById("infoGender").textContent =
+          studentData["Gender"] || "-";
+      }
+
+      // Update current value display when field is selected
+      document
+        .getElementById("fieldToUpdate")
+        .addEventListener("change", function () {
+          const field = this.value;
+          const currentValueDisplay = document.getElementById("currentValue");
+          const newValueInput = document.getElementById("newValue");
+
+          if (field && currentStudentData) {
+            const currentValue = currentStudentData[field] || "-";
+            currentValueDisplay.textContent = currentValue;
+            newValueInput.value = "";
+            newValueInput.focus();
+          } else {
+            currentValueDisplay.textContent = "Select a field to see current value";
+            newValueInput.value = "";
+          }
+        });
+
+      // Handle form submission
+      document
+        .getElementById("updateForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const academicYear = document.getElementById("academicYear").value;
+          const studentNumber = document.getElementById("studentNumber").value;
+          const fieldToUpdate = document.getElementById("fieldToUpdate").value;
+          const newValue = document.getElementById("newValue").value;
+          const remarks = document.getElementById("remarks").value;
+
+          if (!currentStudentData) {
+            alert("Please load student information first.");
+            return;
+          }
+
+          if (!fieldToUpdate) {
+            alert("Please select a field to update.");
+            return;
+          }
+
+          if (!newValue.trim()) {
+            alert("Please enter a new value.");
+            return;
+          }
+
+          // Show loading state
+          const updateBtn = document.getElementById("updateBtn");
+          const originalText = updateBtn.textContent;
+          updateBtn.textContent = "Updating...";
+          updateBtn.disabled = true;
+
+          // Call the update function
+          google.script.run
+            .withSuccessHandler(function (result) {
+              if (result.success) {
+                alert("Success!\n\n" + result.message);
+                google.script.host.close();
+              } else {
+                alert("Update Failed!\n\n" + result.message);
+                updateBtn.textContent = originalText;
+                updateBtn.disabled = false;
+              }
+            })
+            .withFailureHandler(function (error) {
+              alert("Error: " + error.toString());
+              updateBtn.textContent = originalText;
+              updateBtn.disabled = false;
+            })
+            .updateStudentInfo(
+              studentNumber,
+              academicYear,
+              fieldToUpdate,
+              newValue,
+              remarks
+            );
+        });
+    </script>
+  </body>
+</html>
+

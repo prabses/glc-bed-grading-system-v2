@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <title>Generate OGS Template</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        margin: 0;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+      }
+
+      .container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      .header h2 {
+        color: #333;
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+      }
+
+      .header p {
+        color: #666;
+        font-size: 14px;
+        margin: 0;
+      }
+
+      .form-group {
+        margin-bottom: 18px;
+      }
+
+      .form-label {
+        display: block;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .form-label .required {
+        color: #e74c3c;
+        margin-left: 2px;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+        background: #fafbfc;
+        transition: all 0.3s ease;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .form-control:disabled {
+        background: #e9ecef;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .loading-text {
+        color: #6c757d;
+        font-size: 13px;
+        font-style: italic;
+        margin-top: 5px;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 25px;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-secondary {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 2px solid #e9ecef;
+      }
+
+      .btn-secondary:hover {
+        background: #e9ecef;
+        color: #495057;
+      }
+
+      .info-box {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        color: #1565c0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>Generate OGS Template</h2>
+        <p>Create Official Grade Sheet template</p>
+      </div>
+
+      <div class="info-box">
+        📋 Select grade level and section to see assigned instructors. Subjects will be auto-detected.
+      </div>
+
+      <form id="ogsTemplateForm">
+        <div class="form-group">
+          <label class="form-label" for="schoolYear">
+            School Year <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="schoolYear"
+            class="form-control"
+            placeholder="e.g., 2024-2025"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="gradeLevel">
+            Grade Level <span class="required">*</span>
+          </label>
+          <select id="gradeLevel" class="form-control" required>
+            <option value="">Select grade level...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="section">
+            Section <span class="required">*</span>
+          </label>
+          <select id="section" class="form-control" required disabled>
+            <option value="">Select grade level first...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="instructor">
+            Instructor <span class="required">*</span>
+          </label>
+          <select id="instructor" class="form-control" required disabled>
+            <option value="">Select grade level and section first...</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="subjectsInfo" style="display: none;">
+          <label class="form-label">Assigned Subjects</label>
+          <div id="subjectsList" style="padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e1e5e9;">
+            <p style="margin: 0; color: #6c757d;">No subjects assigned</p>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            onclick="google.script.host.close()"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">
+            Generate Template
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      // State management
+      let gradeLevels = [];
+      let allSections = {};
+      let subjects = [];
+      let instructors = [];
+
+      // Populate dropdowns when page loads - OPTIMIZED: Load all at once
+      document.addEventListener('DOMContentLoaded', function() {
+        loadAllDropdowns();
+      });
+
+      // Load all dropdown data at once for better performance
+      function loadAllDropdowns() {
+        google.script.run
+          .withSuccessHandler(function(data) {
+            // Populate grade levels
+            gradeLevels = data.gradeLevels || [];
+            const gradeSelect = document.getElementById('gradeLevel');
+            gradeSelect.innerHTML = '<option value="">Select grade level...</option>';
+            gradeLevels.forEach(function(gradeLevel) {
+              const option = document.createElement('option');
+              option.value = gradeLevel;
+              option.textContent = gradeLevel;
+              gradeSelect.appendChild(option);
+            });
+            
+            // Populate subjects
+            subjects = data.subjects || [];
+            const subjectSelect = document.getElementById('subject');
+            subjectSelect.innerHTML = '<option value="">Select subject...</option>';
+            subjects.forEach(function(subject) {
+              const option = document.createElement('option');
+              option.value = subject;
+              option.textContent = subject;
+              subjectSelect.appendChild(option);
+            });
+            
+            // Populate instructors
+            instructors = data.instructors || [];
+            const instructorSelect = document.getElementById('instructor');
+            instructorSelect.innerHTML = '<option value="">Select instructor...</option>';
+            instructors.forEach(function(instructor) {
+              const option = document.createElement('option');
+              option.value = instructor;
+              option.textContent = instructor;
+              instructorSelect.appendChild(option);
+            });
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error loading dropdown data:', error);
+            alert('Error loading dropdown data: ' + error.toString());
+          })
+          .getAllDropdownData();
+      }
+
+      // Handle grade level change - load sections
+      document.getElementById('gradeLevel').addEventListener('change', function() {
+        const gradeLevel = this.value;
+        const sectionSelect = document.getElementById('section');
+        const instructorSelect = document.getElementById('instructor');
+        
+        if (!gradeLevel) {
+          sectionSelect.innerHTML = '<option value="">Select grade level first...</option>';
+          sectionSelect.disabled = true;
+          instructorSelect.innerHTML = '<option value="">Select grade level and section first...</option>';
+          instructorSelect.disabled = true;
+          document.getElementById('subjectsInfo').style.display = 'none';
+          return;
+        }
+        
+        // Show loading state
+        sectionSelect.innerHTML = '<option value="">Loading sections...</option>';
+        sectionSelect.disabled = true;
+        
+        // Load sections for the selected grade level
+        google.script.run
+          .withSuccessHandler(function(sections) {
+            sectionSelect.innerHTML = '<option value="">Select section...</option>';
+            
+            if (sections.length === 0) {
+              sectionSelect.innerHTML = '<option value="">No sections available</option>';
+              sectionSelect.disabled = true;
+              return;
+            }
+            
+            sections.forEach(function(section) {
+              const option = document.createElement('option');
+              option.value = section;
+              option.textContent = section;
+              sectionSelect.appendChild(option);
+            });
+            
+            sectionSelect.disabled = false;
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error loading sections:', error);
+            sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
+            alert('Error loading sections: ' + error.toString());
+          })
+          .getSectionsForGrade(gradeLevel);
+      });
+
+      // Handle section change - load assigned instructors
+      document.getElementById('section').addEventListener('change', function() {
+        const gradeLevel = document.getElementById('gradeLevel').value;
+        const section = this.value;
+        const instructorSelect = document.getElementById('instructor');
+        
+        if (!gradeLevel || !section) {
+          instructorSelect.innerHTML = '<option value="">Select grade level and section first...</option>';
+          instructorSelect.disabled = true;
+          document.getElementById('subjectsInfo').style.display = 'none';
+          return;
+        }
+        
+        instructorSelect.innerHTML = '<option value="">Loading instructors...</option>';
+        instructorSelect.disabled = true;
+        
+        google.script.run
+          .withSuccessHandler(function(instructors) {
+            instructorSelect.innerHTML = '<option value="">Select instructor...</option>';
+            
+            if (instructors.length === 0) {
+              instructorSelect.innerHTML = '<option value="">No instructors assigned</option>';
+              instructorSelect.disabled = true;
+              return;
+            }
+            
+            instructors.forEach(function(instructor) {
+              const option = document.createElement('option');
+              option.value = instructor;
+              option.textContent = instructor;
+              instructorSelect.appendChild(option);
+            });
+            
+            instructorSelect.disabled = false;
+          })
+          .withFailureHandler(function(error) {
+            alert('Error loading instructors: ' + error.toString());
+          })
+          .getAssignedInstructors(gradeLevel, section);
+      });
+
+      // Handle instructor change - load assigned subjects
+      document.getElementById('instructor').addEventListener('change', function() {
+        const gradeLevel = document.getElementById('gradeLevel').value;
+        const section = document.getElementById('section').value;
+        const instructor = this.value;
+        
+        if (!gradeLevel || !section || !instructor) {
+          document.getElementById('subjectsInfo').style.display = 'none';
+          return;
+        }
+        
+        google.script.run
+          .withSuccessHandler(function(subjects) {
+            assignedSubjects = subjects;
+            const subjectsListDiv = document.getElementById('subjectsList');
+            const subjectsInfoDiv = document.getElementById('subjectsInfo');
+            
+            if (subjects.length === 0) {
+              subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d;">No subjects assigned to this instructor</p>';
+              subjectsInfoDiv.style.display = 'block';
+              return;
+            }
+            
+            let html = '<p style="margin: 0 0 10px 0; font-weight: 600;">Subjects that will be generated:</p><ul style="margin: 0; padding-left: 20px;">';
+            subjects.forEach(function(subject) {
+              html += '<li>' + subject + '</li>';
+            });
+            html += '</ul>';
+            subjectsListDiv.innerHTML = html;
+            subjectsInfoDiv.style.display = 'block';
+          })
+          .withFailureHandler(function(error) {
+            alert('Error loading subjects: ' + error.toString());
+          })
+          .getAssignedSubjects(gradeLevel, section, instructor);
+      });
+
+      // Form submission
+      document.getElementById("ogsTemplateForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const schoolYear = document.getElementById("schoolYear").value.trim();
+        const gradeLevel = document.getElementById("gradeLevel").value;
+        const section = document.getElementById("section").value;
+        const instructor = document.getElementById("instructor").value;
+
+        // Validation
+        if (!schoolYear) {
+          alert("Please enter the school year.");
+          return;
+        }
+
+        if (!gradeLevel) {
+          alert("Please select a grade level.");
+          return;
+        }
+
+        if (!section) {
+          alert("Please select a section.");
+          return;
+        }
+
+        if (!instructor) {
+          alert("Please select an instructor.");
+          return;
+        }
+
+        if (assignedSubjects.length === 0) {
+          alert("No subjects assigned to this instructor for the selected grade level and section. Please add assignments first.");
+          return;
+        }
+
+        // Show loading state
+        const submitButton = document.getElementById('submitBtn');
+        const originalText = submitButton.textContent;
+        submitButton.textContent = 'Generating...';
+        submitButton.disabled = true;
+
+        // Call the generate function with subjects array
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              alert('✅ Success!\n\n' + result.message);
+              google.script.host.close();
+            } else {
+              alert('❌ Generation Failed!\n\n' + result.message);
+              submitButton.textContent = originalText;
+              submitButton.disabled = false;
+            }
+          })
+          .withFailureHandler(function(error) {
+            alert('❌ Error: ' + error.toString());
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+          })
+          .generateOGSTemplate(schoolYear, gradeLevel, section, instructor, assignedSubjects);
+      });
+    </script>
+  </body>
+</html>
