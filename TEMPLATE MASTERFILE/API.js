@@ -89,6 +89,29 @@ function doPost(e) {
         return response(200, _deleteAssignmentsBatch(
           typeof payload.assignments === 'string' ? JSON.parse(payload.assignments) : payload.assignments
         ));
+      case "addAdvisory":
+        return response(200, _addAdvisory(
+          payload.instructor,
+          payload.gradeLevel,
+          payload.section,
+          payload.schoolYear
+        ));
+      case "getAdvisories":
+        return response(200, _getAdvisories(
+          payload.instructor,
+          payload.schoolYear
+        ));
+      case "deleteAdvisory":
+        return response(200, _deleteAdvisory(
+          payload.instructor,
+          payload.gradeLevel,
+          payload.section,
+          payload.schoolYear
+        ));
+      case "deleteAdvisoriesBatch":
+        return response(200, _deleteAdvisoriesBatch(
+          typeof payload.advisories === 'string' ? JSON.parse(payload.advisories) : payload.advisories
+        ));
       default:
         return response(400, "Bad Request: Invalid action.");
     }
@@ -1217,6 +1240,237 @@ function _deleteAssignmentsBatch(assignments) {
       message: `Error deleting assignments: ${error.toString()}`,
       deleted: 0,
       failed: assignments.length
+    };
+  }
+}
+
+/**
+ * Internal function to add an advisory class
+ * @param {string} instructor - The instructor name
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @param {string} schoolYear - The school year
+ * @return {Object} Result object with success status
+ */
+function _addAdvisory(instructor, gradeLevel, section, schoolYear) {
+  try {
+    let sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
+    
+    // Create sheet if it doesn't exist
+    if (!sheet) {
+      const spreadsheet = getSpreadsheet();
+      sheet = spreadsheet.insertSheet(CONFIG.SHEET_NAMES.ADVISORY);
+      
+      // Set up headers (no parent header row)
+      sheet.getRange(1, 1).setValue('Instructor');
+      sheet.getRange(1, 2).setValue('Grade Level');
+      sheet.getRange(1, 3).setValue('Section');
+      sheet.getRange(1, 4).setValue('School Year');
+      sheet.getRange(1, 5).setValue('Status');
+      sheet.getRange(1, 6).setValue('Created');
+      sheet.getRange(1, 7).setValue('Modified');
+      sheet.getRange(1, 8).setValue('Created By');
+      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground('#d9d9d9');
+    }
+    
+    const timestamp = new Date();
+    const userEmail = Session.getActiveUser().getEmail();
+    
+    // Check if advisory already exists (skip header row 1)
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR] === instructor &&
+          row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+          row[CONFIG.ADVISORY_COLUMNS.SECTION] === section &&
+          row[CONFIG.ADVISORY_COLUMNS.SCHOOL_YEAR] === schoolYear) {
+        // Update existing advisory to active and update modified date
+        sheet.getRange(i + 1, CONFIG.ADVISORY_COLUMNS.STATUS + 1).setValue('Active');
+        sheet.getRange(i + 1, CONFIG.ADVISORY_COLUMNS.MODIFIED + 1).setValue(timestamp);
+        return { success: true, message: 'Advisory updated successfully' };
+      }
+    }
+    
+    // Add new advisory with audit trail
+    sheet.appendRow([instructor, gradeLevel, section, schoolYear, 'Active', timestamp, timestamp, userEmail]);
+    
+    return { success: true, message: 'Advisory added successfully' };
+  } catch (error) {
+    console.error('Error adding advisory:', error);
+    return { success: false, message: `Error adding advisory: ${error.toString()}` };
+  }
+}
+
+/**
+ * Internal function to get advisories (OPTIMIZED)
+ * @param {string} instructor - The instructor name (optional filter)
+ * @param {string} schoolYear - The school year (optional filter)
+ * @return {Array} Array of advisory objects
+ */
+function _getAdvisories(instructor = null, schoolYear = null) {
+  try {
+    const sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
+    
+    if (!sheet) {
+      return [];
+    }
+    
+    // OPTIMIZATION: Read only necessary columns (A-H)
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) {
+      return []; // Only header row or empty
+    }
+    
+    const advisories = [];
+    const hasInstructorFilter = instructor !== null && instructor !== '';
+    const hasSchoolYearFilter = schoolYear !== null && schoolYear !== '';
+    
+    // OPTIMIZATION: Single pass filtering
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const rowInstructor = row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR];
+      const rowSchoolYear = row[CONFIG.ADVISORY_COLUMNS.SCHOOL_YEAR];
+      
+      // Apply filters
+      if (hasInstructorFilter && rowInstructor !== instructor) continue;
+      if (hasSchoolYearFilter && rowSchoolYear !== schoolYear) continue;
+      
+      advisories.push({
+        instructor: rowInstructor || '',
+        gradeLevel: row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] || '',
+        section: row[CONFIG.ADVISORY_COLUMNS.SECTION] || '',
+        schoolYear: rowSchoolYear || '',
+        status: row[CONFIG.ADVISORY_COLUMNS.STATUS] || '',
+        created: row[CONFIG.ADVISORY_COLUMNS.CREATED] || '',
+        modified: row[CONFIG.ADVISORY_COLUMNS.MODIFIED] || '',
+        createdBy: row[CONFIG.ADVISORY_COLUMNS.CREATED_BY] || ''
+      });
+    }
+    
+    return advisories;
+  } catch (error) {
+    console.error('Error getting advisories:', error);
+    return [];
+  }
+}
+
+/**
+ * Internal function to delete an advisory
+ * @param {string} instructor - The instructor name
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @param {string} schoolYear - The school year
+ * @return {Object} Result object with success status
+ */
+function _deleteAdvisory(instructor, gradeLevel, section, schoolYear) {
+  try {
+    const sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
+    
+    if (!sheet) {
+      return { success: false, message: 'ADVISORY sheet not found' };
+    }
+    
+    // OPTIMIZATION: Read only necessary columns (A-D for matching, E for status)
+    const data = sheet.getDataRange().getValues();
+    const timestamp = new Date();
+    
+    // OPTIMIZATION: Single pass search and update
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR] === instructor &&
+          row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+          row[CONFIG.ADVISORY_COLUMNS.SECTION] === section &&
+          row[CONFIG.ADVISORY_COLUMNS.SCHOOL_YEAR] === schoolYear) {
+        // Update status to Inactive and modified date
+        const statusCol = CONFIG.ADVISORY_COLUMNS.STATUS + 1; // E column
+        const modifiedCol = CONFIG.ADVISORY_COLUMNS.MODIFIED + 1; // G column
+        sheet.getRange(i + 1, statusCol).setValue('Inactive');
+        sheet.getRange(i + 1, modifiedCol).setValue(timestamp);
+        return { success: true, message: 'Advisory deleted successfully' };
+      }
+    }
+    
+    return { success: false, message: 'Advisory not found' };
+  } catch (error) {
+    console.error('Error deleting advisory:', error);
+    return { success: false, message: `Error deleting advisory: ${error.toString()}` };
+  }
+}
+
+/**
+ * Internal function to delete multiple advisories in batch (OPTIMIZED)
+ * @param {Array} advisories - Array of advisory objects to delete
+ * @return {Object} Result object with success status and counts
+ */
+function _deleteAdvisoriesBatch(advisories) {
+  try {
+    const sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
+    
+    if (!sheet) {
+      return { success: false, message: 'ADVISORY sheet not found', deleted: 0, failed: 0 };
+    }
+    
+    if (!advisories || advisories.length === 0) {
+      return { success: false, message: 'No advisories provided', deleted: 0, failed: 0 };
+    }
+    
+    // OPTIMIZATION: Read all data once
+    const data = sheet.getDataRange().getValues();
+    const timestamp = new Date();
+    
+    // OPTIMIZATION: Build Set for fast lookup
+    const advisoryKeys = new Set();
+    advisories.forEach(adv => {
+      const key = `${adv.instructor}|||${adv.gradeLevel}|||${adv.section}|||${adv.schoolYear}`;
+      advisoryKeys.add(key);
+    });
+    
+    // OPTIMIZATION: Single pass - collect rows to update
+    const rowsToUpdate = [];
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const key = `${row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR]}|||${row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL]}|||${row[CONFIG.ADVISORY_COLUMNS.SECTION]}|||${row[CONFIG.ADVISORY_COLUMNS.SCHOOL_YEAR]}`;
+      
+      if (advisoryKeys.has(key) && row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
+        rowsToUpdate.push(i + 1); // Store 1-based row number
+      }
+    }
+    
+    // OPTIMIZATION: Batch update status and modified date
+    if (rowsToUpdate.length > 0) {
+      const statusValues = rowsToUpdate.map(() => ['Inactive']);
+      const modifiedValues = rowsToUpdate.map(() => [timestamp]);
+      
+      const statusCol = CONFIG.ADVISORY_COLUMNS.STATUS + 1;
+      const modifiedCol = CONFIG.ADVISORY_COLUMNS.MODIFIED + 1;
+      
+      // Batch update each column
+      rowsToUpdate.forEach((rowNum, index) => {
+        sheet.getRange(rowNum, statusCol).setValue('Inactive');
+        sheet.getRange(rowNum, modifiedCol).setValue(timestamp);
+      });
+      
+      return {
+        success: true, 
+        message: `Successfully deleted ${rowsToUpdate.length} advisory(ies)`,
+        deleted: rowsToUpdate.length,
+        failed: advisories.length - rowsToUpdate.length
+      };
+    }
+    
+    return { 
+      success: false, 
+      message: 'No matching advisories found',
+      deleted: 0,
+      failed: advisories.length
+    };
+  } catch (error) {
+    console.error('Error deleting advisories batch:', error);
+    return { 
+      success: false, 
+      message: `Error deleting advisories: ${error.toString()}`,
+      deleted: 0,
+      failed: advisories.length
     };
   }
 }

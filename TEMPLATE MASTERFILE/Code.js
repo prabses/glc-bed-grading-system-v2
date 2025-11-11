@@ -16,6 +16,7 @@ function onOpen() {
     .addItem("Generate OGS Template", "showOGSTemplateDialog")
     .addSeparator()
     .addItem("Manage Assignments", "showAssignmentDialog")
+    .addItem("Manage Advisory Classes", "showAdvisoryDialog")
     .addToUi();
 }
 
@@ -34,6 +35,14 @@ function showOGSTemplateDialog() {
 /**
  * Shows the assignment management dialog
  */
+function showAdvisoryDialog() {
+  const htmlOutput = HtmlService.createHtmlOutputFromFile("AdvisoryDialog")
+    .setWidth(600)
+    .setHeight(700)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Manage Advisory Classes");
+}
+
 function showAssignmentDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("AssignmentDialog")
     .setWidth(600)
@@ -442,5 +451,64 @@ function deleteAssignment(gradeLevel, section, instructor, subject) {
 function deleteAssignmentsBatch(assignments) {
   return callApi("deleteAssignmentsBatch", {
     assignments: JSON.stringify(assignments)
+  });
+}
+
+/**
+ * Client-callable function to add an advisory via API
+ * @param {string} instructor - The instructor name
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @param {string} schoolYear - The school year
+ * @return {Object} Result object with success status
+ */
+function addAdvisory(instructor, gradeLevel, section, schoolYear) {
+  return callApi("addAdvisory", {
+    instructor,
+    gradeLevel,
+    section,
+    schoolYear
+  });
+}
+
+/**
+ * Client-callable function to get advisories via API
+ * @param {string} instructor - The instructor name (optional filter)
+ * @param {string} schoolYear - The school year (optional filter)
+ * @return {Array} Array of advisory objects
+ */
+function getAdvisories(instructor, schoolYear) {
+  return callApi("getAdvisories", {
+    instructor: instructor || null,
+    schoolYear: schoolYear || null
+  });
+}
+
+/**
+ * Client-callable function to delete an advisory via API
+ * @param {string} instructor - The instructor name
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @param {string} schoolYear - The school year
+ * @return {Object} Result object with success status
+ */
+function deleteAdvisory(instructor, gradeLevel, section, schoolYear) {
+  return callApi("deleteAdvisory", {
+    instructor,
+    gradeLevel,
+    section,
+    schoolYear
+  });
+}
+
+/**
+ * Client-callable function to delete multiple advisories in batch via API (OPTIMIZED)
+ * Much faster than calling deleteAdvisory multiple times
+ * @param {Array} advisories - Array of advisory objects to delete
+ * @return {Object} Result object with success status and counts
+ */
+function deleteAdvisoriesBatch(advisories) {
+  return callApi("deleteAdvisoriesBatch", {
+    advisories: JSON.stringify(advisories)
   });
 }

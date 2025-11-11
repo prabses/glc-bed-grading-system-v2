@@ -21,13 +21,14 @@ This document outlines the **Google Sheets-native structure** for the Template M
 
 **What Users Do:**
 - ✅ Manage assignments via "Manage Assignments" dialog (assign instructors to grade/section/subject)
+- ✅ Manage advisory classes via "Manage Advisory Classes" dialog (assign instructors to advisory classes)
 - ✅ Fill out OGS template generation dialog (select grade, section, instructor)
 - ✅ Click "Generate Template" button
 - ✅ View MASTER_DATA for generated templates
 - ✅ Update reference lists (Subjects, Instructors) occasionally
 
 **What Users DON'T Do:**
-- ❌ Manually enter data in MASTER_DATA or ASSIGNMENTS sheets
+- ❌ Manually enter data in MASTER_DATA, ASSIGNMENTS, or ADVISORY sheets
 - ❌ Write formulas
 - ❌ Track template URLs
 - ❌ Update timestamps
@@ -44,16 +45,17 @@ This document outlines the **Google Sheets-native structure** for the Template M
 
 ## 🎨 System Overview
 
-### **Sheet Count: 6 sheets**
+### **Sheet Count: 7 sheets**
 
 | # | Sheet Name              | User Editable? | Purpose                                    |
 |---|-------------------------|----------------|--------------------------------------------|
 | 1 | MASTER_DATA             | ❌ Protected   | Auto-managed OGS template generation records |
 | 2 | ASSIGNMENTS             | ❌ Protected   | Instructor-grade-section-subject assignments |
-| 3 | SUBJECTS_REFERENCE      | ✅ Yes         | Simple subject list                        |
-| 4 | INSTRUCTORS_REFERENCE   | ✅ Yes         | Instructor list with email                 |
-| 5 | SECTIONS_REFERENCE      | ✅ Yes         | Grade levels & sections                    |
-| 6 | GRADING_REFERENCE ⭐    | ✅ Yes         | Dynamic grading rules                      |
+| 3 | ADVISORY                | ❌ Protected   | Instructor advisory class assignments       |
+| 4 | SUBJECTS_REFERENCE      | ✅ Yes         | Simple subject list                        |
+| 5 | INSTRUCTORS_REFERENCE   | ✅ Yes         | Instructor list with email                 |
+| 6 | SECTIONS_REFERENCE      | ✅ Yes         | Grade levels & sections                    |
+| 7 | GRADING_REFERENCE ⭐    | ✅ Yes         | Dynamic grading rules                      |
 
 ### **🔑 Key Dynamicness Features**
 
@@ -213,7 +215,69 @@ Grade Level | Section | Instructor | Subject | Status | Created | Modified | Cre
 
 ---
 
-### **Sheet 3: SUBJECTS_REFERENCE** (Reference Sheet)
+### **Sheet 3: ADVISORY** (Advisory Class Assignments)
+
+**Purpose:** Stores which instructors are assigned as advisors to which grade level and section combinations for each school year. This tracks advisory class assignments separately from subject teaching assignments.
+
+**🔒 PROTECTED SHEET - Scripts manage this automatically. Users manage via "Manage Advisory Classes" dialog.**
+
+**Sheet Structure:**
+
+```
+Row 1 (Column Headers):
+Instructor | Grade Level | Section | School Year | Status | Created | Modified | Created By
+```
+
+**Column Details:**
+
+| Column | Field Name    | Filled By    | Description                                   | Example                  |
+|--------|---------------|--------------|-----------------------------------------------|--------------------------|
+| A      | Instructor    | 💬 Dialog    | Full name of assigned instructor              | Rojo, R.                 |
+| B      | Grade Level   | 💬 Dialog    | Grade level for the advisory class           | Grade 1                  |
+| C      | Section       | 💬 Dialog    | Section letter (A, B, C, etc.)                | A                        |
+| D      | School Year   | 💬 Dialog    | School year for the advisory assignment       | 2024-2025                |
+| E      | Status        | 🤖 Auto      | "Active" for active assignments, "Inactive" for inactive | Active                  |
+| F      | Created       | 🤖 Auto      | Auto-timestamp when advisory was created      | 2025-05-03 10:30         |
+| G      | Modified      | 🤖 Auto      | Auto-timestamp when advisory was modified     | 2025-05-03 14:15         |
+| H      | Created By    | 🤖 Auto      | Email of user who created the advisory        | admin@school.edu         |
+
+**Sample Data (Visual Representation):**
+
+```
+┌───────────────┬─────────────┬─────────┬─────────────┬──────────┬──────────────────┬──────────────────┬──────────────────┐
+│ Instructor    │ Grade Level │ Section │ School Year │ Status   │ Created          │ Modified         │ Created By       │
+├───────────────┼─────────────┼─────────┼─────────────┼──────────┼──────────────────┼──────────────────┼──────────────────┤
+│ Rojo, R.      │ Grade 1     │ A       │ 2024-2025   │ Active   │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
+│ Cruz, Maria A.│ Grade 1     │ B       │ 2024-2025   │ Active   │ 2025-05-03 11:00 │ 2025-05-03 11:00 │ admin@school.edu │
+│ Santos, J.     │ Grade 2     │ A       │ 2024-2025   │ Active   │ 2025-05-03 11:15 │ 2025-05-03 11:15 │ admin@school.edu │
+│ Rojo, R.      │ Grade 1     │ A       │ 2023-2024   │ Inactive │ 2024-05-03 10:30 │ 2025-05-03 14:00 │ admin@school.edu │
+└───────────────┴─────────────┴─────────┴─────────────┴──────────┴──────────────────┴──────────────────┴──────────────────┘
+```
+
+**Key Features:**
+- ✅ Managed via "Manage Advisory Classes" dialog (Actions menu)
+- ✅ One row per instructor-grade-section-school year combination
+- ✅ Active advisories (Status = "Active") are tracked for current assignments
+- ✅ Inactive advisories (Status = "Inactive") are preserved for history
+- ✅ Sheet is auto-created when first advisory is added
+- ✅ Complete audit trail with creation/modification dates and user tracking
+- ✅ Modified date updates when advisory is reactivated or deleted
+- ✅ Separate from subject teaching assignments (ASSIGNMENTS sheet)
+
+**Workflow:**
+1. Admin uses "Manage Advisory Classes" dialog to assign instructors as advisors
+2. Select instructor, grade level, section, and enter school year
+3. System tracks which instructor is the advisor for each class per school year
+4. Advisories can be filtered by instructor and/or school year
+5. Bulk delete available for managing multiple advisories at once
+
+**Difference from ASSIGNMENTS:**
+- **ASSIGNMENTS**: Tracks which instructors teach which subjects (for OGS template generation)
+- **ADVISORY**: Tracks which instructors are advisors for which classes (for class management)
+
+---
+
+### **Sheet 4: SUBJECTS_REFERENCE** (Reference Sheet)
 
 **Purpose:** Simple list of all subjects. Admin updates this occasionally.
 
@@ -266,7 +330,7 @@ Row 9: Old Subject       |     ← Inactive, won't show in dialog
 
 ---
 
-### **Sheet 4: INSTRUCTORS_REFERENCE** (Reference Sheet)
+### **Sheet 5: INSTRUCTORS_REFERENCE** (Reference Sheet)
 
 **Purpose:** List of instructors with contact information. Admin updates when new teachers join or leave.
 
@@ -320,7 +384,7 @@ Row 8: Lopez, Carmen D. | clopez@school.edu    | ✓
 
 ---
 
-### **Sheet 5: SECTIONS_REFERENCE** (Reference Sheet)
+### **Sheet 6: SECTIONS_REFERENCE** (Reference Sheet)
 
 **Purpose:** List of sections for each grade level. Update at start of each academic year.
 
@@ -381,7 +445,7 @@ Row 12: Grade 12   | A       | SHS
 
 ---
 
-### **Sheet 6: GRADING_REFERENCE** (Dynamic Grading Configuration) ⭐
+### **Sheet 7: GRADING_REFERENCE** (Dynamic Grading Configuration) ⭐
 
 **Purpose:** Define grading computation weights dynamically. Supports different grading schemes per subject.
 
@@ -491,7 +555,7 @@ Student | Last Name | First Name | Written Work (30%) | Performance Task (50%) |
 ### **Step 1: Create the Spreadsheet**
 1. Create a new Google Spreadsheet
 2. Name it: "Template Masterfile - 2024-2025"
-3. Create **4 reference sheets** with these exact names (MASTER_DATA and ASSIGNMENTS are auto-created by scripts):
+3. Create **5 reference sheets** with these exact names (MASTER_DATA, ASSIGNMENTS, and ADVISORY are auto-created by scripts):
    - SUBJECTS_REFERENCE
    - INSTRUCTORS_REFERENCE
    - SECTIONS_REFERENCE
@@ -499,11 +563,12 @@ Student | Last Name | First Name | Written Work (30%) | Performance Task (50%) |
 
 ### **Step 2: Set Up Headers**
 
-**For MASTER_DATA and ASSIGNMENTS sheets:**
+**For MASTER_DATA, ASSIGNMENTS, and ADVISORY sheets:**
 - These sheets are **auto-created by scripts** with column headers only (no parent headers)
 - **Row 1:** Column Headers only
 - Format: Bold, background color (#d9d9d9), centered
 - Data starts at **Row 2**
+- ADVISORY sheet columns: Instructor | Grade Level | Section | School Year | Status | Created | Modified | Created By
 
 **For reference sheets (SUBJECTS_REFERENCE, INSTRUCTORS_REFERENCE, SECTIONS_REFERENCE, GRADING_REFERENCE), create TWO header rows:**
 
@@ -1017,7 +1082,7 @@ Step 3: Old templates unchanged (already generated)
 ## 🎯 Summary: Why This Structure Works
 
 ### **Minimal User Modifications**
-✅ Only 4 sheets users edit (reference lists)  
+✅ Only 5 sheets users edit (reference lists)  
 ✅ Just 2-3 columns per sheet  
 ✅ No formulas for users to manage  
 ✅ No complex relationships  
@@ -1055,6 +1120,7 @@ The star of this structure! Features:
 
 | Date       | Version | Changes                                                                          | By    |
 |------------|---------|----------------------------------------------------------------------------------|-------|
+| 2025-11-11 | 1.8     | Added ADVISORY sheet for managing instructor advisory class assignments          | AI    |
 | 2025-10-30 | 1.7     | Removed DASHBOARD sheet (users can view/filter MASTER_DATA directly)            | AI    |
 | 2025-10-30 | 1.6     | Combined TEMPLATE_HISTORY into MASTER_DATA (added Created By column)             | AI    |
 | 2025-10-29 | 1.5     | Removed CONFIG sheet (School Year now user input in dialog)                      | AI    |
@@ -1076,9 +1142,9 @@ For questions or issues with this structure:
 
 ---
 
-**Last Updated:** October 30, 2025  
-**Document Version:** 1.7  
-**Structure Focus:** One-time grading templates + Subject-specific weights + Simplified structure (5 sheets only)
+**Last Updated:** November 11, 2025  
+**Document Version:** 1.8  
+**Structure Focus:** One-time grading templates + Subject-specific weights + Advisory class management + Simplified structure (7 sheets total, 5 reference sheets)
 
 ---
 
@@ -1086,7 +1152,9 @@ For questions or issues with this structure:
 
 | Sheet Name              | Columns | User Editable | Purpose                                |
 |-------------------------|---------|---------------|----------------------------------------|
-| MASTER_DATA             | 10      | ❌ Protected  | Assignment records with audit trail   |
+| MASTER_DATA             | 8       | ❌ Protected  | OGS template generation records        |
+| ASSIGNMENTS             | 8       | ❌ Protected  | Instructor-grade-section-subject assignments |
+| ADVISORY                | 8       | ❌ Protected  | Instructor advisory class assignments  |
 | SUBJECTS_REFERENCE      | 2       | ✅ Yes        | Subject names                          |
 | INSTRUCTORS_REFERENCE   | 3       | ✅ Yes        | Instructors + emails                   |
 | SECTIONS_REFERENCE      | 3       | ✅ Yes        | Grade levels, sections & level tags   |

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <title>Manage Advisory Classes</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        max-width: 100%;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      .header h2 {
+        color: #333;
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+      }
+
+      .form-group {
+        margin-bottom: 18px;
+      }
+
+      .form-label {
+        display: block;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+        background: #fafbfc;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #5568d3;
+      }
+
+      .btn-secondary {
+        background: #6c757d;
+        color: white;
+      }
+
+      .advisories-list {
+        margin-top: 20px;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 10px;
+      }
+
+      .advisory-item {
+        padding: 10px;
+        border-bottom: 1px solid #e1e5e9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .advisory-item:last-child {
+        border-bottom: none;
+      }
+
+      .advisory-info {
+        flex: 1;
+      }
+
+      .advisory-info strong {
+        color: #333;
+      }
+
+      .advisory-status {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .status-active {
+        background: #d9ead3;
+        color: #155724;
+      }
+
+      .status-archived {
+        background: #efefef;
+        color: #6c757d;
+      }
+
+      .advisories-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+
+      .select-all-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .select-all-container input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      .delete-actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .selected-count {
+        color: #6c757d;
+        font-size: 14px;
+      }
+
+      .btn-delete {
+        background: #dc3545;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .btn-delete:hover:not(:disabled) {
+        background: #c82333;
+      }
+
+      .btn-delete:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      .advisory-checkbox {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        margin: 4px 0;
+        border-radius: 4px;
+        transition: background 0.2s;
+      }
+
+      .advisory-checkbox:hover {
+        background: #e9ecef;
+      }
+
+      .advisory-checkbox input[type="checkbox"] {
+        margin-right: 10px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      .advisory-checkbox label {
+        cursor: pointer;
+        flex: 1;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>Manage Advisory Classes</h2>
+        <p>Assign instructors to advisory classes (grade level and section) for each school year</p>
+      </div>
+
+      <form id="advisoryForm">
+        <div class="form-group">
+          <label class="form-label" for="instructor">
+            Instructor <span style="color: #e74c3c;">*</span>
+          </label>
+          <select id="instructor" class="form-control" required>
+            <option value="">Select instructor...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="gradeLevel">
+            Grade Level <span style="color: #e74c3c;">*</span>
+          </label>
+          <select id="gradeLevel" class="form-control" required>
+            <option value="">Select grade level...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="section">
+            Section <span style="color: #e74c3c;">*</span>
+          </label>
+          <select id="section" class="form-control" required disabled>
+            <option value="">Select grade level first...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="schoolYear">
+            School Year <span style="color: #e74c3c;">*</span>
+          </label>
+          <input type="text" id="schoolYear" class="form-control" placeholder="e.g., 2024-2025" required>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">
+            Add Advisory
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="google.script.host.close()">
+            Close
+          </button>
+        </div>
+      </form>
+
+      <div id="advisoriesContainer" style="display: none;">
+        <div class="advisories-header">
+          <div class="select-all-container">
+            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+            <label for="selectAllCheckbox">Select All</label>
+          </div>
+          <div class="delete-actions">
+            <span class="selected-count" id="selectedCount">0 selected</span>
+            <button class="btn-delete" id="deleteSelectedBtn" onclick="deleteSelectedAdvisories()" disabled>
+              Delete Selected
+            </button>
+          </div>
+        </div>
+        <div class="advisories-list" id="advisoriesList">
+          <p style="text-align: center; color: #6c757d;">Select instructor and school year to view advisories</p>
+        </div>
+      </div>
+      <div id="advisoriesPlaceholder" class="advisories-list">
+        <p style="text-align: center; color: #6c757d;">Select instructor and school year to view advisories</p>
+      </div>
+    </div>
+
+    <script>
+      let gradeLevels = [];
+      let allSections = {};
+      let instructors = [];
+
+      document.addEventListener('DOMContentLoaded', function() {
+        loadInitialData();
+        
+        document.getElementById('gradeLevel').addEventListener('change', function() {
+          loadSections(this.value);
+        });
+        
+        document.getElementById('instructor').addEventListener('change', function() {
+          loadAdvisories();
+        });
+        
+        document.getElementById('schoolYear').addEventListener('input', function() {
+          loadAdvisories();
+        });
+      });
+
+      function loadInitialData() {
+        google.script.run
+          .withSuccessHandler(function(data) {
+            gradeLevels = data.gradeLevels || [];
+            instructors = data.instructors || [];
+            
+            // OPTIMIZATION: Use DocumentFragment for batch DOM operations (faster)
+            
+            // Populate grade levels
+            const gradeSelect = document.getElementById('gradeLevel');
+            const gradeFragment = document.createDocumentFragment();
+            gradeLevels.forEach(function(grade) {
+              const option = document.createElement('option');
+              option.value = grade;
+              option.textContent = grade;
+              gradeFragment.appendChild(option);
+            });
+            gradeSelect.appendChild(gradeFragment);
+            
+            // Populate instructors
+            const instructorSelect = document.getElementById('instructor');
+            const instructorFragment = document.createDocumentFragment();
+            instructors.forEach(function(instructor) {
+              const option = document.createElement('option');
+              option.value = instructor;
+              option.textContent = instructor;
+              instructorFragment.appendChild(option);
+            });
+            instructorSelect.appendChild(instructorFragment);
+          })
+          .withFailureHandler(function(error) {
+            alert('Error loading data: ' + error.toString());
+          })
+          .getAllDropdownData();
+      }
+
+      function loadSections(gradeLevel) {
+        const sectionSelect = document.getElementById('section');
+        if (!gradeLevel) {
+          sectionSelect.innerHTML = '<option value="">Select grade level first...</option>';
+          sectionSelect.disabled = true;
+          return;
+        }
+        
+        sectionSelect.innerHTML = '<option value="">Loading...</option>';
+        sectionSelect.disabled = true;
+        
+        google.script.run
+          .withSuccessHandler(function(sections) {
+            // OPTIMIZATION: Use DocumentFragment for faster DOM updates
+            const fragment = document.createDocumentFragment();
+            
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select section...';
+            fragment.appendChild(defaultOption);
+            
+            sections.forEach(function(section) {
+              const option = document.createElement('option');
+              option.value = section;
+              option.textContent = section;
+              fragment.appendChild(option);
+            });
+            
+            sectionSelect.innerHTML = '';
+            sectionSelect.appendChild(fragment);
+            sectionSelect.disabled = false;
+          })
+          .withFailureHandler(function(error) {
+            alert('Error loading sections: ' + error.toString());
+            sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
+            sectionSelect.disabled = true;
+          })
+          .getSectionsForGrade(gradeLevel);
+      }
+
+      function loadAdvisories() {
+        const instructor = document.getElementById('instructor').value;
+        const schoolYear = document.getElementById('schoolYear').value.trim();
+        
+        if (!instructor || !schoolYear) {
+          document.getElementById('advisoriesContainer').style.display = 'none';
+          document.getElementById('advisoriesPlaceholder').style.display = 'block';
+          return;
+        }
+        
+        document.getElementById('advisoriesList').innerHTML = '<p style="text-align: center; color: #6c757d;">Loading...</p>';
+        document.getElementById('advisoriesContainer').style.display = 'block';
+        document.getElementById('advisoriesPlaceholder').style.display = 'none';
+        
+        google.script.run
+          .withSuccessHandler(function(advisories) {
+            displayAdvisories(advisories);
+          })
+          .withFailureHandler(function(error) {
+            alert('Error loading advisories: ' + error.toString());
+            document.getElementById('advisoriesList').innerHTML = '<p style="text-align: center; color: #e74c3c;">Error loading advisories</p>';
+          })
+          .getAdvisories(instructor, schoolYear);
+      }
+
+      function displayAdvisories(advisories) {
+        const list = document.getElementById('advisoriesList');
+        
+        if (!advisories || advisories.length === 0) {
+          list.innerHTML = '<p style="text-align: center; color: #6c757d;">No advisories found</p>';
+          return;
+        }
+        
+        // Filter only active advisories
+        const activeAdvisories = advisories.filter(function(adv) {
+          return adv.status === 'Active';
+        });
+        
+        if (activeAdvisories.length === 0) {
+          list.innerHTML = '<p style="text-align: center; color: #6c757d;">No active advisories found</p>';
+          return;
+        }
+        
+        // OPTIMIZATION: Use DocumentFragment for batch DOM operations
+        const fragment = document.createDocumentFragment();
+        
+        activeAdvisories.forEach(function(advisory) {
+          const checkboxDiv = document.createElement('div');
+          checkboxDiv.className = 'advisory-checkbox';
+          const advisoryKey = `${advisory.instructor}|||${advisory.gradeLevel}|||${advisory.section}|||${advisory.schoolYear}`;
+          checkboxDiv.innerHTML = `
+            <input type="checkbox" id="advisory_${advisoryKey.replace(/\|\|\|/g, '_')}" 
+                   value="${advisoryKey}" 
+                   onchange="updateSelectedCount()">
+            <label for="advisory_${advisoryKey.replace(/\|\|\|/g, '_')}">
+              <strong>${advisory.gradeLevel}${advisory.section}</strong> - ${advisory.schoolYear}
+            </label>
+          `;
+          fragment.appendChild(checkboxDiv);
+        });
+        
+        list.innerHTML = '';
+        list.appendChild(fragment);
+        updateSelectedCount();
+      }
+
+      function toggleSelectAll() {
+        const selectAll = document.getElementById('selectAllCheckbox').checked;
+        const checkboxes = document.querySelectorAll('#advisoriesList input[type="checkbox"]');
+        checkboxes.forEach(function(checkbox) {
+          checkbox.checked = selectAll;
+        });
+        updateSelectedCount();
+      }
+
+      function updateSelectedCount() {
+        const checkboxes = document.querySelectorAll('#advisoriesList input[type="checkbox"]:checked');
+        const count = checkboxes.length;
+        document.getElementById('selectedCount').textContent = count + ' selected';
+        document.getElementById('deleteSelectedBtn').disabled = count === 0;
+        document.getElementById('selectAllCheckbox').checked = 
+          count > 0 && count === document.querySelectorAll('#advisoriesList input[type="checkbox"]').length;
+      }
+
+      function deleteSelectedAdvisories() {
+        const checkboxes = document.querySelectorAll('#advisoriesList input[type="checkbox"]:checked');
+        if (checkboxes.length === 0) {
+          alert('Please select at least one advisory to delete.');
+          return;
+        }
+        
+        if (!confirm(`Are you sure you want to delete ${checkboxes.length} advisory(ies)?`)) {
+          return;
+        }
+        
+        const advisoriesToDelete = Array.from(checkboxes).map(function(checkbox) {
+          const parts = checkbox.value.split('|||');
+          return {
+            instructor: parts[0],
+            gradeLevel: parts[1],
+            section: parts[2],
+            schoolYear: parts[3]
+          };
+        });
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              alert('✅ ' + result.message);
+              loadAdvisories();
+            } else {
+              alert('❌ ' + result.message);
+            }
+          })
+          .withFailureHandler(function(error) {
+            alert('❌ Error: ' + error.toString());
+          })
+          .deleteAdvisoriesBatch(advisoriesToDelete);
+      }
+
+      document.getElementById('advisoryForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const instructor = document.getElementById('instructor').value;
+        const gradeLevel = document.getElementById('gradeLevel').value;
+        const section = document.getElementById('section').value;
+        const schoolYear = document.getElementById('schoolYear').value.trim();
+        
+        if (!instructor || !gradeLevel || !section || !schoolYear) {
+          alert('Please fill in all required fields.');
+          return;
+        }
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              alert('✅ ' + result.message);
+              document.getElementById('advisoryForm').reset();
+              document.getElementById('section').disabled = true;
+              loadAdvisories();
+            } else {
+              alert('❌ ' + result.message);
+            }
+          })
+          .withFailureHandler(function(error) {
+            alert('❌ Error: ' + error.toString());
+          })
+          .addAdvisory(instructor, gradeLevel, section, schoolYear);
+      });
+    </script>
+  </body>
+</html>
+

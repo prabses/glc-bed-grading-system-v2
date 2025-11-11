@@ -26,6 +26,7 @@ const CONFIG = {
   SHEET_NAMES: {
     MASTER_DATA: 'MASTER_DATA',
     ASSIGNMENTS: 'ASSIGNMENTS',
+    ADVISORY: 'ADVISORY',
     SUBJECTS_REFERENCE: 'SUBJECTS_REFERENCE',
     INSTRUCTORS_REFERENCE: 'INSTRUCTORS_REFERENCE',
     SECTIONS_REFERENCE: 'SECTIONS_REFERENCE',
@@ -59,6 +60,18 @@ const CONFIG = {
     SECTION: 1,          // Column B
     INSTRUCTOR: 2,       // Column C
     SUBJECT: 3,          // Column D
+    STATUS: 4,            // Column E
+    CREATED: 5,           // Column F
+    MODIFIED: 6,          // Column G
+    CREATED_BY: 7         // Column H
+  },
+  
+  // Column mapping for ADVISORY (0-based index)
+  ADVISORY_COLUMNS: {
+    INSTRUCTOR: 0,        // Column A
+    GRADE_LEVEL: 1,      // Column B
+    SECTION: 2,          // Column C
+    SCHOOL_YEAR: 3,      // Column D
     STATUS: 4,            // Column E
     CREATED: 5,           // Column F
     MODIFIED: 6,          // Column G
