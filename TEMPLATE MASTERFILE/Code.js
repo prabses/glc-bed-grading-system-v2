@@ -183,6 +183,7 @@ function getAssignedSubjects(gradeLevel, section, instructor) {
 
 /**
  * Gets unique grade levels from SECTIONS_REFERENCE sheet
+ * OPTIMIZED: Uses Set for O(1) duplicate detection and minimal data retrieval
  * Returns in the order they appear in the sheet (unsorted)
  * @return {Array} Array of unique grade levels
  */
@@ -199,23 +200,28 @@ function getGradeLevels() {
       return []; // No data rows
     }
     
-    // Limit data range to prevent hanging
+    // OPTIMIZATION 1: Only read column A (Grade Level)
     const maxRows = Math.min(lastRow, CONFIG.HEADER_ROWS + 1000);
-    const data = sheet.getRange(1, 1, maxRows, sheet.getLastColumn()).getValues();
-    const gradeLevels = [];
+    const startRow = CONFIG.HEADER_ROWS + 1;
+    const numRows = maxRows - CONFIG.HEADER_ROWS;
+    const data = sheet.getRange(startRow, 1, numRows, 1).getValues(); // Only column A
     
-    // Skip 2 header rows (parent header + column headers)
-    for (let i = CONFIG.HEADER_ROWS; i < data.length; i++) {
-      const row = data[i];
-      if (!row || row.length === 0) continue;
+    // OPTIMIZATION 2: Use Set for O(1) duplicate detection
+    const gradeLevelSet = new Set();
+    const gradeLevels = []; // Preserve order
+    
+    // Process data
+    for (let i = 0; i < data.length; i++) {
+      const gradeLevel = String(data[i][0]).trim();
       
-      const gradeLevel = String(row[0]).trim();
-      if (gradeLevel && !gradeLevels.includes(gradeLevel)) {
+      // OPTIMIZATION 3: Single condition check
+      if (gradeLevel && !gradeLevelSet.has(gradeLevel)) {
+        gradeLevelSet.add(gradeLevel);
         gradeLevels.push(gradeLevel);
       }
     }
     
-    return gradeLevels; // Return unsorted, in order they appear in sheet
+    return gradeLevels;
   } catch (error) {
     console.error('Error in getGradeLevels:', error);
     return [];
@@ -224,26 +230,43 @@ function getGradeLevels() {
 
 /**
  * Gets sections for a specific grade level
+ * OPTIMIZED: Minimal data retrieval and efficient filtering
  * @param {string} gradeLevel - The grade level to filter by
  * @return {Array} Array of section names for the specified grade level
  */
 function getSectionsForGrade(gradeLevel) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REFERENCE);
-  if (!sheet) {
-    throw new Error('SECTIONS_REFERENCE sheet not found');
-  }
-  
-  const data = sheet.getDataRange().getValues();
-  const sections = [];
-  
-  // Skip 2 header rows (parent header + column headers)
-  for (let i = CONFIG.HEADER_ROWS; i < data.length; i++) {
-    if (data[i][0] === gradeLevel && data[i][1]) {
-      sections.push(data[i][1]);
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REFERENCE);
+    if (!sheet) {
+      console.warn('SECTIONS_REFERENCE sheet not found');
+      return [];
     }
+    
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= CONFIG.HEADER_ROWS) {
+      return [];
+    }
+    
+    // OPTIMIZATION 1: Only read columns A-B (Grade Level, Section)
+    const startRow = CONFIG.HEADER_ROWS + 1;
+    const numRows = lastRow - CONFIG.HEADER_ROWS;
+    const data = sheet.getRange(startRow, 1, numRows, 2).getValues();
+    
+    const sections = [];
+    
+    // OPTIMIZATION 2: Single pass with efficient condition
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      if (row[0] === gradeLevel && row[1]) {
+        sections.push(row[1]);
+      }
+    }
+    
+    return sections;
+  } catch (error) {
+    console.error('Error in getSectionsForGrade:', error);
+    return [];
   }
-  
-  return sections;
 }
 
 /**
@@ -272,6 +295,7 @@ function getLevelForGrade(gradeLevel) {
 
 /**
  * Gets active items from any reference sheet
+ * OPTIMIZED: Minimal data retrieval - only reads target column and Active column
  * @param {string} sheetName - Name of the reference sheet
  * @param {number} columnIndex - Index of the column to retrieve (0-based)
  * @return {Array} Array of active items
@@ -281,30 +305,34 @@ function getActiveItems(sheetName, columnIndex = 0) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
     if (!sheet) {
       console.warn(`${sheetName} sheet not found`);
-      return []; // Return empty array instead of throwing
+      return [];
     }
     
-    // Limit data range to prevent hanging on very large sheets
     const lastRow = sheet.getLastRow();
-    if (lastRow <= CONFIG.HEADER_ROWS) {
-      return []; // No data rows
+    const lastCol = sheet.getLastColumn();
+    
+    if (lastRow <= CONFIG.HEADER_ROWS || lastCol === 0) {
+      return [];
     }
     
-    // Get data range with limit to prevent timeout
-    const maxRows = Math.min(lastRow, CONFIG.HEADER_ROWS + 1000); // Limit to 1000 data rows
-    const data = sheet.getRange(1, 1, maxRows, sheet.getLastColumn()).getValues();
+    // OPTIMIZATION 1: Only read 2 columns - target column and Active column
+    const maxRows = Math.min(lastRow, CONFIG.HEADER_ROWS + 1000);
+    const startRow = CONFIG.HEADER_ROWS + 1;
+    const numRows = maxRows - CONFIG.HEADER_ROWS;
+    
+    // Read target column (columnIndex + 1) and Active column (lastCol)
+    const targetColData = sheet.getRange(startRow, columnIndex + 1, numRows, 1).getValues();
+    const activeColData = sheet.getRange(startRow, lastCol, numRows, 1).getValues();
+    
     const items = [];
     
-    // Skip 2 header rows (parent header + column headers)
-    for (let i = CONFIG.HEADER_ROWS; i < data.length; i++) {
-      const row = data[i];
-      if (!row || row.length === 0) continue; // Skip empty rows
+    // OPTIMIZATION 2: Parallel array processing
+    for (let i = 0; i < targetColData.length; i++) {
+      const activeValue = activeColData[i][0];
       
-      const activeValue = row[row.length - 1]; // Last column is Active
-      // Handle both checkboxes (TRUE/FALSE) and checkmarks (✓)
-      const isActive = activeValue === true || activeValue === '✓' || activeValue === 'TRUE' || activeValue === true;
-      if (isActive && row[columnIndex]) {
-        const item = String(row[columnIndex]).trim();
+      // OPTIMIZATION 3: Simplified active check
+      if ((activeValue === true || activeValue === '✓' || activeValue === 'TRUE') && targetColData[i][0]) {
+        const item = String(targetColData[i][0]).trim();
         if (item) {
           items.push(item);
         }
@@ -314,7 +342,7 @@ function getActiveItems(sheetName, columnIndex = 0) {
     return items;
   } catch (error) {
     console.error(`Error in getActiveItems for ${sheetName}:`, error);
-    return []; // Return empty array on error
+    return [];
   }
 }
 

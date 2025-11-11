@@ -328,16 +328,22 @@
             subjects = data.subjects || [];
             instructors = data.instructors || [];
             
+            // OPTIMIZATION: Use DocumentFragment for batch DOM operations (faster)
+            
+            // Populate grade levels
             const gradeSelect = document.getElementById('gradeLevel');
+            const gradeFragment = document.createDocumentFragment();
             gradeLevels.forEach(function(grade) {
               const option = document.createElement('option');
               option.value = grade;
               option.textContent = grade;
-              gradeSelect.appendChild(option);
+              gradeFragment.appendChild(option);
             });
+            gradeSelect.appendChild(gradeFragment);
             
+            // Populate subjects
             const subjectsContainer = document.getElementById('subjectsContainer');
-            subjectsContainer.innerHTML = '';
+            const subjectsFragment = document.createDocumentFragment();
             subjects.forEach(function(subject) {
               const checkboxDiv = document.createElement('div');
               checkboxDiv.className = 'subject-checkbox';
@@ -345,16 +351,21 @@
                 <input type="checkbox" id="subject_${subject}" value="${subject}" name="subjects">
                 <label for="subject_${subject}">${subject}</label>
               `;
-              subjectsContainer.appendChild(checkboxDiv);
+              subjectsFragment.appendChild(checkboxDiv);
             });
+            subjectsContainer.innerHTML = '';
+            subjectsContainer.appendChild(subjectsFragment);
             
+            // Populate instructors
             const instructorSelect = document.getElementById('instructor');
+            const instructorFragment = document.createDocumentFragment();
             instructors.forEach(function(instructor) {
               const option = document.createElement('option');
               option.value = instructor;
               option.textContent = instructor;
-              instructorSelect.appendChild(option);
+              instructorFragment.appendChild(option);
             });
+            instructorSelect.appendChild(instructorFragment);
           })
           .withFailureHandler(function(error) {
             alert('Error loading data: ' + error.toString());
@@ -375,13 +386,23 @@
         
         google.script.run
           .withSuccessHandler(function(sections) {
-            sectionSelect.innerHTML = '<option value="">Select section...</option>';
+            // OPTIMIZATION: Use DocumentFragment for faster DOM updates
+            const fragment = document.createDocumentFragment();
+            
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select section...';
+            fragment.appendChild(defaultOption);
+            
             sections.forEach(function(section) {
               const option = document.createElement('option');
               option.value = section;
               option.textContent = section;
-              sectionSelect.appendChild(option);
+              fragment.appendChild(option);
             });
+            
+            sectionSelect.innerHTML = '';
+            sectionSelect.appendChild(fragment);
             sectionSelect.disabled = false;
           })
           .withFailureHandler(function(error) {
