@@ -404,3 +404,15 @@ function deleteAssignment(gradeLevel, section, instructor, subject) {
     subject
   });
 }
+
+/**
+ * Client-callable function to delete multiple assignments in batch via API (OPTIMIZED)
+ * Much faster than calling deleteAssignment multiple times
+ * @param {Array} assignments - Array of assignment objects to delete
+ * @return {Object} Result object with success status and counts
+ */
+function deleteAssignmentsBatch(assignments) {
+  return callApi("deleteAssignmentsBatch", {
+    assignments: JSON.stringify(assignments)
+  });
+}

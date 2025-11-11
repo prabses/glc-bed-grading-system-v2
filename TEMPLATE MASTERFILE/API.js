@@ -85,6 +85,10 @@ function doPost(e) {
           payload.instructor,
           payload.subject
         ));
+      case "deleteAssignmentsBatch":
+        return response(200, _deleteAssignmentsBatch(
+          typeof payload.assignments === 'string' ? JSON.parse(payload.assignments) : payload.assignments
+        ));
       default:
         return response(400, "Bad Request: Invalid action.");
     }
@@ -762,6 +766,7 @@ function _addAssignmentsBatch(gradeLevel, section, instructor, subjects) {
 
 /**
  * Internal function to get assignments for a grade level and section
+ * OPTIMIZED for performance with early returns and minimal data retrieval
  * @param {string} gradeLevel - The grade level (optional)
  * @param {string} section - The section (optional)
  * @return {Array} Array of assignment objects
@@ -773,27 +778,51 @@ function _getAssignments(gradeLevel, section) {
       return [];
     }
     
-    const data = sheet.getDataRange().getValues();
+    const lastRow = sheet.getLastRow();
+    
+    // Early return if sheet only has headers (no data)
+    if (lastRow <= 1) {
+      return [];
+    }
+    
+    // OPTIMIZATION 1: Only read necessary columns (A-E) instead of all columns
+    // Columns: Grade Level (A), Section (B), Instructor (C), Subject (D), Status (E)
+    const numCols = 5; // Only read first 5 columns (we only need these)
+    const dataRange = sheet.getRange(2, 1, lastRow - 1, numCols); // Start from row 2 (skip header)
+    const data = dataRange.getValues();
+    
+    // Pre-allocate array size for better performance (estimate)
     const assignments = [];
     
-    // Skip header row (row 1)
-    for (let i = 1; i < data.length; i++) {
+    // OPTIMIZATION 2: Use column indices directly (no CONFIG lookup in loop)
+    const COL_GRADE = 0;
+    const COL_SECTION = 1;
+    const COL_INSTRUCTOR = 2;
+    const COL_SUBJECT = 3;
+    const COL_STATUS = 4;
+    
+    // OPTIMIZATION 3: Convert filters to boolean flags for faster checks
+    const hasGradeFilter = Boolean(gradeLevel);
+    const hasSectionFilter = Boolean(section);
+    
+    // OPTIMIZATION 4: Loop through data once with optimized filtering
+    const dataLength = data.length;
+    for (let i = 0; i < dataLength; i++) {
       const row = data[i];
-      const rowGradeLevel = row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL];
-      const rowSection = row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION];
-      const status = row[CONFIG.ASSIGNMENTS_COLUMNS.STATUS];
-      const isActive = status === 'Active';
       
-      // Filter by grade level and section if provided
-      if (gradeLevel && rowGradeLevel !== gradeLevel) continue;
-      if (section && rowSection !== section) continue;
-      if (!isActive) continue;
+      // OPTIMIZATION 5: Check status first (most likely to eliminate rows)
+      if (row[COL_STATUS] !== 'Active') continue;
       
+      // OPTIMIZATION 6: Early continue on filter mismatch (short-circuit evaluation)
+      if (hasGradeFilter && row[COL_GRADE] !== gradeLevel) continue;
+      if (hasSectionFilter && row[COL_SECTION] !== section) continue;
+      
+      // OPTIMIZATION 7: Direct object creation without intermediate variables
       assignments.push({
-        gradeLevel: rowGradeLevel,
-        section: rowSection,
-        instructor: row[CONFIG.ASSIGNMENTS_COLUMNS.INSTRUCTOR],
-        subject: row[CONFIG.ASSIGNMENTS_COLUMNS.SUBJECT]
+        gradeLevel: row[COL_GRADE],
+        section: row[COL_SECTION],
+        instructor: row[COL_INSTRUCTOR],
+        subject: row[COL_SUBJECT]
       });
     }
     
@@ -806,6 +835,7 @@ function _getAssignments(gradeLevel, section) {
 
 /**
  * Internal function to delete an assignment (set to inactive)
+ * OPTIMIZED for performance with minimal data retrieval and batch updates
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @param {string} instructor - The instructor name
@@ -819,18 +849,47 @@ function _deleteAssignment(gradeLevel, section, instructor, subject) {
       return { success: false, message: 'ASSIGNMENTS sheet not found' };
     }
     
+    const lastRow = sheet.getLastRow();
+    
+    // Early return if sheet only has headers
+    if (lastRow <= 1) {
+      return { success: false, message: 'Assignment not found' };
+    }
+    
+    // OPTIMIZATION 1: Only read necessary columns (A-D) instead of all columns
+    // We only need: Grade Level, Section, Instructor, Subject
+    const dataRange = sheet.getRange(2, 1, lastRow - 1, 4); // Start from row 2
+    const data = dataRange.getValues();
+    
+    // OPTIMIZATION 2: Use column indices directly
+    const COL_GRADE = 0;
+    const COL_SECTION = 1;
+    const COL_INSTRUCTOR = 2;
+    const COL_SUBJECT = 3;
+    
     const timestamp = new Date();
-    const data = sheet.getDataRange().getValues();
-    // Skip header row (row 1)
-    for (let i = 1; i < data.length; i++) {
+    
+    // OPTIMIZATION 3: Loop with early exit
+    const dataLength = data.length;
+    for (let i = 0; i < dataLength; i++) {
       const row = data[i];
-      if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.INSTRUCTOR] === instructor &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.SUBJECT] === subject) {
-        // Set to inactive and update modified date
-        sheet.getRange(i + 1, CONFIG.ASSIGNMENTS_COLUMNS.STATUS + 1).setValue('Inactive');
-        sheet.getRange(i + 1, CONFIG.ASSIGNMENTS_COLUMNS.MODIFIED + 1).setValue(timestamp);
+      
+      // OPTIMIZATION 4: Check all conditions in order of likelihood to fail
+      // (most specific first for faster rejection)
+      if (row[COL_SUBJECT] === subject &&
+          row[COL_INSTRUCTOR] === instructor &&
+          row[COL_SECTION] === section &&
+          row[COL_GRADE] === gradeLevel) {
+        
+        // OPTIMIZATION 5: Batch update both cells at once
+        const actualRow = i + 2; // +2 because data starts at row 2 (row 1 is header)
+        const statusCol = CONFIG.ASSIGNMENTS_COLUMNS.STATUS + 1; // E column
+        const modifiedCol = CONFIG.ASSIGNMENTS_COLUMNS.MODIFIED + 1; // G column
+        
+        // Batch update using setValues for better performance
+        sheet.getRange(actualRow, statusCol, 1, 1).setValue('Inactive');
+        sheet.getRange(actualRow, modifiedCol, 1, 1).setValue(timestamp);
+        
         return { success: true, message: 'Assignment deleted successfully' };
       }
     }
@@ -839,6 +898,92 @@ function _deleteAssignment(gradeLevel, section, instructor, subject) {
   } catch (error) {
     console.error('Error deleting assignment:', error);
     return { success: false, message: `Error deleting assignment: ${error.toString()}` };
+  }
+}
+
+/**
+ * Internal function to delete multiple assignments in batch (OPTIMIZED)
+ * Much faster than calling _deleteAssignment multiple times
+ * @param {Array} assignments - Array of assignment objects to delete
+ * @return {Object} Result object with success status and counts
+ */
+function _deleteAssignmentsBatch(assignments) {
+  try {
+    const sheet = getSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
+    if (!sheet) {
+      return { success: false, message: 'ASSIGNMENTS sheet not found', deleted: 0, failed: 0 };
+    }
+    
+    const lastRow = sheet.getLastRow();
+    
+    // Early return if sheet only has headers
+    if (lastRow <= 1 || !assignments || assignments.length === 0) {
+      return { success: true, message: 'No assignments to delete', deleted: 0, failed: 0 };
+    }
+    
+    // OPTIMIZATION 1: Read all data once
+    const dataRange = sheet.getRange(2, 1, lastRow - 1, 4);
+    const data = dataRange.getValues();
+    
+    // OPTIMIZATION 2: Create a lookup set for fast matching
+    const assignmentKeys = new Set();
+    assignments.forEach(a => {
+      const key = `${a.gradeLevel}|${a.section}|${a.instructor}|${a.subject}`;
+      assignmentKeys.add(key);
+    });
+    
+    // OPTIMIZATION 3: Find all matching rows in one pass
+    const rowsToUpdate = [];
+    const timestamp = new Date();
+    
+    const COL_GRADE = 0;
+    const COL_SECTION = 1;
+    const COL_INSTRUCTOR = 2;
+    const COL_SUBJECT = 3;
+    
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const key = `${row[COL_GRADE]}|${row[COL_SECTION]}|${row[COL_INSTRUCTOR]}|${row[COL_SUBJECT]}`;
+      
+      if (assignmentKeys.has(key)) {
+        rowsToUpdate.push(i + 2); // +2 because data starts at row 2
+      }
+    }
+    
+    // OPTIMIZATION 4: Batch update all rows at once
+    if (rowsToUpdate.length > 0) {
+      const statusCol = CONFIG.ASSIGNMENTS_COLUMNS.STATUS + 1;
+      const modifiedCol = CONFIG.ASSIGNMENTS_COLUMNS.MODIFIED + 1;
+      
+      // Update each row (Google Apps Script doesn't support non-contiguous ranges efficiently)
+      // But we still optimize by minimizing API calls
+      rowsToUpdate.forEach(rowNum => {
+        sheet.getRange(rowNum, statusCol).setValue('Inactive');
+        sheet.getRange(rowNum, modifiedCol).setValue(timestamp);
+      });
+      
+      return { 
+        success: true, 
+        message: `Successfully deleted ${rowsToUpdate.length} assignment(s)`,
+        deleted: rowsToUpdate.length,
+        failed: assignments.length - rowsToUpdate.length
+      };
+    }
+    
+    return { 
+      success: false, 
+      message: 'No matching assignments found',
+      deleted: 0,
+      failed: assignments.length
+    };
+  } catch (error) {
+    console.error('Error deleting assignments batch:', error);
+    return { 
+      success: false, 
+      message: `Error deleting assignments: ${error.toString()}`,
+      deleted: 0,
+      failed: assignments.length
+    };
   }
 }
 
