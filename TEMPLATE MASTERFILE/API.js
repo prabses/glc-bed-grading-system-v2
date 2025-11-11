@@ -385,71 +385,54 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
   const dataRange = sheet.getRange(1, 1, numRows, numCols);
   dataRange.setValues(allData);
   
-  // OPTIMIZATION: Apply styles in batch - minimized API calls
-  // Title row - chain methods for single API call
+  // Title row
   sheet.getRange(1, 1, 1, numCols)
     .merge()
     .setFontSize(18)
     .setFontWeight('bold')
     .setHorizontalAlignment('center');
   
-  // Info rows (3-8) - batch style operations
-  sheet.getRange(3, 1, 6, 1).setFontWeight('bold'); // Labels bold
+  // Info rows (3-8)
+  sheet.getRange(3, 1, 6, 1).setFontWeight('bold');
+  sheet.getRange(3, 2, 2, 1).setBackground('#f3f3f3');
+  sheet.getRange(6, 2, 3, 1).setBackground('#f3f3f3');
   
-  // OPTIMIZATION: Batch background colors - combine into single range where possible
-  // Rows 3-4 and 6-8 can be batched
-  sheet.getRange(3, 2, 2, 1).setBackground('#f3f3f3'); // Rows 3-4
-  sheet.getRange(6, 2, 3, 1).setBackground('#f3f3f3'); // Rows 6-8
-  
-  // Row 9: Grading period headers - merge and style
-  sheet.getRange(9, 3, 1, 4).merge();   // 1ST GRADING
-  sheet.getRange(9, 7, 1, 4).merge();   // 2ND GRADING
-  sheet.getRange(9, 11, 1, 4).merge();  // 3RD GRADING
-  sheet.getRange(9, 15, 1, 4).merge();  // 4TH GRADING
-  
-  // OPTIMIZATION: Chain all header styles
+  // Row 9: Grading period headers
+  sheet.getRange(9, 3, 1, 4).merge();
+  sheet.getRange(9, 7, 1, 4).merge();
+  sheet.getRange(9, 11, 1, 4).merge();
+  sheet.getRange(9, 15, 1, 4).merge();
   sheet.getRange(9, 3, 1, 16)
     .setFontWeight('bold')
     .setHorizontalAlignment('center')
     .setBackground('#e6e6e6');
   
-  // Row 10: Header row - chain all styles
+  // Row 10: Column headers
   sheet.getRange(10, 1, 1, numCols)
     .setFontWeight('bold')
     .setBackground('#d9d9d9')
     .setHorizontalAlignment('center')
     .setBorder(true, true, true, true, true, true);
   
-  // OPTIMIZATION: Batch set column widths (minimize API calls)
-  sheet.setColumnWidth(1, 120);  // Student No
-  sheet.setColumnWidth(2, 250);  // Student Name
-  // Set all grading columns (3-19) - batch operation
-  const gradingCols = sheet.getRange(1, 3, 1, 17); // Row 1, columns 3-19, 1 row, 17 columns
-  // Note: setColumnWidths is not available, but individual calls are fast for small ranges
-  // Using direct column indices is already optimized
+  // Set column widths
+  sheet.setColumnWidth(1, 120);
+  sheet.setColumnWidth(2, 250);
   for (let c = 3; c <= 19; c++) {
     sheet.setColumnWidth(c, 130);
   }
   
-  // Freeze header rows
   sheet.setFrozenRows(10);
   
-  // OPTIMIZATION: Add student rows with formulas and actual student data
-  // Use actual student count or fallback to default
   const hasStudents = students && students.length > 0;
   const numStudentRows = hasStudents ? Math.max(students.length, CONFIG.TEMPLATE.NUM_STUDENT_ROWS) : CONFIG.TEMPLATE.NUM_STUDENT_ROWS;
   const startRow = 11;
   
   if (numStudentRows > 0) {
-    // OPTIMIZATION: Pre-build all formulas as strings (reuse weight values)
     const ww = weights.writtenWork;
     const pt = weights.performanceTask;
     const as = weights.assessment;
     
-    // OPTIMIZATION: Separate values from formulas
-    // Build student data array (values only - columns A and B)
     const studentValues = [];
-    // Build formula arrays for formula columns only
     const formulaColumns = {
       6: [],  // Column F: 1st Transmuted
       10: [], // Column J: 2nd Transmuted
@@ -460,111 +443,83 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
   
   for (let i = 0; i < numStudentRows; i++) {
       const row = startRow + i;
-      
-      // OPTIMIZATION: Get actual student data from STUDENTS DB
       let studentNumber = '';
       let studentName = '';
       
       if (hasStudents && i < students.length) {
         const student = students[i];
-        // Use exact values from STUDENTS DB
         studentNumber = student.studentNumber || '';
-        // Format name as: Last Name, First Name Middle Name
         const lastName = student.lastName || '';
         const firstName = student.firstName || '';
         const middleName = student.middleName || '';
         studentName = `${lastName}${firstName ? ', ' + firstName : ''}${middleName ? ' ' + middleName : ''}`.trim();
       }
       
-      // Store student values (will use setValues - not formulas)
       studentValues.push([studentNumber, studentName]);
       
-      // Build formulas for calculated columns using weights from GRADING_REFERENCE
-      // Transmuted = (Written Work × Written Work %) + (Performance Task × Performance Task %) + (Assessment × Assessment %)
-      // Weights (ww, pt, as) are percentages from GRADING_REFERENCE sheet, divided by 100 to convert to decimal
-      formulaColumns[6].push([`=IF(AND(C${row}<>"",D${row}<>"",E${row}<>""),ROUND((C${row}*${ww}/100+D${row}*${pt}/100+E${row}*${as}/100),2),"")`]); // 1st Transmuted (Column F)
-      formulaColumns[10].push([`=IF(AND(G${row}<>"",H${row}<>"",I${row}<>""),ROUND((G${row}*${ww}/100+H${row}*${pt}/100+I${row}*${as}/100),2),"")`]); // 2nd Transmuted (Column J)
-      formulaColumns[14].push([`=IF(AND(K${row}<>"",L${row}<>"",M${row}<>""),ROUND((K${row}*${ww}/100+L${row}*${pt}/100+M${row}*${as}/100),2),"")`]); // 3rd Transmuted (Column N)
-      formulaColumns[18].push([`=IF(AND(O${row}<>"",P${row}<>"",Q${row}<>""),ROUND((O${row}*${ww}/100+P${row}*${pt}/100+Q${row}*${as}/100),2),"")`]); // 4th Transmuted (Column R)
-      
-      // Final Grading = Average of the 4 transmuted values
-      formulaColumns[19].push([`=IF(AND(F${row}<>"",J${row}<>"",N${row}<>"",R${row}<>""),ROUND((F${row}+J${row}+N${row}+R${row})/4,2),"")`]); // Final Grading (Column S)
+      formulaColumns[6].push([`=IF(AND(C${row}<>"",D${row}<>"",E${row}<>""),ROUND((C${row}*${ww}/100+D${row}*${pt}/100+E${row}*${as}/100),2),"")`]);
+      formulaColumns[10].push([`=IF(AND(G${row}<>"",H${row}<>"",I${row}<>""),ROUND((G${row}*${ww}/100+H${row}*${pt}/100+I${row}*${as}/100),2),"")`]);
+      formulaColumns[14].push([`=IF(AND(K${row}<>"",L${row}<>"",M${row}<>""),ROUND((K${row}*${ww}/100+L${row}*${pt}/100+M${row}*${as}/100),2),"")`]);
+      formulaColumns[18].push([`=IF(AND(O${row}<>"",P${row}<>"",Q${row}<>""),ROUND((O${row}*${ww}/100+P${row}*${pt}/100+Q${row}*${as}/100),2),"")`]);
+      formulaColumns[19].push([`=IF(AND(F${row}<>"",J${row}<>"",N${row}<>"",R${row}<>""),ROUND((F${row}+J${row}+N${row}+R${row})/4,2),"")`]);
     }
     
-    // OPTIMIZATION: Write student values (columns A-B) using setValues to avoid formula interpretation
     sheet.getRange(startRow, 1, numStudentRows, 2).setValues(studentValues);
     
-    // OPTIMIZATION: Explicitly set empty values for all grading input columns (not formulas)
-    // Columns C, D, E (TS1), G, H, I (TS2), K, L, M (TS3), O, P, Q (TS4) are empty values
-    // Only columns F, J, N, R (Transmuted) and S (Final Grading) have formulas
-    const emptyColumns = [3, 4, 5, 7, 8, 9, 11, 12, 13, 15, 16, 17]; // C, D, E, G, H, I, K, L, M, O, P, Q
-    const emptyValues = Array(numStudentRows).fill(['']); // Array of empty strings for each row
-    emptyColumns.forEach(col => {
-      sheet.getRange(startRow, col, numStudentRows, 1).setValues(emptyValues);
-    });
+    const emptyRangeFull = sheet.getRange(startRow, 3, numStudentRows, 15);
+    const emptyValuesBatch = Array(numStudentRows).fill(null).map(() => Array(15).fill(''));
+    emptyRangeFull.setValues(emptyValuesBatch);
     
-    // OPTIMIZATION: Write formulas ONLY for calculated columns (Transmuted and Final Grading)
-    Object.keys(formulaColumns).forEach(colNum => {
-      const col = parseInt(colNum);
+    const formulaColsList = [6, 10, 14, 18, 19];
+    formulaColsList.forEach(col => {
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulaColumns[col]);
     });
     
-    // PROTECTION: Lock protected ranges to prevent modification
-    // Protect: entire columns A and B, rows 9-10, and entire columns F, J, N, R, S
-    // Only the creator can edit these protected ranges
-    // OPTIMIZATION: Protect from row 1 to endRow + buffer (covers entire column in practice, much faster than maxRows)
-    // OPTIMIZATION: Skip editor management for new files - protections automatically have script owner as editor
-    const creatorEmail = Session.getActiveUser().getEmail();
-    const endRow = startRow + numStudentRows - 1; // Last row with student data
-    const protectToRow = Math.max(endRow + 100, 200); // Protect to endRow + 100 or minimum 200 rows
+    // PROTECTION: Required for sharing with others (teachers/staff)
+    // Protected: Student info (A-B), Headers (9-10), Formulas (F, J, N, R, S)
+    // Editable by others: Grading input columns (C, D, E, G, H, I, K, L, M, O, P, Q)
+    // Note: Protection operations are slow (~2-5 seconds each), resulting in ~90-100 second generation time
+    const ENABLE_PROTECTIONS = true;
     
-    // OPTIMIZATION: Create protections without editor management (much faster - saves 21 API calls per sheet)
-    // For new files, protections automatically have the script owner as editor
-    const createProtection = (range, description) => {
-      return range.protect()
-        .setDescription(description)
-        .setWarningOnly(false);
-      // Skip editor management - new file protections already have correct permissions
-    };
+    if (ENABLE_PROTECTIONS) {
+      const creatorEmail = Session.getActiveUser().getEmail();
+      const endRow = startRow + numStudentRows - 1;
+      const protectToRow = Math.max(endRow + 20, 50);
+      
+      const setProtectionWithOnlyCreator = (protection, creatorEmail) => {
+        try {
+          protection.addEditor(creatorEmail);
+        } catch (e) {
+          console.log('Note: Could not add editor to protection:', e.message);
+        }
+      };
+      
+      const colABRange = sheet.getRange(1, 1, protectToRow, 2);
+      const protection1 = colABRange.protect().setWarningOnly(false);
+      setProtectionWithOnlyCreator(protection1, creatorEmail);
+      
+      const headerRowsRange = sheet.getRange(9, 1, 2, numCols);
+      const protection2 = headerRowsRange.protect().setWarningOnly(false);
+      setProtectionWithOnlyCreator(protection2, creatorEmail);
+      
+      const formulaCols = [6, 10, 14, 18, 19];
+      const formulaProtections = [];
+      formulaCols.forEach((col) => {
+        const formulaRange = sheet.getRange(1, col, protectToRow, 1);
+        const prot = formulaRange.protect().setWarningOnly(false);
+        formulaProtections.push(prot);
+      });
+      formulaProtections.forEach(protection => {
+        setProtectionWithOnlyCreator(protection, creatorEmail);
+      });
+    }
     
-    // 1. Protect entire columns A and B (from row 1 to protectToRow)
-    const colABRange = sheet.getRange(1, 1, protectToRow, 2);
-    createProtection(colABRange, 'Protected Student Number and Name columns (entire columns)');
-    
-    // 2. Protect rows 9-10 (header rows - entire row)
-    const headerRowsRange = sheet.getRange(9, 1, 2, numCols);
-    createProtection(headerRowsRange, 'Protected header rows (9-10)');
-    
-    // 3. Protect entire formula columns F, J, N, R, S (from row 1 to protectToRow)
-    const formulaCols = [6, 10, 14, 18, 19]; // F, J, N, R, S
-    const colNames = ['F', 'J', 'N', 'R', 'S'];
-    const colDescriptions = ['1st Transmuted', '2nd Transmuted', '3rd Transmuted', '4th Transmuted', 'Final Grading'];
-    
-    formulaCols.forEach((col, index) => {
-      const formulaRange = sheet.getRange(1, col, protectToRow, 1);
-      createProtection(formulaRange, `Protected ${colDescriptions[index]} column ${colNames[index]} (entire column)`);
-    });
-    
-    // OPTIMIZATION: Batch update all protections' editors at once
-    // For new files, protections have script owner as editor, but we need creator (user) as editor
-    // Skip checking - just add creator to all protections (much faster - no getEditors() calls)
-    const allProtections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
-    allProtections.forEach(protection => {
-      protection.addEditor(creatorEmail); // Add creator (idempotent - safe to call multiple times)
-      // Note: For new files, script owner is already editor, but we want creator too
-      // We skip removing other editors to save API calls - script owner can stay as editor
-    });
-    
-    // OPTIMIZATION: Batch apply borders and number format
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setBorder(true, true, true, true, true, true);
-    
-    // Number format only for grading columns (C-S, columns 3-19)
     sheet.getRange(startRow, 3, numStudentRows, 17).setNumberFormat('0.00');
     
-    // Update Total Student count in info section
     if (hasStudents) {
-      sheet.getRange(7, 2).setValue(students.length).setHorizontalAlignment('left'); // Row 7, Column B - left aligned
+      sheet.getRange(7, 2).setValue(students.length).setHorizontalAlignment('left');
     }
   }
 }
@@ -728,24 +683,26 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     const templateSpreadsheet = SpreadsheetApp.create(templateFileName);
     const templateFile = DriveApp.getFileById(templateSpreadsheet.getId());
     
-    // Set file permissions: Only creator can access, remove all other editors/viewers
-    // OPTIMIZATION: Batch operations - get once, filter, then batch remove
+    // Set file permissions: Initially private (only creator), ready to share later
+    // File can be shared manually with teachers/staff after generation
+    // Range protections ensure only you can edit protected cells even when shared
     const creatorEmail = Session.getActiveUser().getEmail();
     const editors = templateFile.getEditors();
     const viewers = templateFile.getViewers();
     
-    // Batch remove all non-creator editors and all viewers in one go
+    // Batch remove all non-creator editors and all viewers in one go (2 API calls max)
     const editorsToRemove = editors.filter(editor => editor.getEmail() !== creatorEmail);
     if (editorsToRemove.length > 0) {
-      templateFile.removeEditors(editorsToRemove);
+      templateFile.removeEditors(editorsToRemove); // Single batch operation
     }
     if (viewers.length > 0) {
-      templateFile.removeViewers(viewers);
+      templateFile.removeViewers(viewers); // Single batch operation
     }
-    // Ensure creator has access (only if not already editor - but addEditor is idempotent)
-    if (!editors.some(editor => editor.getEmail() === creatorEmail)) {
-      templateFile.addEditor(creatorEmail);
-    }
+    // Ensure creator has access (idempotent - safe to call even if already editor)
+    templateFile.addEditor(creatorEmail);
+    
+    // NOTE: After generation, you can share this file with teachers/staff
+    // Protected ranges will remain locked to only you, while others can edit grading columns
     
     // Move the new file to the target folder (always move from root)
     targetFolder.addFile(templateFile);
