@@ -71,11 +71,10 @@ const CONFIG = {
     INSTRUCTOR: 0,        // Column A
     GRADE_LEVEL: 1,      // Column B
     SECTION: 2,          // Column C
-    SCHOOL_YEAR: 3,      // Column D
-    STATUS: 4,            // Column E
-    CREATED: 5,           // Column F
-    MODIFIED: 6,          // Column G
-    CREATED_BY: 7         // Column H
+    STATUS: 3,            // Column D
+    CREATED: 4,           // Column E
+    MODIFIED: 5,          // Column F
+    CREATED_BY: 6         // Column G
   },
   
   // Fixed grading components

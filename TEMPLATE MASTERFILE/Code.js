@@ -471,28 +471,24 @@ function deleteAssignmentsBatch(assignments) {
  * @param {string} instructor - The instructor name
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} schoolYear - The school year
  * @return {Object} Result object with success status
  */
-function addAdvisory(instructor, gradeLevel, section, schoolYear) {
+function addAdvisory(instructor, gradeLevel, section) {
   return callApi("addAdvisory", {
     instructor,
     gradeLevel,
-    section,
-    schoolYear
+    section
   });
 }
 
 /**
  * Client-callable function to get advisories via API
  * @param {string} instructor - The instructor name (optional filter)
- * @param {string} schoolYear - The school year (optional filter)
  * @return {Array} Array of advisory objects
  */
-function getAdvisories(instructor, schoolYear) {
+function getAdvisories(instructor) {
   return callApi("getAdvisories", {
-    instructor: instructor || null,
-    schoolYear: schoolYear || null
+    instructor: instructor || null
   });
 }
 
@@ -501,15 +497,13 @@ function getAdvisories(instructor, schoolYear) {
  * @param {string} instructor - The instructor name
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} schoolYear - The school year
  * @return {Object} Result object with success status
  */
-function deleteAdvisory(instructor, gradeLevel, section, schoolYear) {
+function deleteAdvisory(instructor, gradeLevel, section) {
   return callApi("deleteAdvisory", {
     instructor,
     gradeLevel,
-    section,
-    schoolYear
+    section
   });
 }
 

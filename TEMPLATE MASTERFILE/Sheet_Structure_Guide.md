@@ -217,7 +217,7 @@ Grade Level | Section | Instructor | Subject | Status | Created | Modified | Cre
 
 ### **Sheet 3: ADVISORY** (Advisory Class Assignments)
 
-**Purpose:** Stores which instructors are assigned as advisors to which grade level and section combinations for each school year. This tracks advisory class assignments separately from subject teaching assignments.
+**Purpose:** Stores which instructors are assigned as advisors to which grade level and section combinations. This tracks advisory class assignments separately from subject teaching assignments. Uses status (Active/Inactive) to manage changes over time.
 
 **🔒 PROTECTED SHEET - Scripts manage this automatically. Users manage via "Manage Advisory Classes" dialog.**
 
@@ -225,7 +225,7 @@ Grade Level | Section | Instructor | Subject | Status | Created | Modified | Cre
 
 ```
 Row 1 (Column Headers):
-Instructor | Grade Level | Section | School Year | Status | Created | Modified | Created By
+Instructor | Grade Level | Section | Status | Created | Modified | Created By
 ```
 
 **Column Details:**
@@ -235,41 +235,48 @@ Instructor | Grade Level | Section | School Year | Status | Created | Modified |
 | A      | Instructor    | 💬 Dialog    | Full name of assigned instructor              | Rojo, R.                 |
 | B      | Grade Level   | 💬 Dialog    | Grade level for the advisory class           | Grade 1                  |
 | C      | Section       | 💬 Dialog    | Section letter (A, B, C, etc.)                | A                        |
-| D      | School Year   | 💬 Dialog    | School year for the advisory assignment       | 2024-2025                |
-| E      | Status        | 🤖 Auto      | "Active" for active assignments, "Inactive" for inactive | Active                  |
-| F      | Created       | 🤖 Auto      | Auto-timestamp when advisory was created      | 2025-05-03 10:30         |
-| G      | Modified      | 🤖 Auto      | Auto-timestamp when advisory was modified     | 2025-05-03 14:15         |
-| H      | Created By    | 🤖 Auto      | Email of user who created the advisory        | admin@school.edu         |
+| D      | Status        | 🤖 Auto      | "Active" for active assignments, "Inactive" for inactive | Active                  |
+| E      | Created       | 🤖 Auto      | Auto-timestamp when advisory was created      | 2025-05-03 10:30         |
+| F      | Modified      | 🤖 Auto      | Auto-timestamp when advisory was modified     | 2025-05-03 14:15         |
+| G      | Created By    | 🤖 Auto      | Email of user who created the advisory        | admin@school.edu         |
 
 **Sample Data (Visual Representation):**
 
 ```
-┌───────────────┬─────────────┬─────────┬─────────────┬──────────┬──────────────────┬──────────────────┬──────────────────┐
-│ Instructor    │ Grade Level │ Section │ School Year │ Status   │ Created          │ Modified         │ Created By       │
-├───────────────┼─────────────┼─────────┼─────────────┼──────────┼──────────────────┼──────────────────┼──────────────────┤
-│ Rojo, R.      │ Grade 1     │ A       │ 2024-2025   │ Active   │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
-│ Cruz, Maria A.│ Grade 1     │ B       │ 2024-2025   │ Active   │ 2025-05-03 11:00 │ 2025-05-03 11:00 │ admin@school.edu │
-│ Santos, J.     │ Grade 2     │ A       │ 2024-2025   │ Active   │ 2025-05-03 11:15 │ 2025-05-03 11:15 │ admin@school.edu │
-│ Rojo, R.      │ Grade 1     │ A       │ 2023-2024   │ Inactive │ 2024-05-03 10:30 │ 2025-05-03 14:00 │ admin@school.edu │
-└───────────────┴─────────────┴─────────┴─────────────┴──────────┴──────────────────┴──────────────────┴──────────────────┘
+┌───────────────┬─────────────┬─────────┬──────────┬──────────────────┬──────────────────┬──────────────────┐
+│ Instructor    │ Grade Level │ Section │ Status   │ Created          │ Modified         │ Created By       │
+├───────────────┼─────────────┼─────────┼──────────┼──────────────────┼──────────────────┼──────────────────┤
+│ Rojo, R.      │ Grade 1     │ A       │ Active   │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
+│ Cruz, Maria A.│ Grade 1     │ B       │ Active   │ 2025-05-03 11:00 │ 2025-05-03 11:00 │ admin@school.edu │
+│ Santos, J.     │ Grade 2     │ A       │ Active   │ 2025-05-03 11:15 │ 2025-05-03 11:15 │ admin@school.edu │
+│ Rojo, R.      │ Grade 2     │ B       │ Inactive │ 2024-05-03 10:30 │ 2025-05-03 14:00 │ admin@school.edu │
+└───────────────┴─────────────┴─────────┴──────────┴──────────────────┴──────────────────┴──────────────────┘
 ```
 
 **Key Features:**
 - ✅ Managed via "Manage Advisory Classes" dialog (Actions menu)
-- ✅ One row per instructor-grade-section-school year combination
+- ✅ One row per instructor-grade-section combination
 - ✅ Active advisories (Status = "Active") are tracked for current assignments
 - ✅ Inactive advisories (Status = "Inactive") are preserved for history
 - ✅ Sheet is auto-created when first advisory is added
 - ✅ Complete audit trail with creation/modification dates and user tracking
 - ✅ Modified date updates when advisory is reactivated or deleted
 - ✅ Separate from subject teaching assignments (ASSIGNMENTS sheet)
+- ✅ Simplified structure - no school year field, relies on status for management
+
+**One-to-One Rules:**
+- ✅ **One class = one active advisor**: Each class (grade + section) can only have one active advisor at a time
+- ✅ **One instructor = one active advisory**: Each instructor can only have one active advisory at a time
+- ✅ When reassigning an instructor to a different class, their previous advisory becomes Inactive
+- ✅ When assigning a new instructor to a class that already has an active advisor, the operation is blocked
 
 **Workflow:**
 1. Admin uses "Manage Advisory Classes" dialog to assign instructors as advisors
-2. Select instructor, grade level, section, and enter school year
-3. System tracks which instructor is the advisor for each class per school year
-4. Advisories can be filtered by instructor and/or school year
+2. Select instructor, grade level, and section
+3. System tracks which instructor is the advisor for each class
+4. Advisories can be filtered by instructor
 5. Bulk delete available for managing multiple advisories at once
+6. Status (Active/Inactive) manages changes over time without needing school year tracking
 
 **Difference from ASSIGNMENTS:**
 - **ASSIGNMENTS**: Tracks which instructors teach which subjects (for OGS template generation)
@@ -568,7 +575,7 @@ Student | Last Name | First Name | Written Work (30%) | Performance Task (50%) |
 - **Row 1:** Column Headers only
 - Format: Bold, background color (#d9d9d9), centered
 - Data starts at **Row 2**
-- ADVISORY sheet columns: Instructor | Grade Level | Section | School Year | Status | Created | Modified | Created By
+- ADVISORY sheet columns: Instructor | Grade Level | Section | Status | Created | Modified | Created By
 
 **For reference sheets (SUBJECTS_REFERENCE, INSTRUCTORS_REFERENCE, SECTIONS_REFERENCE, GRADING_REFERENCE), create TWO header rows:**
 
@@ -1154,7 +1161,7 @@ For questions or issues with this structure:
 |-------------------------|---------|---------------|----------------------------------------|
 | MASTER_DATA             | 8       | ❌ Protected  | OGS template generation records        |
 | ASSIGNMENTS             | 8       | ❌ Protected  | Instructor-grade-section-subject assignments |
-| ADVISORY                | 8       | ❌ Protected  | Instructor advisory class assignments  |
+| ADVISORY                | 7       | ❌ Protected  | Instructor advisory class assignments  |
 | SUBJECTS_REFERENCE      | 2       | ✅ Yes        | Subject names                          |
 | INSTRUCTORS_REFERENCE   | 3       | ✅ Yes        | Instructors + emails                   |
 | SECTIONS_REFERENCE      | 3       | ✅ Yes        | Grade levels, sections & level tags   |

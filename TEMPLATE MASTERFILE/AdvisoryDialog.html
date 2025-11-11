@@ -216,7 +216,7 @@
     <div class="container">
       <div class="header">
         <h2>Manage Advisory Classes</h2>
-        <p>Assign instructors to advisory classes (grade level and section) for each school year</p>
+        <p>Assign instructors to advisory classes (grade level and section)</p>
       </div>
 
       <form id="advisoryForm">
@@ -247,13 +247,6 @@
           </select>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="schoolYear">
-            School Year <span style="color: #e74c3c;">*</span>
-          </label>
-          <input type="text" id="schoolYear" class="form-control" placeholder="e.g., 2024-2025" required>
-        </div>
-
         <div style="display: flex; gap: 10px;">
           <button type="submit" class="btn btn-primary" style="flex: 1;">
             Add Advisory
@@ -278,11 +271,11 @@
           </div>
         </div>
         <div class="advisories-list" id="advisoriesList">
-          <p style="text-align: center; color: #6c757d;">Select instructor and school year to view advisories</p>
+          <p style="text-align: center; color: #6c757d;">Select instructor to view advisories</p>
         </div>
       </div>
       <div id="advisoriesPlaceholder" class="advisories-list">
-        <p style="text-align: center; color: #6c757d;">Select instructor and school year to view advisories</p>
+        <p style="text-align: center; color: #6c757d;">Select instructor to view advisories</p>
       </div>
     </div>
 
@@ -299,10 +292,6 @@
         });
         
         document.getElementById('instructor').addEventListener('change', function() {
-          loadAdvisories();
-        });
-        
-        document.getElementById('schoolYear').addEventListener('input', function() {
           loadAdvisories();
         });
       });
@@ -385,9 +374,8 @@
 
       function loadAdvisories() {
         const instructor = document.getElementById('instructor').value;
-        const schoolYear = document.getElementById('schoolYear').value.trim();
         
-        if (!instructor || !schoolYear) {
+        if (!instructor) {
           document.getElementById('advisoriesContainer').style.display = 'none';
           document.getElementById('advisoriesPlaceholder').style.display = 'block';
           return;
@@ -405,7 +393,7 @@
             alert('Error loading advisories: ' + error.toString());
             document.getElementById('advisoriesList').innerHTML = '<p style="text-align: center; color: #e74c3c;">Error loading advisories</p>';
           })
-          .getAdvisories(instructor, schoolYear);
+          .getAdvisories(instructor);
       }
 
       function displayAdvisories(advisories) {
@@ -432,13 +420,13 @@
         activeAdvisories.forEach(function(advisory) {
           const checkboxDiv = document.createElement('div');
           checkboxDiv.className = 'advisory-checkbox';
-          const advisoryKey = `${advisory.instructor}|||${advisory.gradeLevel}|||${advisory.section}|||${advisory.schoolYear}`;
+          const advisoryKey = `${advisory.instructor}|||${advisory.gradeLevel}|||${advisory.section}`;
           checkboxDiv.innerHTML = `
             <input type="checkbox" id="advisory_${advisoryKey.replace(/\|\|\|/g, '_')}" 
                    value="${advisoryKey}" 
                    onchange="updateSelectedCount()">
             <label for="advisory_${advisoryKey.replace(/\|\|\|/g, '_')}">
-              <strong>${advisory.gradeLevel}${advisory.section}</strong> - ${advisory.schoolYear}
+              <strong>${advisory.gradeLevel}${advisory.section}</strong>
             </label>
           `;
           fragment.appendChild(checkboxDiv);
@@ -483,8 +471,7 @@
           return {
             instructor: parts[0],
             gradeLevel: parts[1],
-            section: parts[2],
-            schoolYear: parts[3]
+            section: parts[2]
           };
         });
         
@@ -509,15 +496,23 @@
         const instructor = document.getElementById('instructor').value;
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = document.getElementById('section').value;
-        const schoolYear = document.getElementById('schoolYear').value.trim();
         
-        if (!instructor || !gradeLevel || !section || !schoolYear) {
+        if (!instructor || !gradeLevel || !section) {
           alert('Please fill in all required fields.');
           return;
         }
         
+        // Show loading state
+        const submitButton = document.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.textContent = 'Adding...';
+        submitButton.disabled = true;
+        
         google.script.run
           .withSuccessHandler(function(result) {
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+            
             if (result.success) {
               alert('✅ ' + result.message);
               document.getElementById('advisoryForm').reset();
@@ -528,9 +523,11 @@
             }
           })
           .withFailureHandler(function(error) {
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
             alert('❌ Error: ' + error.toString());
           })
-          .addAdvisory(instructor, gradeLevel, section, schoolYear);
+          .addAdvisory(instructor, gradeLevel, section);
       });
     </script>
   </body>

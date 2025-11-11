@@ -93,20 +93,17 @@ function doPost(e) {
         return response(200, _addAdvisory(
           payload.instructor,
           payload.gradeLevel,
-          payload.section,
-          payload.schoolYear
+          payload.section
         ));
       case "getAdvisories":
         return response(200, _getAdvisories(
-          payload.instructor,
-          payload.schoolYear
+          payload.instructor
         ));
       case "deleteAdvisory":
         return response(200, _deleteAdvisory(
           payload.instructor,
           payload.gradeLevel,
-          payload.section,
-          payload.schoolYear
+          payload.section
         ));
       case "deleteAdvisoriesBatch":
         return response(200, _deleteAdvisoriesBatch(
@@ -1249,10 +1246,9 @@ function _deleteAssignmentsBatch(assignments) {
  * @param {string} instructor - The instructor name
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} schoolYear - The school year
  * @return {Object} Result object with success status
  */
-function _addAdvisory(instructor, gradeLevel, section, schoolYear) {
+function _addAdvisory(instructor, gradeLevel, section) {
   try {
     let sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
     
@@ -1265,36 +1261,88 @@ function _addAdvisory(instructor, gradeLevel, section, schoolYear) {
       sheet.getRange(1, 1).setValue('Instructor');
       sheet.getRange(1, 2).setValue('Grade Level');
       sheet.getRange(1, 3).setValue('Section');
-      sheet.getRange(1, 4).setValue('School Year');
-      sheet.getRange(1, 5).setValue('Status');
-      sheet.getRange(1, 6).setValue('Created');
-      sheet.getRange(1, 7).setValue('Modified');
-      sheet.getRange(1, 8).setValue('Created By');
-      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground('#d9d9d9');
+      sheet.getRange(1, 4).setValue('Status');
+      sheet.getRange(1, 5).setValue('Created');
+      sheet.getRange(1, 6).setValue('Modified');
+      sheet.getRange(1, 7).setValue('Created By');
+      sheet.getRange(1, 1, 1, 7).setFontWeight('bold').setBackground('#d9d9d9');
     }
     
     const timestamp = new Date();
     const userEmail = Session.getActiveUser().getEmail();
     
-    // Check if advisory already exists (skip header row 1)
+    // OPTIMIZATION: Read all data once
     const data = sheet.getDataRange().getValues();
+    const statusCol = CONFIG.ADVISORY_COLUMNS.STATUS + 1;
+    const modifiedCol = CONFIG.ADVISORY_COLUMNS.MODIFIED + 1;
+    
+    // Check if exact advisory already exists (same instructor, grade, section)
+    let exactMatchRow = null;
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       if (row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR] === instructor &&
           row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] === gradeLevel &&
-          row[CONFIG.ADVISORY_COLUMNS.SECTION] === section &&
-          row[CONFIG.ADVISORY_COLUMNS.SCHOOL_YEAR] === schoolYear) {
-        // Update existing advisory to active and update modified date
-        sheet.getRange(i + 1, CONFIG.ADVISORY_COLUMNS.STATUS + 1).setValue('Active');
-        sheet.getRange(i + 1, CONFIG.ADVISORY_COLUMNS.MODIFIED + 1).setValue(timestamp);
-        return { success: true, message: 'Advisory updated successfully' };
+          row[CONFIG.ADVISORY_COLUMNS.SECTION] === section) {
+        exactMatchRow = i + 1; // Store 1-based row number
+        break;
       }
     }
     
-    // Add new advisory with audit trail
-    sheet.appendRow([instructor, gradeLevel, section, schoolYear, 'Active', timestamp, timestamp, userEmail]);
+    // VALIDATION: Prevent another instructor from being assigned to a class that already has an active advisory
+    // Check if this class (grade + section) already has an active advisory with a different instructor
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+          row[CONFIG.ADVISORY_COLUMNS.SECTION] === section &&
+          row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
+        const existingInstructor = row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR];
+        if (existingInstructor !== instructor) {
+          return { 
+            success: false, 
+            message: `${gradeLevel}${section} already has an active advisory with ${existingInstructor}. Cannot assign another instructor to the same class. Please deactivate the existing advisory first.` 
+          };
+        }
+      }
+    }
     
-    return { success: true, message: 'Advisory added successfully' };
+    // ONE-TO-ONE RULE: Instructor can only have one active advisory
+    // Set all other active advisories for this instructor to Inactive (including the exact match if it exists)
+    const rowsToDeactivate = [];
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR] === instructor &&
+          row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
+        // Deactivate all active advisories for this instructor, even if it's the exact match
+        rowsToDeactivate.push(i + 1); // Store 1-based row number
+      }
+    }
+    
+    // Batch deactivate previous advisories
+    if (rowsToDeactivate.length > 0) {
+      rowsToDeactivate.forEach(rowNum => {
+        sheet.getRange(rowNum, statusCol).setValue('Inactive');
+        sheet.getRange(rowNum, modifiedCol).setValue(timestamp);
+      });
+    }
+    
+    // If exact match exists, reactivate it; otherwise add new advisory
+    if (exactMatchRow) {
+      // Reactivate the exact match
+      sheet.getRange(exactMatchRow, statusCol).setValue('Active');
+      sheet.getRange(exactMatchRow, modifiedCol).setValue(timestamp);
+    } else {
+      // Add new advisory with audit trail
+      sheet.appendRow([instructor, gradeLevel, section, 'Active', timestamp, timestamp, userEmail]);
+    }
+    
+    const deactivateMsg = rowsToDeactivate.length > 0 
+      ? ` Previous advisory(ies) set to Inactive.` 
+      : '';
+    
+    return { 
+      success: true, 
+      message: `Advisory added successfully.${deactivateMsg}` 
+    };
   } catch (error) {
     console.error('Error adding advisory:', error);
     return { success: false, message: `Error adding advisory: ${error.toString()}` };
@@ -1304,10 +1352,9 @@ function _addAdvisory(instructor, gradeLevel, section, schoolYear) {
 /**
  * Internal function to get advisories (OPTIMIZED)
  * @param {string} instructor - The instructor name (optional filter)
- * @param {string} schoolYear - The school year (optional filter)
  * @return {Array} Array of advisory objects
  */
-function _getAdvisories(instructor = null, schoolYear = null) {
+function _getAdvisories(instructor = null) {
   try {
     const sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
     
@@ -1315,7 +1362,7 @@ function _getAdvisories(instructor = null, schoolYear = null) {
       return [];
     }
     
-    // OPTIMIZATION: Read only necessary columns (A-H)
+    // OPTIMIZATION: Read only necessary columns (A-G)
     const data = sheet.getDataRange().getValues();
     if (data.length <= 1) {
       return []; // Only header row or empty
@@ -1323,23 +1370,19 @@ function _getAdvisories(instructor = null, schoolYear = null) {
     
     const advisories = [];
     const hasInstructorFilter = instructor !== null && instructor !== '';
-    const hasSchoolYearFilter = schoolYear !== null && schoolYear !== '';
     
     // OPTIMIZATION: Single pass filtering
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowInstructor = row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR];
-      const rowSchoolYear = row[CONFIG.ADVISORY_COLUMNS.SCHOOL_YEAR];
       
-      // Apply filters
+      // Apply filter
       if (hasInstructorFilter && rowInstructor !== instructor) continue;
-      if (hasSchoolYearFilter && rowSchoolYear !== schoolYear) continue;
       
       advisories.push({
         instructor: rowInstructor || '',
         gradeLevel: row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] || '',
         section: row[CONFIG.ADVISORY_COLUMNS.SECTION] || '',
-        schoolYear: rowSchoolYear || '',
         status: row[CONFIG.ADVISORY_COLUMNS.STATUS] || '',
         created: row[CONFIG.ADVISORY_COLUMNS.CREATED] || '',
         modified: row[CONFIG.ADVISORY_COLUMNS.MODIFIED] || '',
@@ -1359,10 +1402,9 @@ function _getAdvisories(instructor = null, schoolYear = null) {
  * @param {string} instructor - The instructor name
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} schoolYear - The school year
  * @return {Object} Result object with success status
  */
-function _deleteAdvisory(instructor, gradeLevel, section, schoolYear) {
+function _deleteAdvisory(instructor, gradeLevel, section) {
   try {
     const sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
     
@@ -1370,7 +1412,7 @@ function _deleteAdvisory(instructor, gradeLevel, section, schoolYear) {
       return { success: false, message: 'ADVISORY sheet not found' };
     }
     
-    // OPTIMIZATION: Read only necessary columns (A-D for matching, E for status)
+    // OPTIMIZATION: Read only necessary columns (A-C for matching, D for status)
     const data = sheet.getDataRange().getValues();
     const timestamp = new Date();
     
@@ -1379,11 +1421,10 @@ function _deleteAdvisory(instructor, gradeLevel, section, schoolYear) {
       const row = data[i];
       if (row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR] === instructor &&
           row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] === gradeLevel &&
-          row[CONFIG.ADVISORY_COLUMNS.SECTION] === section &&
-          row[CONFIG.ADVISORY_COLUMNS.SCHOOL_YEAR] === schoolYear) {
+          row[CONFIG.ADVISORY_COLUMNS.SECTION] === section) {
         // Update status to Inactive and modified date
-        const statusCol = CONFIG.ADVISORY_COLUMNS.STATUS + 1; // E column
-        const modifiedCol = CONFIG.ADVISORY_COLUMNS.MODIFIED + 1; // G column
+        const statusCol = CONFIG.ADVISORY_COLUMNS.STATUS + 1; // D column
+        const modifiedCol = CONFIG.ADVISORY_COLUMNS.MODIFIED + 1; // F column
         sheet.getRange(i + 1, statusCol).setValue('Inactive');
         sheet.getRange(i + 1, modifiedCol).setValue(timestamp);
         return { success: true, message: 'Advisory deleted successfully' };
@@ -1421,7 +1462,7 @@ function _deleteAdvisoriesBatch(advisories) {
     // OPTIMIZATION: Build Set for fast lookup
     const advisoryKeys = new Set();
     advisories.forEach(adv => {
-      const key = `${adv.instructor}|||${adv.gradeLevel}|||${adv.section}|||${adv.schoolYear}`;
+      const key = `${adv.instructor}|||${adv.gradeLevel}|||${adv.section}`;
       advisoryKeys.add(key);
     });
     
@@ -1429,7 +1470,7 @@ function _deleteAdvisoriesBatch(advisories) {
     const rowsToUpdate = [];
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      const key = `${row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR]}|||${row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL]}|||${row[CONFIG.ADVISORY_COLUMNS.SECTION]}|||${row[CONFIG.ADVISORY_COLUMNS.SCHOOL_YEAR]}`;
+      const key = `${row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR]}|||${row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL]}|||${row[CONFIG.ADVISORY_COLUMNS.SECTION]}`;
       
       if (advisoryKeys.has(key) && row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
         rowsToUpdate.push(i + 1); // Store 1-based row number
