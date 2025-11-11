@@ -245,6 +245,11 @@ function getGradeLevels() {
  */
 function getSectionsForGrade(gradeLevel) {
   try {
+    // OPTIMIZATION: Early return if gradeLevel is empty
+    if (!gradeLevel || gradeLevel.trim() === '') {
+      return [];
+    }
+    
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REFERENCE);
     if (!sheet) {
       console.warn('SECTIONS_REFERENCE sheet not found');
@@ -261,13 +266,20 @@ function getSectionsForGrade(gradeLevel) {
     const numRows = lastRow - CONFIG.HEADER_ROWS;
     const data = sheet.getRange(startRow, 1, numRows, 2).getValues();
     
+    // OPTIMIZATION 2: Use Set for O(1) duplicate detection and faster lookups
+    const sectionSet = new Set();
     const sections = [];
     
-    // OPTIMIZATION 2: Single pass with efficient condition
+    // OPTIMIZATION 3: Single pass with efficient condition and duplicate prevention
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
-      if (row[0] === gradeLevel && row[1]) {
-        sections.push(row[1]);
+      const rowGradeLevel = String(row[0] || '').trim();
+      const section = String(row[1] || '').trim();
+      
+      // Match grade level and ensure section exists and not already added
+      if (rowGradeLevel === gradeLevel && section && !sectionSet.has(section)) {
+        sectionSet.add(section);
+        sections.push(section);
       }
     }
     
