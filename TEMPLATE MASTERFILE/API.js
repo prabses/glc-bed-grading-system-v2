@@ -207,9 +207,9 @@ function _getActiveItems(sheetName, columnIndex = 0) {
  * @return {string} The level (Elementary, JHS, or SHS)
  */
 function _getLevelForGrade(gradeLevel) {
-  const sheet = getSheet(CONFIG.SHEET_NAMES.SECTIONS_REFERENCE);
+  const sheet = getSheet(CONFIG.SHEET_NAMES.SECTIONS_REF);
   if (!sheet) {
-    throw new Error('SECTIONS_REFERENCE sheet not found');
+    throw new Error('SECTIONS_REF sheet not found');
   }
   
   const data = sheet.getDataRange().getValues();
@@ -231,9 +231,9 @@ function _getLevelForGrade(gradeLevel) {
  * @return {Object} Object with writtenWork, performanceTask, and assessment weights
  */
 function _getGradingWeights(subjectName) {
-  const sheet = getSheet(CONFIG.SHEET_NAMES.GRADING_REFERENCE);
+  const sheet = getSheet(CONFIG.SHEET_NAMES.GRADING_REF);
   if (!sheet) {
-    throw new Error('GRADING_REFERENCE sheet not found');
+    throw new Error('GRADING_REF sheet not found');
   }
   
   const data = sheet.getDataRange().getValues();
@@ -259,7 +259,7 @@ function _getGradingWeights(subjectName) {
   }
   
   if (!match) {
-    throw new Error('No grading weights found. Please ensure GRADING_REFERENCE has a DEFAULT row.');
+    throw new Error('No grading weights found. Please ensure GRADING_REF has a DEFAULT row.');
   }
   
   return {
@@ -565,15 +565,15 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
 }
 
 /**
- * Helper function to get teacher email from TEACHERS_REFERENCE sheet
+ * Helper function to get teacher email from TEACHERS_REF sheet
  * @param {string} teacherName - The teacher's full name
  * @return {string} The teacher's email, or empty string if not found
  */
 function _getTeacherEmail(teacherName) {
   try {
-    const sheet = getSheet(CONFIG.SHEET_NAMES.TEACHERS_REFERENCE);
+    const sheet = getSheet(CONFIG.SHEET_NAMES.TEACHERS_REF);
     if (!sheet) {
-      console.warn('TEACHERS_REFERENCE sheet not found');
+      console.warn('TEACHERS_REF sheet not found');
       return '';
     }
     
@@ -950,12 +950,12 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
 }
 
 /**
- * Helper function to get active traits from CHARACTERS_REFERENCE sheet
+ * Helper function to get active traits from CHARACTERS_REF sheet
  * @return {Array} Array of active trait names
  */
 function _getActiveTraits() {
   try {
-    return _getActiveItems(CONFIG.SHEET_NAMES.CHARACTERS_REFERENCE, 0);
+    return _getActiveItems(CONFIG.SHEET_NAMES.CHARACTERS_REF, 0);
   } catch (error) {
     console.error('Error getting active traits:', error);
     return [];
@@ -975,7 +975,7 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   // Clear the sheet first
   sheet.clear();
   
-  // Get active traits from CHARACTERS_REFERENCE sheet
+  // Get active traits from CHARACTERS_REF sheet
   const traits = _getActiveTraits();
   
   // Fixed number of columns: Student No, Student Name, TRAITS, 1st Grade, 1st EQ, 2nd Grade, 2nd EQ, 3rd Grade, 3rd EQ, 4th Grade, 4th EQ, Final Grading, Final EQ
@@ -1069,7 +1069,7 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
         const row = [
           studentNumber, // Student No (duplicated for each trait)
           studentName,   // Student Name (duplicated for each trait)
-          trait,         // TRAITS - the trait name from CHARACTERS_REFERENCE
+          trait,         // TRAITS - the trait name from CHARACTERS_REF
           '', '', // 1st Grade, 1st EQ
           '', '', // 2nd Grade, 2nd EQ
           '', '', // 3rd Grade, 3rd EQ
@@ -1519,7 +1519,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     // Set file permissions: Creator and teacher have edit access
     const creatorEmail = Session.getActiveUser().getEmail();
     
-    // Get teacher email from TEACHERS_REFERENCE sheet
+    // Get teacher email from TEACHERS_REF sheet
     const teacherEmail = _getTeacherEmail(teacher);
     
     // OPTIMIZATION: Only modify permissions if teacher email exists

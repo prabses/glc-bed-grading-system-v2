@@ -53,19 +53,19 @@ function showAssignmentDialog() {
 }
 
 /**
- * Gets active subjects from SUBJECTS_REFERENCE sheet
+ * Gets active subjects from SUBJECTS_REF sheet
  * @return {Array} Array of active subject names
  */
 function getActiveSubjects() {
-  return getActiveItems(CONFIG.SHEET_NAMES.SUBJECTS_REFERENCE, 0);
+  return getActiveItems(CONFIG.SHEET_NAMES.SUBJECTS_REF, 0);
 }
 
 /**
- * Gets active teachers from TEACHERS_REFERENCE sheet
+ * Gets active teachers from TEACHERS_REF sheet
  * @return {Array} Array of active teacher names
  */
 function getActiveTeachers() {
-  return getActiveItems(CONFIG.SHEET_NAMES.TEACHERS_REFERENCE, 0);
+  return getActiveItems(CONFIG.SHEET_NAMES.TEACHERS_REF, 0);
 }
 
 /**
@@ -191,16 +191,16 @@ function getAssignedSubjects(gradeLevel, section, teacher) {
 }
 
 /**
- * Gets unique grade levels from SECTIONS_REFERENCE sheet
+ * Gets unique grade levels from SECTIONS_REF sheet
  * OPTIMIZED: Uses Set for O(1) duplicate detection and minimal data retrieval
  * Returns in the order they appear in the sheet (unsorted)
  * @return {Array} Array of unique grade levels
  */
 function getGradeLevels() {
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REFERENCE);
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REF);
     if (!sheet) {
-      console.warn('SECTIONS_REFERENCE sheet not found');
+      console.warn('SECTIONS_REF sheet not found');
       return [];
     }
     
@@ -250,9 +250,9 @@ function getSectionsForGrade(gradeLevel) {
       return [];
     }
     
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REFERENCE);
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REF);
     if (!sheet) {
-      console.warn('SECTIONS_REFERENCE sheet not found');
+      console.warn('SECTIONS_REF sheet not found');
       return [];
     }
     
@@ -296,9 +296,9 @@ function getSectionsForGrade(gradeLevel) {
  * @return {string} The level (Elementary, JHS, or SHS)
  */
 function getLevelForGrade(gradeLevel) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REFERENCE);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REF);
   if (!sheet) {
-    throw new Error('SECTIONS_REFERENCE sheet not found');
+    throw new Error('SECTIONS_REF sheet not found');
   }
   
   const data = sheet.getDataRange().getValues();

@@ -52,12 +52,12 @@ This document outlines the **Google Sheets-native structure** for the Template M
 | 1 | MASTER_DATA             | ❌ Protected   | Auto-managed OGS template generation records |
 | 2 | SUBJECTS             | ❌ Protected   | Teacher-grade-section-subject subjects |
 | 3 | ADVISORY                | ❌ Protected   | Teacher advisory class subjects       |
-| 4 | SUBJECTS_REFERENCE      | ✅ Yes         | Simple subject list                        |
-| 5 | TEACHERS_REFERENCE   | ✅ Yes         | Teacher list with email                 |
-| 6 | SECTIONS_REFERENCE      | ✅ Yes         | Grade levels & sections                    |
-| 7 | GRADING_REFERENCE ⭐    | ✅ Yes         | Dynamic grading rules                      |
+| 4 | SUBJECTS_REF      | ✅ Yes         | Simple subject list                        |
+| 5 | TEACHERS_REF   | ✅ Yes         | Teacher list with email                 |
+| 6 | SECTIONS_REF      | ✅ Yes         | Grade levels & sections                    |
+| 7 | GRADING_REF ⭐    | ✅ Yes         | Dynamic grading rules                      |
 | 8 | ATTENDANCE_MONTHLY_DAYS | ✅ Yes         | Number of school days per month per school year |
-| 9 | CHARACTERS_REFERENCE    | ✅ Yes         | Character traits list                      |
+| 9 | CHARACTERS_REF    | ✅ Yes         | Character traits list                      |
 
 ### **🔑 Key Dynamicness Features**
 
@@ -97,7 +97,7 @@ This document outlines the **Google Sheets-native structure** for the Template M
 6. **Simple & User-Friendly**
    - School year entered by user in dialog
    - No complex configuration needed
-   - Grading weights in GRADING_REFERENCE sheet
+   - Grading weights in GRADING_REF sheet
    - Subject-based workflow reduces errors
 
 ---
@@ -286,7 +286,7 @@ Teacher | Grade Level | Section | Status | Created | Modified | Created By
 
 ---
 
-### **Sheet 4: SUBJECTS_REFERENCE** (Reference Sheet)
+### **Sheet 4: SUBJECTS_REF** (Reference Sheet)
 
 **Purpose:** Simple list of all subjects. Admin updates this occasionally.
 
@@ -339,7 +339,7 @@ Row 9: Old Subject       |     ← Inactive, won't show in dialog
 
 ---
 
-### **Sheet 5: TEACHERS_REFERENCE** (Reference Sheet)
+### **Sheet 5: TEACHERS_REF** (Reference Sheet)
 
 **Purpose:** List of teachers with contact information. Admin updates when new teachers join or leave.
 
@@ -393,7 +393,7 @@ Row 8: Lopez, Carmen D. | clopez@school.edu    | ✓
 
 ---
 
-### **Sheet 6: SECTIONS_REFERENCE** (Reference Sheet)
+### **Sheet 6: SECTIONS_REF** (Reference Sheet)
 
 **Purpose:** List of sections for each grade level. Update at start of each academic year.
 
@@ -454,7 +454,7 @@ Row 12: Grade 12   | A       | SHS
 
 ---
 
-### **Sheet 7: GRADING_REFERENCE** (Dynamic Grading Configuration) ⭐
+### **Sheet 7: GRADING_REF** (Dynamic Grading Configuration) ⭐
 
 **Purpose:** Define grading computation weights dynamically. Supports different grading schemes per subject.
 
@@ -620,9 +620,9 @@ Row 10: 2024-2025  | March   | 22
 
 ---
 
-### **Sheet 9: CHARACTERS_REFERENCE** (Reference Sheet)
+### **Sheet 9: CHARACTERS_REF** (Reference Sheet)
 
-**Purpose:** Simple list of character traits used for character grading in OGS templates. Similar structure to SUBJECTS_REFERENCE.
+**Purpose:** Simple list of character traits used for character grading in OGS templates. Similar structure to SUBJECTS_REF.
 
 **👥 USER-EDITABLE - Admins can add/edit character traits here**
 
@@ -660,7 +660,7 @@ Row 7: Old Trait       |     ← Inactive, won't show in templates
 
 **Key Features:**
 - ✅ Simple two-column structure (Trait Name, Active)
-- ✅ Managed like SUBJECTS_REFERENCE
+- ✅ Managed like SUBJECTS_REF
 - ✅ Only active traits are used in OGS template Characters sheet
 - ✅ Easy to add/remove traits by adding rows and marking Active
 
@@ -677,12 +677,12 @@ Row 7: Old Trait       |     ← Inactive, won't show in templates
 1. Create a new Google Spreadsheet
 2. Name it: "Template Masterfile - 2024-2025"
 3. Create **7 reference sheets** with these exact names (MASTER_DATA, SUBJECTS, and ADVISORY are auto-created by scripts):
-   - SUBJECTS_REFERENCE
-   - TEACHERS_REFERENCE
-   - SECTIONS_REFERENCE
-   - GRADING_REFERENCE
+   - SUBJECTS_REF
+   - TEACHERS_REF
+   - SECTIONS_REF
+   - GRADING_REF
    - ATTENDANCE_MONTHLY_DAYS
-   - CHARACTERS_REFERENCE
+   - CHARACTERS_REF
 
 ### **Step 2: Set Up Headers**
 
@@ -693,7 +693,7 @@ Row 7: Old Trait       |     ← Inactive, won't show in templates
 - Data starts at **Row 2**
 - ADVISORY sheet columns: Teacher | Grade Level | Section | Status | Created | Modified | Created By
 
-**For reference sheets (SUBJECTS_REFERENCE, TEACHERS_REFERENCE, SECTIONS_REFERENCE, GRADING_REFERENCE, ATTENDANCE_MONTHLY_DAYS, CHARACTERS_REFERENCE), create TWO header rows:**
+**For reference sheets (SUBJECTS_REF, TEACHERS_REF, SECTIONS_REF, GRADING_REF, ATTENDANCE_MONTHLY_DAYS, CHARACTERS_REF), create TWO header rows:**
 
 **Row 1:** Parent Headers (merged cells across related columns)
 - Format: Bold, larger font (12-14pt), centered, background color (#f3f3f3)
@@ -703,13 +703,13 @@ Row 7: Old Trait       |     ← Inactive, won't show in templates
 - Format: Bold, background color (#d9d9d9), centered
 - These are the actual field names
 
-**Example for SUBJECTS_REFERENCE:**
+**Example for SUBJECTS_REF:**
 ```
 Row 1: Merge cells A1:B1, type "SUBJECT INFORMATION"
 Row 2: Cell A2 = "Subject Name", Cell B2 = "Active"
 ```
 
-**Example for GRADING_REFERENCE:**
+**Example for GRADING_REF:**
 ```
 Row 1: 
   - Merge A1:E1 = "GRADING COMPONENTS (%)"
@@ -724,7 +724,7 @@ Since reference sheets have 2 header rows (Row 1 = Parent Headers, Row 2 = Colum
 **For MASTER_DATA and SUBJECTS:**
 - Data starts at **Row 2** (only one header row)
 
-**GRADING_REFERENCE Sheet:**
+**GRADING_REF Sheet:**
 Add at least the DEFAULT row starting at Row 3:
 ```
 Row 1: GRADING COMPONENTS (%) (merged A1:E1)
@@ -732,7 +732,7 @@ Row 2: Subject Name | Written Work | Performance Task | Assessment | Active
 Row 3: DEFAULT      | 30           | 50               | 20         | ✓
 ```
 
-**SUBJECTS_REFERENCE, TEACHERS_REFERENCE, SECTIONS_REFERENCE:**
+**SUBJECTS_REF, TEACHERS_REF, SECTIONS_REF:**
 Add your initial data starting at Row 3 (names, emails for teachers, and ✓ marks).
 
 ### **Step 4: Protect Sheets**
@@ -740,12 +740,12 @@ Protect these sheets (so users don't accidentally edit them):
 - MASTER_DATA (scripts manage this)
 
 Leave these **UNPROTECTED** (users need to edit):
-- SUBJECTS_REFERENCE
-- TEACHERS_REFERENCE
-- SECTIONS_REFERENCE
-- GRADING_REFERENCE
+- SUBJECTS_REF
+- TEACHERS_REF
+- SECTIONS_REF
+- GRADING_REF
 - ATTENDANCE_MONTHLY_DAYS
-- CHARACTERS_REFERENCE
+- CHARACTERS_REF
 
 ### **Step 5: Set Up Conditional Formatting (Optional but Recommended)**
 
@@ -796,8 +796,8 @@ User:
 6. Clicks **Generate Template**
 
 **Script automatically:**
-- Gets grading weights from GRADING_REFERENCE sheet
-- Gets level (Elementary/JHS/SHS) from SECTIONS_REFERENCE
+- Gets grading weights from GRADING_REF sheet
+- Gets level (Elementary/JHS/SHS) from SECTIONS_REF
 - Creates new row in MASTER_DATA with all data
 - Generates OGS template file with correct grading columns
 - Creates new Google Sheet file in same Drive folder with format: `OGS_GRADE1_A_2024-2025 - OFFICIAL GRADING SHEETS  - ELEMENTARY`
@@ -811,7 +811,7 @@ Result: Template created, zero manual data entry, complete audit trail!
 
 ### **Example 2: Adding a New Subject**
 
-**Admin goes to SUBJECTS_REFERENCE sheet:**
+**Admin goes to SUBJECTS_REF sheet:**
 1. Click next empty row
 2. Type subject name: "Calculus 1"
 3. Put ✓ in Active column
@@ -823,7 +823,7 @@ Next time user opens "Create New Subject" dialog, "Calculus 1" appears in dropdo
 
 ### **Example 3: Adding a New Teacher**
 
-**Admin goes to TEACHERS_REFERENCE sheet:**
+**Admin goes to TEACHERS_REF sheet:**
 1. Click next empty row
 2. Type teacher name: "Dela Cruz, Pedro M."
 3. Type email: "pdelacruz@school.edu"
@@ -867,7 +867,7 @@ Dialog appears:
 
 ### **Example 5: Setting Up Custom Grading for PE**
 
-**Admin goes to GRADING_REFERENCE sheet:**
+**Admin goes to GRADING_REF sheet:**
 1. Click next empty row
 2. Fill in:
    ```
@@ -920,7 +920,7 @@ The system automatically selects the correct grading scheme:
 // Example: Get grading weights for a subject
 function getGradingWeights(subjectName) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName('GRADING_REFERENCE');
+    .getSheetByName('GRADING_REF');
   const data = sheet.getDataRange().getValues();
   
   // Skip both header rows (indices 0 and 1)
@@ -978,13 +978,13 @@ function getActiveItems(sheetName, columnIndex = 0) {
 }
 
 // Usage examples:
-// getActiveItems('SUBJECTS_REFERENCE')     → ['English 1', 'Math 1', ...]
-// getActiveItems('TEACHERS_REFERENCE') → ['Rojo, R.', 'Cruz, M.', ...]
+// getActiveItems('SUBJECTS_REF')     → ['English 1', 'Math 1', ...]
+// getActiveItems('TEACHERS_REF') → ['Rojo, R.', 'Cruz, M.', ...]
 
 // Get sections for specific grade level
 function getSectionsForGrade(gradeLevel) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName('SECTIONS_REFERENCE');
+    .getSheetByName('SECTIONS_REF');
   const data = sheet.getDataRange().getValues();
   
   return data
@@ -1027,14 +1027,14 @@ function getSectionsForGrade(gradeLevel) {
                           ▼
 2. DIALOG APPEARS:  ┌─────────────────────┐
                     │  Enter School Year  │ ← User types (e.g., 2024-2025)
-                    │  Select Grade Level │ ← Reads from SECTIONS_REFERENCE
+                    │  Select Grade Level │ ← Reads from SECTIONS_REF
                     │  Select Section     │ ← Filtered by Grade Level
-                    │  Select Subject     │ ← Reads from SUBJECTS_REFERENCE (Active=✓)
-                    │  Select Teacher  │ ← Reads from TEACHERS_REFERENCE (Active=✓)
+                    │  Select Subject     │ ← Reads from SUBJECTS_REF (Active=✓)
+                    │  Select Teacher  │ ← Reads from TEACHERS_REF (Active=✓)
                     └─────────────────────┘
                           │
                           ▼
-3. SCRIPT RUNS:     Get Grading Weights ← GRADING_REFERENCE (Subject → DEFAULT)
+3. SCRIPT RUNS:     Get Grading Weights ← GRADING_REF (Subject → DEFAULT)
                           │
                           ▼
 4. TEMPLATE CREATED: ┌──────────────────────────────────────┐
@@ -1060,12 +1060,12 @@ function getSectionsForGrade(gradeLevel) {
 USER INPUT (Dialog Form)
   └─→ Provides: School Year, Grade Level, Section, Subject, Teacher
         ↓
-SECTIONS_REFERENCE          SUBJECTS_REFERENCE       TEACHERS_REFERENCE
+SECTIONS_REF          SUBJECTS_REF       TEACHERS_REF
   └─→ Grade Levels (dropdown)   └─→ Subject Names (dropdown)  └─→ Teacher Names (dropdown)
         ↓                            ↓                        ↓
         └────────────────┬───────────┴──────────┬─────────────┘
                          ▼                      ▼
-                   DIALOG FORM          GRADING_REFERENCE
+                   DIALOG FORM          GRADING_REF
                          │                      │
                          │    ┌─────────────────┘
                          │    │ (Subject Name → DEFAULT)
@@ -1090,7 +1090,7 @@ SECTIONS_REFERENCE          SUBJECTS_REFERENCE       TEACHERS_REFERENCE
 
 SCENARIO: Admin adds new subject "Calculus 2"
 
-Step 1: Admin → SUBJECTS_REFERENCE sheet → Add row
+Step 1: Admin → SUBJECTS_REF sheet → Add row
         ┌─────────────────┬────────┐
         │ Calculus 2      │   ✓    │
         └─────────────────┴────────┘
@@ -1105,7 +1105,7 @@ Step 2: IMMEDIATELY available in dialog dropdown
 
 Step 3: User creates assignment for "Calculus 2"
         Script looks up grading weights:
-        1. Check: "Calculus 2" in GRADING_REFERENCE? → No
+        1. Check: "Calculus 2" in GRADING_REF? → No
         2. Use DEFAULT grading weights (30-50-20)
 
 Step 4: Template generated with standard grading columns
@@ -1116,7 +1116,7 @@ Step 4: Template generated with standard grading columns
 
 SCENARIO: Admin changes PE grading weights
 
-Step 1: Admin → GRADING_REFERENCE sheet
+Step 1: Admin → GRADING_REF sheet
         Before: Written Work (30%) | Performance Task (50%) | Assessment (20%)
         After:  Written Work (20%) | Performance Task (60%) | Assessment (20%)
 
@@ -1134,24 +1134,24 @@ Step 3: Old templates unchanged (already generated)
 ### **What Admins Update Regularly**
 
 **Start of School Year:**
-1. SECTIONS_REFERENCE → Add new sections for the year
+1. SECTIONS_REF → Add new sections for the year
 2. When creating subjects, users simply enter the new school year in the dialog
 3. Done! System ready for new year.
 
 **When New Teachers Join:**
-1. TEACHERS_REFERENCE → Add new row with name + email + ✓
+1. TEACHERS_REF → Add new row with name + email + ✓
 2. Done! They appear in dialog dropdown immediately.
 
 **When New Subjects Added:**
-1. SUBJECTS_REFERENCE → Add new row with name + ✓
+1. SUBJECTS_REF → Add new row with name + ✓
 2. Done! They appear in dialog dropdown immediately.
 
 **When Grading Rules Change:**
-1. GRADING_REFERENCE → Update weights or add new row
+1. GRADING_REF → Update weights or add new row
 2. Done! New templates use new rules automatically.
 
 **When Teacher Leaves/Returns:**
-1. TEACHERS_REFERENCE → Remove/Add ✓ in Active column
+1. TEACHERS_REF → Remove/Add ✓ in Active column
 2. They disappear/appear in dialog dropdown automatically.
 
 ### **What Users Monitor**
@@ -1178,7 +1178,7 @@ Step 3: Old templates unchanged (already generated)
 **Solution:** Make sure there's a ✓ in the Active column. Reload the spreadsheet if needed.
 
 ### **Template generates with wrong grading components**
-**Solution:** Check GRADING_REFERENCE sheet. Verify:
+**Solution:** Check GRADING_REF sheet. Verify:
 1. Subject Name matches exactly
 2. Active column has ✓
 3. DEFAULT row exists as fallback
@@ -1189,7 +1189,7 @@ Step 3: Old templates unchanged (already generated)
 ### **Script execution error**
 **Solution:** 
 1. Check Tools → Script editor → Executions for error details
-2. Ensure GRADING_REFERENCE has DEFAULT row
+2. Ensure GRADING_REF has DEFAULT row
 3. Verify all reference sheets have proper 2-row headers
 
 ---
@@ -1228,7 +1228,7 @@ Step 3: Old templates unchanged (already generated)
 ✅ Historical data preserved  
 ✅ Easy to train new users  
 
-### **Key Innovation: GRADING_REFERENCE**
+### **Key Innovation: GRADING_REF**
 The star of this structure! Features:
 - **Fixed Components:** Written Work, Performance Task, Assessment (consistent across all subjects)
 - **Flexible Weights:** Different percentages per subject (e.g., PE 20-60-20, Math 30-40-30)
@@ -1248,8 +1248,8 @@ The star of this structure! Features:
 | 2025-10-30 | 1.6     | Combined TEMPLATE_HISTORY into MASTER_DATA (added Created By column)             | AI    |
 | 2025-10-29 | 1.5     | Removed CONFIG sheet (School Year now user input in dialog)                      | AI    |
 | 2025-10-29 | 1.4     | Removed Term column (one-time grading system, not per-quarter)                   | AI    |
-| 2025-10-29 | 1.3.1   | Clarified GRADING_REFERENCE: Subject Name column (subject-specific matching)     | AI    |
-| 2025-10-29 | 1.3     | Simplified GRADING_REFERENCE to fixed 3 components (WW, PT, Assessment)          | AI    |
+| 2025-10-29 | 1.3.1   | Clarified GRADING_REF: Subject Name column (subject-specific matching)     | AI    |
+| 2025-10-29 | 1.3     | Simplified GRADING_REF to fixed 3 components (WW, PT, Assessment)          | AI    |
 | 2025-10-29 | 1.2     | Added parent headers for all sheets (2-row header structure)                     | AI    |
 | 2025-10-29 | 1.1     | Updated sheet names to include "REFERENCE", added Email to teachers           | AI    |
 | 2025-10-29 | 1.0     | Initial design with dynamic grading components                                   | AI    |
@@ -1278,10 +1278,10 @@ For questions or issues with this structure:
 | MASTER_DATA             | 8       | ❌ Protected  | OGS template generation records        |
 | SUBJECTS             | 8       | ❌ Protected  | Teacher-grade-section-subject subjects |
 | ADVISORY                | 7       | ❌ Protected  | Teacher advisory class subjects  |
-| SUBJECTS_REFERENCE      | 2       | ✅ Yes        | Subject names                          |
-| TEACHERS_REFERENCE   | 3       | ✅ Yes        | Teachers + emails                   |
-| SECTIONS_REFERENCE      | 3       | ✅ Yes        | Grade levels, sections & level tags   |
-| GRADING_REFERENCE       | 5       | ✅ Yes        | Dynamic grading weights                |
+| SUBJECTS_REF      | 2       | ✅ Yes        | Subject names                          |
+| TEACHERS_REF   | 3       | ✅ Yes        | Teachers + emails                   |
+| SECTIONS_REF      | 3       | ✅ Yes        | Grade levels, sections & level tags   |
+| GRADING_REF       | 5       | ✅ Yes        | Dynamic grading weights                |
 | ATTENDANCE_MONTHLY_DAYS | 3       | ✅ Yes        | Monthly school days per school year   |
-| CHARACTERS_REFERENCE    | 2       | ✅ Yes        | Character traits list                 |
+| CHARACTERS_REF    | 2       | ✅ Yes        | Character traits list                 |
 
