@@ -405,39 +405,40 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
   const dataRange = sheet.getRange(1, 1, numRows, numCols);
   dataRange.setValues(allData);
   
-  // Title row
-  sheet.getRange(1, 1, 1, numCols)
-    .merge()
+  // OPTIMIZATION: Batch formatting operations to reduce API calls
+  // Title row (row 1)
+  const titleRange = sheet.getRange(1, 1, 1, numCols);
+  titleRange.merge()
     .setFontSize(18)
     .setFontWeight('bold')
     .setHorizontalAlignment('center');
   
-  // Info rows (3-8)
+  // Info rows (rows 3-8): Batch format column A (bold) and column B (background)
   sheet.getRange(3, 1, 6, 1).setFontWeight('bold');
-  sheet.getRange(3, 2, 2, 1).setBackground('#f3f3f3'); // Instructor Name, School Year
-  sheet.getRange(5, 2, 1, 1).setBackground('#f3f3f3'); // Level
-  sheet.getRange(6, 2, 3, 1).setBackground('#f3f3f3'); // Section, Total Student, Subject
+  // Batch background for column B (rows 3-8)
+  sheet.getRange(3, 2, 6, 1).setBackground('#f3f3f3');
   
-  // Row 9: Grading period headers
-  sheet.getRange(9, 3, 1, 4).merge();
-  sheet.getRange(9, 7, 1, 4).merge();
-  sheet.getRange(9, 11, 1, 4).merge();
-  sheet.getRange(9, 15, 1, 4).merge();
-  sheet.getRange(9, 3, 1, 16)
-    .setFontWeight('bold')
+  // Row 9: Grading period headers - batch merges and formatting
+  const row9Range = sheet.getRange(9, 3, 1, 16);
+  sheet.getRange(9, 3, 1, 4).merge();   // 1ST GRADING
+  sheet.getRange(9, 7, 1, 4).merge();   // 2ND GRADING
+  sheet.getRange(9, 11, 1, 4).merge(); // 3RD GRADING
+  sheet.getRange(9, 15, 1, 4).merge();  // 4TH GRADING
+  row9Range.setFontWeight('bold')
     .setHorizontalAlignment('center')
     .setBackground('#e6e6e6');
   
-  // Row 10: Column headers
-  sheet.getRange(10, 1, 1, numCols)
-    .setFontWeight('bold')
+  // Row 10: Column headers - single batch operation
+  const headerRange = sheet.getRange(10, 1, 1, numCols);
+  headerRange.setFontWeight('bold')
     .setBackground('#d9d9d9')
     .setHorizontalAlignment('center')
     .setBorder(true, true, true, true, true, true);
   
-  // Set column widths
-  sheet.setColumnWidth(1, 120);
-  sheet.setColumnWidth(2, 250);
+  // OPTIMIZATION: Set column widths (Google Apps Script requires individual calls, but we optimize the loop)
+  sheet.setColumnWidth(1, 120);  // Student No
+  sheet.setColumnWidth(2, 250);  // Student Name
+  // Set remaining columns (3-19) to 130 in optimized loop
   for (let c = 3; c <= 19; c++) {
     sheet.setColumnWidth(c, 130);
   }
@@ -485,12 +486,24 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
       formulaColumns[19].push([`=IF(AND(F${row}<>"",J${row}<>"",N${row}<>"",R${row}<>""),ROUND((F${row}+J${row}+N${row}+R${row})/4,2),"")`]);
     }
     
-    sheet.getRange(startRow, 1, numStudentRows, 2).setValues(studentValues);
+    // OPTIMIZATION: Combine student data and empty cells into single batch write
+    // Build complete row data: [studentNumber, studentName, empty*15]
+    const allStudentRows = [];
+    for (let i = 0; i < numStudentRows; i++) {
+      const row = new Array(numCols).fill('');
+      // Set student data (columns A-B)
+      if (i < studentValues.length) {
+        row[0] = studentValues[i][0]; // Student Number
+        row[1] = studentValues[i][1]; // Student Name
+      }
+      allStudentRows.push(row);
+    }
     
-    const emptyRangeFull = sheet.getRange(startRow, 3, numStudentRows, 15);
-    const emptyValuesBatch = Array(numStudentRows).fill(null).map(() => Array(15).fill(''));
-    emptyRangeFull.setValues(emptyValuesBatch);
+    // OPTIMIZATION: Single batch write for all student data (reduces from 2 API calls to 1)
+    const studentDataRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
+    studentDataRange.setValues(allStudentRows);
     
+    // Set formulas separately (setFormulas must be used for formulas, not setValues)
     const formulaColsList = [6, 10, 14, 18, 19];
     formulaColsList.forEach(col => {
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulaColumns[col]);
@@ -540,9 +553,13 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
       });
     }
     
+    // OPTIMIZATION: Batch formatting operations
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setBorder(true, true, true, true, true, true);
-    sheet.getRange(startRow, 3, numStudentRows, 17).setNumberFormat('0.00');
+    
+    // Batch number format for grading columns (C-S, excluding A-B which are text)
+    const gradingDataRange = sheet.getRange(startRow, 3, numStudentRows, 17);
+    gradingDataRange.setNumberFormat('0.00');
     
     if (hasStudents) {
       sheet.getRange(7, 2).setValue(students.length).setHorizontalAlignment('left');
@@ -1156,34 +1173,21 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     const templateSpreadsheet = SpreadsheetApp.create(templateFileName);
     const templateFile = DriveApp.getFileById(templateSpreadsheet.getId());
     
+    // OPTIMIZATION: Streamlined file permissions setup
     // Set file permissions: Creator and instructor have edit access
-    // Protected ranges will only allow creator to edit (instructor can edit unprotected cells)
     const creatorEmail = Session.getActiveUser().getEmail();
     
     // Get instructor email from INSTRUCTORS_REFERENCE sheet
     const instructorEmail = _getInstructorEmail(instructor);
     
-    const editors = templateFile.getEditors();
-    const viewers = templateFile.getViewers();
-    
-    // Batch remove all non-creator/non-instructor editors and all viewers
-    const allowedEmails = [creatorEmail];
-    if (instructorEmail) {
-      allowedEmails.push(instructorEmail);
-    }
-    
-    const editorsToRemove = editors.filter(editor => !allowedEmails.includes(editor.getEmail()));
-    if (editorsToRemove.length > 0) {
-      templateFile.removeEditors(editorsToRemove); // Single batch operation
-    }
-    if (viewers.length > 0) {
-      templateFile.removeViewers(viewers); // Single batch operation
-    }
-    
-    // Ensure creator and instructor have access (idempotent - safe to call even if already editor)
-    templateFile.addEditor(creatorEmail);
-    if (instructorEmail) {
-      templateFile.addEditor(instructorEmail);
+    // OPTIMIZATION: Only modify permissions if instructor email exists
+    // Creator is automatically added when file is created, so we only need to add instructor
+    if (instructorEmail && instructorEmail !== creatorEmail) {
+      try {
+        templateFile.addEditor(instructorEmail);
+      } catch (e) {
+        console.log('Note: Could not add instructor as editor:', e.message);
+      }
     }
     
     // NOTE: Protected ranges (student data, formulas, headers) are locked to only creator
