@@ -12,7 +12,7 @@
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
 
-  ui.createMenu("Actions")
+  ui.createMenu("Upload")
     .addItem("Import Student Data", "showImportDialog")
     .addItem("Update Student Information", "showUpdateDialog")
     .addToUi();
