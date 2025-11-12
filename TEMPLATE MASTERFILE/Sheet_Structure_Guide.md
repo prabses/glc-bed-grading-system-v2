@@ -1028,7 +1028,7 @@ function getSectionsForGrade(gradeLevel) {
                           │
                           ▼
 2. DIALOG APPEARS:  ┌─────────────────────┐
-                    │  Enter School Year  │ ← User types (e.g., A.Y. 2024-2025)
+                    │  Enter School Year  │ ← User types (e.g., 2024-2025)
                     │  Select Grade Level │ ← Reads from SECTIONS_REFERENCE
                     │  Select Section     │ ← Filtered by Grade Level
                     │  Select Subject     │ ← Reads from SUBJECTS_REFERENCE (Active=✓)

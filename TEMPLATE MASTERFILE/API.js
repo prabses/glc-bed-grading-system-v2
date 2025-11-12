@@ -649,9 +649,8 @@ function _getStudentsFromDB(schoolYear, gradeLevel, section) {
     const studentsDbFile = studentsDbFiles.next();
     const studentsSpreadsheet = SpreadsheetApp.openById(studentsDbFile.getId());
     
-    // Convert school year to academic year sheet name format
-    // e.g., "2024-2025" → "A.Y. 2024-2025"
-    const academicYearSheet = `A.Y. ${schoolYear}`;
+    // Use school year directly as the sheet name (e.g., "2024-2025")
+    const academicYearSheet = schoolYear;
     
     // Get the sheet
     const sheet = studentsSpreadsheet.getSheetByName(academicYearSheet);

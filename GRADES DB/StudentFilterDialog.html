@@ -202,9 +202,7 @@
             sheets.forEach(function(sheetName) {
               const option = document.createElement('option');
               option.value = sheetName;
-              // Remove "A.Y." from display text, keeping only the year part
-              const displayText = sheetName.replace(/A\.Y\.?\s*/gi, '').trim();
-              option.textContent = displayText;
+              option.textContent = sheetName;
               select.appendChild(option);
             });
           })
