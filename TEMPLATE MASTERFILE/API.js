@@ -202,8 +202,36 @@ function _getActiveItems(sheetName, columnIndex = 0) {
 }
 
 /**
+ * Helper function to normalize grade level for storage (removes "Grade " prefix)
+ * Converts "Grade 1" or "1" to just "1"
+ * @param {string} gradeLevel - The grade level (can be "Grade 1" or "1")
+ * @return {string} Normalized grade level (just the number)
+ */
+function _normalizeGradeLevel(gradeLevel) {
+  if (!gradeLevel) return '';
+  const str = String(gradeLevel).trim();
+  // Remove "Grade " prefix if present, then extract just the number
+  const cleaned = str.replace(/^Grade\s+/i, '');
+  // Extract number (handles cases like "1", "10", etc.)
+  const match = cleaned.match(/^\d+/);
+  return match ? match[0] : cleaned;
+}
+
+/**
+ * Helper function to format grade level for display (adds "Grade " prefix)
+ * Converts "1" to "Grade 1"
+ * @param {string} gradeLevel - The grade level (should be just the number)
+ * @return {string} Formatted grade level with "Grade " prefix
+ */
+function _formatGradeLevel(gradeLevel) {
+  if (!gradeLevel) return '';
+  const normalized = _normalizeGradeLevel(gradeLevel);
+  return normalized ? `Grade ${normalized}` : gradeLevel;
+}
+
+/**
  * Internal function to get the level (Elementary/JHS/SHS) for a specific grade level
- * @param {string} gradeLevel - The grade level to look up
+ * @param {string} gradeLevel - The grade level to look up (can be "Grade 1" or "1")
  * @return {string} The level (Elementary, JHS, or SHS)
  */
 function _getLevelForGrade(gradeLevel) {
@@ -214,9 +242,13 @@ function _getLevelForGrade(gradeLevel) {
   
   const data = sheet.getDataRange().getValues();
   
+  // Normalize the input grade level for comparison
+  const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+  
   // Skip 2 header rows (parent header + column headers)
   for (let i = CONFIG.HEADER_ROWS; i < data.length; i++) {
-    if (data[i][0] === gradeLevel && data[i][2]) {
+    const rowGradeLevel = _normalizeGradeLevel(data[i][0]);
+    if (rowGradeLevel === normalizedGradeLevel && data[i][2]) {
       return data[i][2]; // Column C (Level)
     }
   }
@@ -301,10 +333,13 @@ function _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl
   const templateLink = `=HYPERLINK("${templateUrl}","Open Template")`;
   const userEmail = Session.getActiveUser().getEmail();
   
+  // Normalize grade level for storage (sheet stores just numbers)
+  const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+  
   // Append new row with all data (one row per template file)
   sheet.appendRow([
     schoolYear,                  // Column A: School_Year
-    gradeLevel,                  // Column B: Grade_Level
+    normalizedGradeLevel,        // Column B: Grade_Level (just the number)
     section,                     // Column C: Section
     teacher,                  // Column D: Teacher
     templateLink,                // Column E: Template_Link
@@ -351,7 +386,9 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
   // Row 2-7: Info rows (matching Excel format exactly)
   allData.push(padRow(['Teacher Name:', teacher]));
   allData.push(padRow(['School Year:', schoolYear]));
-  allData.push(padRow(['Level:', gradeLevel]));
+  // Format grade level for display (add "Grade " prefix)
+  const formattedGradeLevel = _formatGradeLevel(gradeLevel);
+  allData.push(padRow(['Level:', formattedGradeLevel]));
   allData.push(padRow(['Section:', section]));
   allData.push(padRow(['Total Student:', '']));
   allData.push(padRow(['Subject:', subject]));
@@ -680,8 +717,12 @@ function _getStudentsFromDB(schoolYear, gradeLevel, section) {
       const rowGradeLevel = row[4]; // Column E (Grade Level)
       const rowSection = row[5];    // Column F (Section)
       
+      // Normalize grade levels for comparison (sheet stores just numbers)
+      const normalizedRowGradeLevel = _normalizeGradeLevel(String(rowGradeLevel || '').trim());
+      const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+      
       // Filter by grade level and section
-      if (rowGradeLevel === gradeLevel && rowSection === section) {
+      if (normalizedRowGradeLevel === normalizedGradeLevel && rowSection === section) {
         students.push({
           studentNumber: row[0] || '', // Column A
           lastName: row[1] || '',      // Column B
@@ -714,13 +755,17 @@ function _getStudentsFromDB(schoolYear, gradeLevel, section) {
  */
 function _isTeacherAdvisor(teacher, gradeLevel, section) {
   try {
+    // Normalize grade level for comparison (sheet stores just numbers)
+    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
     const advisories = _getAdvisories(teacher);
-    return advisories.some(adv => 
-      adv.teacher === teacher &&
-      adv.gradeLevel === gradeLevel &&
-      adv.section === section &&
-      adv.status === 'Active'
-    );
+    return advisories.some(adv => {
+      const advGradeLevel = _normalizeGradeLevel(adv.gradeLevel);
+      return adv.teacher === teacher &&
+             advGradeLevel === normalizedGradeLevel &&
+             adv.section === section &&
+             adv.status === 'Active';
+    });
   } catch (error) {
     console.error('Error checking if teacher is advisor:', error);
     return false;
@@ -825,7 +870,9 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   // Row 1-5: Info rows (matching subject sheet format - no title row, no empty row after)
   allData.push(padRow(['Advisor Name:', teacher]));
   allData.push(padRow(['School Year:', schoolYear]));
-  allData.push(padRow(['Level:', gradeLevel]));
+  // Format grade level for display (add "Grade " prefix)
+  const formattedGradeLevel = _formatGradeLevel(gradeLevel);
+  allData.push(padRow(['Level:', formattedGradeLevel]));
   allData.push(padRow(['Section:', section]));
   allData.push(padRow(['Total Student:', students.length > 0 ? students.length : '']));
   
@@ -994,7 +1041,9 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   // Row 1-5: Info rows (matching subject sheet format)
   allData.push(padRow(['Advisor Name:', teacher]));
   allData.push(padRow(['School Year:', schoolYear]));
-  allData.push(padRow(['Level:', gradeLevel]));
+  // Format grade level for display (add "Grade " prefix)
+  const formattedGradeLevel = _formatGradeLevel(gradeLevel);
+  allData.push(padRow(['Level:', formattedGradeLevel]));
   allData.push(padRow(['Section:', section]));
   allData.push(padRow(['Total Student:', students.length > 0 ? students.length : '']));
   
@@ -1142,9 +1191,13 @@ function _getAllSubjectsForClass(gradeLevel, section) {
     const subjects = [];
     const seenSubjects = new Set();
     
+    // Normalize grade level for comparison (sheet stores just numbers)
+    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+      const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      if (rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
         const subject = String(row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] || '').trim();
@@ -1481,12 +1534,13 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
   try {
     const masterSpreadsheet = getSpreadsheet();
     
+    // Normalize grade level for folder/file naming (extract just the number)
+    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
     // Generate template file name in format: OGS-GRADE-1A-2026-2027 - {teacher name}
-    const gradeMatch = gradeLevel.match(/\d+/);
-    const gradeNumber = gradeMatch ? gradeMatch[0] : gradeLevel.replace(/\s+/g, '').toUpperCase();
     const sanitizedSection = section.toUpperCase();
     const sanitizedYear = schoolYear.replace(/[^a-zA-Z0-9-]/g, '');
-    const templateFileName = `OGS-GRADE-${gradeNumber}${sanitizedSection}-${sanitizedYear} - ${teacher}`;
+    const templateFileName = `OGS-GRADE-${normalizedGradeLevel}${sanitizedSection}-${sanitizedYear} - ${teacher}`;
     
     // Get the parent folder of the master spreadsheet
     const masterFile = DriveApp.getFileById(masterSpreadsheet.getId());
@@ -1495,7 +1549,9 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     
     // OPTIMIZATION: Create folder structure: "YYYY-YYYY Grade XY"
     // Example: "2025-2026 Grade 1A"
-    const folderName = `${schoolYear} ${gradeLevel}${section}`;
+    // Format grade level for display in folder name
+    const formattedGradeLevel = _formatGradeLevel(normalizedGradeLevel);
+    const folderName = `${schoolYear} ${formattedGradeLevel}${section}`;
     const targetFolder = _findOrCreateFolder(baseFolder, folderName);
     
     // Check if template file already exists in the target folder
@@ -1618,6 +1674,9 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
  */
 function _addAssignment(gradeLevel, section, teacher, subject) {
   try {
+    // Normalize grade level for storage (sheet stores just numbers)
+    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
     let sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     
     // Create sheet if it doesn't exist
@@ -1644,7 +1703,8 @@ function _addAssignment(gradeLevel, section, teacher, subject) {
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+      const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      if (rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
           row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject) {
@@ -1655,8 +1715,8 @@ function _addAssignment(gradeLevel, section, teacher, subject) {
       }
     }
     
-    // Add new assignment with audit trail
-    sheet.appendRow([gradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, userEmail]);
+    // Add new assignment with audit trail (store normalized grade level)
+    sheet.appendRow([normalizedGradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, userEmail]);
     
     return { success: true, message: 'Assignment added successfully' };
   } catch (error) {
@@ -1675,6 +1735,9 @@ function _addAssignment(gradeLevel, section, teacher, subject) {
  */
 function _addSubjectsBatch(gradeLevel, section, teacher, subjects) {
   try {
+    // Normalize grade level for storage (sheet stores just numbers)
+    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
     let sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     
     // Create sheet if it doesn't exist
@@ -1704,7 +1767,8 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects) {
     // Build set of existing subjects for fast lookup
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+      const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      if (rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher) {
         const subject = row[CONFIG.SUBJECTS_COLUMNS.SUBJECT];
@@ -1721,7 +1785,8 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects) {
         // Find row index for update
         for (let i = 1; i < data.length; i++) {
           const row = data[i];
-          if (row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+          const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+          if (rowGradeLevel === normalizedGradeLevel &&
               row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
               row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
               row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject) {
@@ -1730,8 +1795,8 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects) {
           }
         }
       } else {
-        // New assignment
-        newRows.push([gradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, userEmail]);
+        // New assignment (store normalized grade level)
+        newRows.push([normalizedGradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, userEmail]);
       }
     });
     
@@ -1835,6 +1900,9 @@ function _getSubjects(gradeLevel, section) {
     const hasGradeFilter = Boolean(gradeLevel);
     const hasSectionFilter = Boolean(section);
     
+    // Normalize grade level filter for comparison (sheet stores just numbers)
+    const normalizedGradeLevel = hasGradeFilter ? _normalizeGradeLevel(gradeLevel) : null;
+    
     // OPTIMIZATION 4: Loop through data once with optimized filtering
     const dataLength = data.length;
     for (let i = 0; i < dataLength; i++) {
@@ -1844,12 +1912,17 @@ function _getSubjects(gradeLevel, section) {
       if (row[COL_STATUS] !== 'Active') continue;
       
       // OPTIMIZATION 6: Early continue on filter mismatch (short-circuit evaluation)
-      if (hasGradeFilter && row[COL_GRADE] !== gradeLevel) continue;
+      // Normalize row grade level for comparison
+      if (hasGradeFilter) {
+        const rowGradeLevel = _normalizeGradeLevel(String(row[COL_GRADE] || '').trim());
+        if (rowGradeLevel !== normalizedGradeLevel) continue;
+      }
       if (hasSectionFilter && row[COL_SECTION] !== section) continue;
       
       // OPTIMIZATION 7: Direct object creation without intermediate variables
+      // Format grade level for display (add "Grade " prefix)
       subjects.push({
-        gradeLevel: row[COL_GRADE],
+        gradeLevel: _formatGradeLevel(row[COL_GRADE]), // Format for display
         section: row[COL_SECTION],
         teacher: row[COL_TEACHER],
         subject: row[COL_SUBJECT]
@@ -1874,6 +1947,9 @@ function _getSubjects(gradeLevel, section) {
  */
 function _deleteAssignment(gradeLevel, section, teacher, subject) {
   try {
+    // Normalize grade level for comparison (sheet stores just numbers)
+    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
     const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
       return { success: false, message: 'SUBJECTS sheet not found' };
@@ -1906,10 +1982,12 @@ function _deleteAssignment(gradeLevel, section, teacher, subject) {
       
       // OPTIMIZATION 4: Check all conditions in order of likelihood to fail
       // (most specific first for faster rejection)
+      // Normalize grade level for comparison
+      const rowGradeLevel = _normalizeGradeLevel(String(row[COL_GRADE] || '').trim());
       if (row[COL_SUBJECT] === subject &&
           row[COL_TEACHER] === teacher &&
           row[COL_SECTION] === section &&
-          row[COL_GRADE] === gradeLevel) {
+          rowGradeLevel === normalizedGradeLevel) {
         
         // OPTIMIZATION 5: Batch update both cells at once
         const actualRow = i + 2; // +2 because data starts at row 2 (row 1 is header)
@@ -1955,10 +2033,11 @@ function _deleteSubjectsBatch(subjects) {
     const dataRange = sheet.getRange(2, 1, lastRow - 1, 4);
     const data = dataRange.getValues();
     
-    // OPTIMIZATION 2: Create a lookup set for fast matching
+    // OPTIMIZATION 2: Create a lookup set for fast matching (normalize grade levels)
     const assignmentKeys = new Set();
     subjects.forEach(a => {
-      const key = `${a.gradeLevel}|${a.section}|${a.teacher}|${a.subject}`;
+      const normalizedGrade = _normalizeGradeLevel(a.gradeLevel);
+      const key = `${normalizedGrade}|${a.section}|${a.teacher}|${a.subject}`;
       assignmentKeys.add(key);
     });
     
@@ -1973,7 +2052,8 @@ function _deleteSubjectsBatch(subjects) {
     
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
-      const key = `${row[COL_GRADE]}|${row[COL_SECTION]}|${row[COL_TEACHER]}|${row[COL_SUBJECT]}`;
+      const rowGradeLevel = _normalizeGradeLevel(String(row[COL_GRADE] || '').trim());
+      const key = `${rowGradeLevel}|${row[COL_SECTION]}|${row[COL_TEACHER]}|${row[COL_SUBJECT]}`;
       
       if (assignmentKeys.has(key)) {
         rowsToUpdate.push(i + 2); // +2 because data starts at row 2
@@ -2052,12 +2132,16 @@ function _addAdvisory(teacher, gradeLevel, section) {
     const statusCol = CONFIG.ADVISORY_COLUMNS.STATUS + 1;
     const modifiedCol = CONFIG.ADVISORY_COLUMNS.MODIFIED + 1;
     
+    // Normalize grade level for storage (sheet stores just numbers)
+    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
     // Check if exact advisory already exists (same teacher, grade, section)
     let exactMatchRow = null;
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
+      const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] || '').trim());
       if (row[CONFIG.ADVISORY_COLUMNS.TEACHER] === teacher &&
-          row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+          rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.ADVISORY_COLUMNS.SECTION] === section) {
         exactMatchRow = i + 1; // Store 1-based row number
         break;
@@ -2068,14 +2152,16 @@ function _addAdvisory(teacher, gradeLevel, section) {
     // Check if this class (grade + section) already has an active advisory with a different teacher
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+      const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] || '').trim());
+      if (rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.ADVISORY_COLUMNS.SECTION] === section &&
           row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
         const existingTeacher = row[CONFIG.ADVISORY_COLUMNS.TEACHER];
         if (existingTeacher !== teacher) {
+          const formattedGradeLevel = _formatGradeLevel(gradeLevel);
           return { 
             success: false, 
-            message: `${gradeLevel}${section} already has an active advisory with ${existingTeacher}. Cannot assign another teacher to the same class. Please deactivate the existing advisory first.` 
+            message: `${formattedGradeLevel}${section} already has an active advisory with ${existingTeacher}. Cannot assign another teacher to the same class. Please deactivate the existing advisory first.` 
           };
         }
       }
@@ -2107,8 +2193,8 @@ function _addAdvisory(teacher, gradeLevel, section) {
       sheet.getRange(exactMatchRow, statusCol).setValue('Active');
       sheet.getRange(exactMatchRow, modifiedCol).setValue(timestamp);
     } else {
-      // Add new advisory with audit trail
-      sheet.appendRow([teacher, gradeLevel, section, 'Active', timestamp, timestamp, userEmail]);
+      // Add new advisory with audit trail (store normalized grade level)
+      sheet.appendRow([teacher, normalizedGradeLevel, section, 'Active', timestamp, timestamp, userEmail]);
     }
     
     const deactivateMsg = rowsToDeactivate.length > 0 
@@ -2155,9 +2241,11 @@ function _getAdvisories(teacher = null) {
       // Apply filter
       if (hasTeacherFilter && rowTeacher !== teacher) continue;
       
+      // Format grade level for display (add "Grade " prefix)
+      const rawGradeLevel = row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] || '';
       advisories.push({
         teacher: rowTeacher || '',
-        gradeLevel: row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] || '',
+        gradeLevel: _formatGradeLevel(rawGradeLevel), // Format for display
         section: row[CONFIG.ADVISORY_COLUMNS.SECTION] || '',
         status: row[CONFIG.ADVISORY_COLUMNS.STATUS] || '',
         created: row[CONFIG.ADVISORY_COLUMNS.CREATED] || '',
@@ -2182,6 +2270,9 @@ function _getAdvisories(teacher = null) {
  */
 function _deleteAdvisory(teacher, gradeLevel, section) {
   try {
+    // Normalize grade level for comparison (sheet stores just numbers)
+    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
     const sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
     
     if (!sheet) {
@@ -2195,8 +2286,9 @@ function _deleteAdvisory(teacher, gradeLevel, section) {
     // OPTIMIZATION: Single pass search and update
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
+      const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] || '').trim());
       if (row[CONFIG.ADVISORY_COLUMNS.TEACHER] === teacher &&
-          row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+          rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.ADVISORY_COLUMNS.SECTION] === section) {
         // Update status to Inactive and modified date
         const statusCol = CONFIG.ADVISORY_COLUMNS.STATUS + 1; // D column
@@ -2235,10 +2327,11 @@ function _deleteAdvisoriesBatch(advisories) {
     const data = sheet.getDataRange().getValues();
     const timestamp = new Date();
     
-    // OPTIMIZATION: Build Set for fast lookup
+    // OPTIMIZATION: Build Set for fast lookup (normalize grade levels)
     const advisoryKeys = new Set();
     advisories.forEach(adv => {
-      const key = `${adv.teacher}|||${adv.gradeLevel}|||${adv.section}`;
+      const normalizedGrade = _normalizeGradeLevel(adv.gradeLevel);
+      const key = `${adv.teacher}|||${normalizedGrade}|||${adv.section}`;
       advisoryKeys.add(key);
     });
     
@@ -2246,7 +2339,8 @@ function _deleteAdvisoriesBatch(advisories) {
     const rowsToUpdate = [];
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      const key = `${row[CONFIG.ADVISORY_COLUMNS.TEACHER]}|||${row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL]}|||${row[CONFIG.ADVISORY_COLUMNS.SECTION]}`;
+      const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] || '').trim());
+      const key = `${row[CONFIG.ADVISORY_COLUMNS.TEACHER]}|||${rowGradeLevel}|||${row[CONFIG.ADVISORY_COLUMNS.SECTION]}`;
       
       if (advisoryKeys.has(key) && row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
         rowsToUpdate.push(i + 1); // Store 1-based row number

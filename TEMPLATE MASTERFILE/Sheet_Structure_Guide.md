@@ -122,7 +122,7 @@ School Year | Grade Level | Section | Teacher | Template Link | Created | Modifi
 | Column | Field Name         | Filled By    | Description                                   | Example                  |
 |--------|--------------------|--------------|-----------------------------------------------|--------------------------|
 | A      | School Year        | 💬 Dialog    | User enters in dialog                         | 2024-2025                |
-| B      | Grade Level        | 💬 Dialog    | User selects in dialog                        | Grade 1                  |
+| B      | Grade Level        | 💬 Dialog    | User selects in dialog (stored as number: 1) | 1 (displays as "Grade 1") |
 | C      | Section            | 💬 Dialog    | User selects in dialog (A, B, C, etc.)        | A                        |
 | D      | Teacher         | 💬 Dialog    | User selects teacher (from subjects)     | Rojo, R.                 |
 | E      | Template Link      | 🤖 Auto      | Auto-filled when template is generated        | [Open Template]          |
@@ -138,11 +138,13 @@ School Year | Grade Level | Section | Teacher | Template Link | Created | Modifi
 ┌────────────────┬─────────────┬─────────┬───────────────┬─────────────────┬──────────────────┬──────────────────┬──────────────────┐
 │ School Year    │ Grade Level │ Section │ Teacher    │ Template Link   │ Created          │ Modified         │ Created By       │
 ├────────────────┼─────────────┼─────────┼───────────────┼─────────────────┼──────────────────┼──────────────────┼──────────────────┤
-│ 2024-2025      │ Grade 1     │ A       │ Rojo, R.      │ [Open Template] │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
-│ 2024-2025      │ Grade 1     │ B       │ Santos, J.    │ [Open Template] │ 2025-05-03 11:20 │ 2025-05-03 11:20 │ admin@school.edu │
-│ 2024-2025      │ Grade 2     │ A       │ Cruz, Maria A.│ [Open Template] │ 2025-05-03 12:00 │ 2025-05-03 12:00 │ admin@school.edu │
+│ 2024-2025      │ 1           │ A       │ Rojo, R.      │ [Open Template] │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
+│ 2024-2025      │ 1           │ B       │ Santos, J.    │ [Open Template] │ 2025-05-03 11:20 │ 2025-05-03 11:20 │ admin@school.edu │
+│ 2024-2025      │ 2           │ A       │ Cruz, Maria A.│ [Open Template] │ 2025-05-03 12:00 │ 2025-05-03 12:00 │ admin@school.edu │
 └────────────────┴─────────────┴─────────┴───────────────┴─────────────────┴──────────────────┴──────────────────┴──────────────────┘
 ```
+
+**⚠️ NOTE:** Grade Level column stores only numbers (1, 2, 3, etc.), not "Grade 1". The system displays them as "Grade 1", "Grade 2" in the UI.
 
 **Key Features:**
 - ✅ Only contains records for templates that have been generated
@@ -172,7 +174,7 @@ Grade Level | Section | Teacher | Subject | Status | Created | Modified | Create
 
 | Column | Field Name    | Filled By    | Description                                   | Example                  |
 |--------|---------------|--------------|-----------------------------------------------|--------------------------|
-| A      | Grade Level   | 💬 Dialog    | Grade level for the assignment                | Grade 1                  |
+| A      | Grade Level   | 💬 Dialog    | Grade level for the assignment (stored as number: 1) | 1 (displays as "Grade 1") |
 | B      | Section       | 💬 Dialog    | Section letter (A, B, C, etc.)                | A                        |
 | C      | Teacher    | 💬 Dialog    | Full name of assigned teacher              | Rojo, R.                 |
 | D      | Subject       | 💬 Dialog    | Subject name                                  | English 1                |
@@ -187,14 +189,16 @@ Grade Level | Section | Teacher | Subject | Status | Created | Modified | Create
 ┌─────────────┬─────────┬───────────────┬───────────────┬──────────┬──────────────────┬──────────────────┬──────────────────┐
 │ Grade Level │ Section │ Teacher    │ Subject       │ Status   │ Created          │ Modified         │ Created By       │
 ├─────────────┼─────────┼───────────────┼───────────────┼──────────┼──────────────────┼──────────────────┼──────────────────┤
-│ Grade 1     │ A       │ Rojo, R.      │ English 1     │ Active   │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
-│ Grade 1     │ A       │ Rojo, R.      │ Mathematics 1 │ Active   │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
-│ Grade 1     │ A       │ Rojo, R.      │ Science 1     │ Active   │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
-│ Grade 1     │ A       │ Cruz, Maria A.│ Filipino 1    │ Active   │ 2025-05-03 11:00 │ 2025-05-03 11:00 │ admin@school.edu │
-│ Grade 1     │ B       │ Santos, J.    │ English 1     │ Active   │ 2025-05-03 11:15 │ 2025-05-03 11:15 │ admin@school.edu │
-│ Grade 1     │ B       │ Santos, J.    │ Mathematics 1 │ Active   │ 2025-05-03 11:15 │ 2025-05-03 11:15 │ admin@school.edu │
+│ 1           │ A       │ Rojo, R.      │ English 1     │ Active   │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
+│ 1           │ A       │ Rojo, R.      │ Mathematics 1 │ Active   │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
+│ 1           │ A       │ Rojo, R.      │ Science 1     │ Active   │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
+│ 1           │ A       │ Cruz, Maria A.│ Filipino 1    │ Active   │ 2025-05-03 11:00 │ 2025-05-03 11:00 │ admin@school.edu │
+│ 1           │ B       │ Santos, J.    │ English 1     │ Active   │ 2025-05-03 11:15 │ 2025-05-03 11:15 │ admin@school.edu │
+│ 1           │ B       │ Santos, J.    │ Mathematics 1 │ Active   │ 2025-05-03 11:15 │ 2025-05-03 11:15 │ admin@school.edu │
 └─────────────┴─────────┴───────────────┴───────────────┴──────────┴──────────────────┴──────────────────┴──────────────────┘
 ```
+
+**⚠️ NOTE:** Grade Level column stores only numbers (1, 2, 3, etc.), not "Grade 1". The system displays them as "Grade 1", "Grade 2" in the UI.
 
 **Key Features:**
 - ✅ Managed via "Manage Subjects" dialog (Actions menu)
@@ -235,7 +239,7 @@ Teacher | Grade Level | Section | Status | Created | Modified | Created By
 | Column | Field Name    | Filled By    | Description                                   | Example                  |
 |--------|---------------|--------------|-----------------------------------------------|--------------------------|
 | A      | Teacher    | 💬 Dialog    | Full name of assigned teacher              | Rojo, R.                 |
-| B      | Grade Level   | 💬 Dialog    | Grade level for the advisory class           | Grade 1                  |
+| B      | Grade Level   | 💬 Dialog    | Grade level for the advisory class (stored as number: 1) | 1 (displays as "Grade 1") |
 | C      | Section       | 💬 Dialog    | Section letter (A, B, C, etc.)                | A                        |
 | D      | Status        | 🤖 Auto      | "Active" for active subjects, "Inactive" for inactive | Active                  |
 | E      | Created       | 🤖 Auto      | Auto-timestamp when advisory was created      | 2025-05-03 10:30         |
@@ -248,12 +252,14 @@ Teacher | Grade Level | Section | Status | Created | Modified | Created By
 ┌───────────────┬─────────────┬─────────┬──────────┬──────────────────┬──────────────────┬──────────────────┐
 │ Teacher    │ Grade Level │ Section │ Status   │ Created          │ Modified         │ Created By       │
 ├───────────────┼─────────────┼─────────┼──────────┼──────────────────┼──────────────────┼──────────────────┤
-│ Rojo, R.      │ Grade 1     │ A       │ Active   │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
-│ Cruz, Maria A.│ Grade 1     │ B       │ Active   │ 2025-05-03 11:00 │ 2025-05-03 11:00 │ admin@school.edu │
-│ Santos, J.     │ Grade 2     │ A       │ Active   │ 2025-05-03 11:15 │ 2025-05-03 11:15 │ admin@school.edu │
-│ Rojo, R.      │ Grade 2     │ B       │ Inactive │ 2024-05-03 10:30 │ 2025-05-03 14:00 │ admin@school.edu │
+│ Rojo, R.      │ 1           │ A       │ Active   │ 2025-05-03 10:30 │ 2025-05-03 10:30 │ admin@school.edu │
+│ Cruz, Maria A.│ 1           │ B       │ Active   │ 2025-05-03 11:00 │ 2025-05-03 11:00 │ admin@school.edu │
+│ Santos, J.     │ 2           │ A       │ Active   │ 2025-05-03 11:15 │ 2025-05-03 11:15 │ admin@school.edu │
+│ Rojo, R.      │ 2           │ B       │ Inactive │ 2024-05-03 10:30 │ 2025-05-03 14:00 │ admin@school.edu │
 └───────────────┴─────────────┴─────────┴──────────┴──────────────────┴──────────────────┴──────────────────┘
 ```
+
+**⚠️ NOTE:** Grade Level column stores only numbers (1, 2, 3, etc.), not "Grade 1". The system displays them as "Grade 1", "Grade 2" in the UI.
 
 **Key Features:**
 - ✅ Managed via "Manage Advisory Classes" dialog (Actions menu)
@@ -416,25 +422,27 @@ Grade Level | Section | Level
 
 | Column | Field Name    | Parent Header        | Description                    | Example        |
 |--------|---------------|----------------------|--------------------------------|----------------|
-| A      | Grade Level   | Section Information  | Grade level                    | Grade 1        |
+| A      | Grade Level   | Section Information  | Grade level (number only: 1, 2, 3, etc.) | 1        |
 | B      | Section       | Section Information  | Section letter (A, B, C, etc.) | A              |
 | C      | Level         | Section Information  | School level (Elementary/JHS/SHS) | Elementary   |
+
+**⚠️ IMPORTANT:** Column A (Grade Level) should contain **only the number** (1, 2, 3, 4, etc.), **NOT** "Grade 1" or "Grade 2". The system will automatically format it as "Grade 1", "Grade 2" for display in the UI.
 
 **Sample Data:**
 
 ```
 Row 1: SECTION INFORMATION (merged across A-C)
 Row 2: Grade Level | Section | Level
-Row 3: Grade 1     | A       | Elementary
-Row 4: Grade 1     | B       | Elementary
-Row 5: Grade 1     | C       | Elementary
-Row 6: Grade 7     | A       | JHS
-Row 7: Grade 7     | B       | JHS
-Row 8: Grade 7     | C       | JHS
-Row 9: Grade 11    | A       | SHS
-Row 10: Grade 11   | B       | SHS
-Row 11: Grade 11   | C       | SHS
-Row 12: Grade 12   | A       | SHS
+Row 3: 1           | A       | Elementary
+Row 4: 1           | B       | Elementary
+Row 5: 1           | C       | Elementary
+Row 6: 7           | A       | JHS
+Row 7: 7           | B       | JHS
+Row 8: 7           | C       | JHS
+Row 9: 11           | A       | SHS
+Row 10: 11          | B       | SHS
+Row 11: 11          | C       | SHS
+Row 12: 12          | A       | SHS
 ```
 
 **Key Features:**

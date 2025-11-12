@@ -124,6 +124,9 @@ function getAllDropdownData() {
  */
 function getAssignedTeachers(gradeLevel, section) {
   try {
+    // Normalize grade level for comparison (sheet stores just numbers)
+    const normalizedGradeLevel = normalizeGradeLevel(gradeLevel);
+    
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
       return []; // Return empty if sheet doesn't exist
@@ -135,7 +138,8 @@ function getAssignedTeachers(gradeLevel, section) {
     // Skip header row (row 1)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+      const rowGradeLevel = normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      if (rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
         const teacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
@@ -161,6 +165,9 @@ function getAssignedTeachers(gradeLevel, section) {
  */
 function getAssignedSubjects(gradeLevel, section, teacher) {
   try {
+    // Normalize grade level for comparison (sheet stores just numbers)
+    const normalizedGradeLevel = normalizeGradeLevel(gradeLevel);
+    
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
       return []; // Return empty if sheet doesn't exist
@@ -172,7 +179,8 @@ function getAssignedSubjects(gradeLevel, section, teacher) {
     // Skip header row (row 1)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+      const rowGradeLevel = normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      if (rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
           row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
@@ -191,10 +199,39 @@ function getAssignedSubjects(gradeLevel, section, teacher) {
 }
 
 /**
+ * Helper function to normalize grade level for storage (removes "Grade " prefix)
+ * Converts "Grade 1" or "1" to just "1"
+ * @param {string} gradeLevel - The grade level (can be "Grade 1" or "1")
+ * @return {string} Normalized grade level (just the number)
+ */
+function normalizeGradeLevel(gradeLevel) {
+  if (!gradeLevel) return '';
+  const str = String(gradeLevel).trim();
+  // Remove "Grade " prefix if present, then extract just the number
+  const cleaned = str.replace(/^Grade\s+/i, '');
+  // Extract number (handles cases like "1", "10", etc.)
+  const match = cleaned.match(/^\d+/);
+  return match ? match[0] : cleaned;
+}
+
+/**
+ * Helper function to format grade level for display (adds "Grade " prefix)
+ * Converts "1" to "Grade 1"
+ * @param {string} gradeLevel - The grade level (should be just the number)
+ * @return {string} Formatted grade level with "Grade " prefix
+ */
+function formatGradeLevel(gradeLevel) {
+  if (!gradeLevel) return '';
+  const normalized = normalizeGradeLevel(gradeLevel);
+  return normalized ? `Grade ${normalized}` : gradeLevel;
+}
+
+/**
  * Gets unique grade levels from SECTIONS_REF sheet
  * OPTIMIZED: Uses Set for O(1) duplicate detection and minimal data retrieval
  * Returns in the order they appear in the sheet (unsorted)
- * @return {Array} Array of unique grade levels
+ * Sheet stores only numbers (1, 2, 3, 4), but returns formatted with "Grade " prefix for display
+ * @return {Array} Array of unique grade levels formatted as "Grade 1", "Grade 2", etc.
  */
 function getGradeLevels() {
   try {
@@ -209,7 +246,7 @@ function getGradeLevels() {
       return []; // No data rows
     }
     
-    // OPTIMIZATION 1: Only read column A (Grade Level)
+    // OPTIMIZATION 1: Only read column A (Grade Level - stores just numbers)
     const maxRows = Math.min(lastRow, CONFIG.HEADER_ROWS + 1000);
     const startRow = CONFIG.HEADER_ROWS + 1;
     const numRows = maxRows - CONFIG.HEADER_ROWS;
@@ -219,14 +256,18 @@ function getGradeLevels() {
     const gradeLevelSet = new Set();
     const gradeLevels = []; // Preserve order
     
-    // Process data
+    // Process data - sheet stores just numbers, format for display
     for (let i = 0; i < data.length; i++) {
-      const gradeLevel = String(data[i][0]).trim();
+      const rawGradeLevel = String(data[i][0]).trim();
+      if (!rawGradeLevel) continue;
       
-      // OPTIMIZATION 3: Single condition check
-      if (gradeLevel && !gradeLevelSet.has(gradeLevel)) {
-        gradeLevelSet.add(gradeLevel);
-        gradeLevels.push(gradeLevel);
+      // Normalize to just the number
+      const normalized = normalizeGradeLevel(rawGradeLevel);
+      
+      // Format with "Grade " prefix for display and check for duplicates
+      if (normalized && !gradeLevelSet.has(normalized)) {
+        gradeLevelSet.add(normalized);
+        gradeLevels.push(formatGradeLevel(normalized)); // Return "Grade 1", "Grade 2", etc.
       }
     }
     
@@ -249,6 +290,9 @@ function getSectionsForGrade(gradeLevel) {
     if (!gradeLevel || gradeLevel.trim() === '') {
       return [];
     }
+    
+    // Normalize the input grade level for comparison (sheet stores just numbers)
+    const normalizedGradeLevel = normalizeGradeLevel(gradeLevel);
     
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REF);
     if (!sheet) {
@@ -273,11 +317,11 @@ function getSectionsForGrade(gradeLevel) {
     // OPTIMIZATION 3: Single pass with efficient condition and duplicate prevention
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
-      const rowGradeLevel = String(row[0] || '').trim();
+      const rowGradeLevel = normalizeGradeLevel(String(row[0] || '').trim()); // Normalize for comparison
       const section = String(row[1] || '').trim();
       
-      // Match grade level and ensure section exists and not already added
-      if (rowGradeLevel === gradeLevel && section && !sectionSet.has(section)) {
+      // Match grade level (both normalized) and ensure section exists and not already added
+      if (rowGradeLevel === normalizedGradeLevel && section && !sectionSet.has(section)) {
         sectionSet.add(section);
         sections.push(section);
       }
@@ -301,11 +345,15 @@ function getLevelForGrade(gradeLevel) {
     throw new Error('SECTIONS_REF sheet not found');
   }
   
+  // Normalize the input grade level for comparison
+  const normalizedGradeLevel = normalizeGradeLevel(gradeLevel);
+  
   const data = sheet.getDataRange().getValues();
   
   // Skip 2 header rows (parent header + column headers)
   for (let i = CONFIG.HEADER_ROWS; i < data.length; i++) {
-    if (data[i][0] === gradeLevel && data[i][2]) {
+    const rowGradeLevel = normalizeGradeLevel(String(data[i][0] || '').trim());
+    if (rowGradeLevel === normalizedGradeLevel && data[i][2]) {
       return data[i][2]; // Column C (Level)
     }
   }
