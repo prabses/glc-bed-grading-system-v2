@@ -348,10 +348,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
   // Row 1: Title
   allData.push(padRow(['OFFICIAL GRADE SHEET']));
   
-  // Row 2: Empty
-  allData.push(padRow(['']));
-  
-  // Row 3-8: Info rows (matching Excel format exactly)
+  // Row 2-7: Info rows (matching Excel format exactly)
   allData.push(padRow(['Instructor Name:', instructor]));
   allData.push(padRow(['School Year:', schoolYear]));
   allData.push(padRow(['Level:', gradeLevel]));
@@ -359,7 +356,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
   allData.push(padRow(['Total Student:', '']));
   allData.push(padRow(['Subject:', subject]));
   
-  // Row 9: Grading period headers row (1ST GRADING, 2ND GRADING, 3RD GRADING, 4TH GRADING)
+  // Row 8: Grading period headers row (1ST GRADING, 2ND GRADING, 3RD GRADING, 4TH GRADING)
   const gradingHeadersRow = padRow([
     '', 
     '', 
@@ -413,23 +410,23 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
     .setFontWeight('bold')
     .setHorizontalAlignment('center');
   
-  // Info rows (rows 3-8): Batch format column A (bold) and column B (background)
-  sheet.getRange(3, 1, 6, 1).setFontWeight('bold');
-  // Batch background for column B (rows 3-8)
-  sheet.getRange(3, 2, 6, 1).setBackground('#f3f3f3');
+  // Info rows (rows 2-7): Batch format column A (bold) and column B (background)
+  sheet.getRange(2, 1, 6, 1).setFontWeight('bold');
+  // Batch background for column B (rows 2-7)
+  sheet.getRange(2, 2, 6, 1).setBackground('#f3f3f3');
   
-  // Row 9: Grading period headers - batch merges and formatting
-  const row9Range = sheet.getRange(9, 3, 1, 16);
-  sheet.getRange(9, 3, 1, 4).merge();   // 1ST GRADING
-  sheet.getRange(9, 7, 1, 4).merge();   // 2ND GRADING
-  sheet.getRange(9, 11, 1, 4).merge(); // 3RD GRADING
-  sheet.getRange(9, 15, 1, 4).merge();  // 4TH GRADING
-  row9Range.setFontWeight('bold')
+  // Row 8: Grading period headers - batch merges and formatting
+  const row8Range = sheet.getRange(8, 3, 1, 16);
+  sheet.getRange(8, 3, 1, 4).merge();   // 1ST GRADING
+  sheet.getRange(8, 7, 1, 4).merge();   // 2ND GRADING
+  sheet.getRange(8, 11, 1, 4).merge(); // 3RD GRADING
+  sheet.getRange(8, 15, 1, 4).merge();  // 4TH GRADING
+  row8Range.setFontWeight('bold')
     .setHorizontalAlignment('center')
     .setBackground('#e6e6e6');
   
-  // Row 10: Column headers - single batch operation
-  const headerRange = sheet.getRange(10, 1, 1, numCols);
+  // Row 9: Column headers - single batch operation
+  const headerRange = sheet.getRange(9, 1, 1, numCols);
   headerRange.setFontWeight('bold')
     .setBackground('#d9d9d9')
     .setHorizontalAlignment('center')
@@ -443,11 +440,11 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
     sheet.setColumnWidth(c, 130);
   }
   
-  sheet.setFrozenRows(10);
+  sheet.setFrozenRows(9);
   
   const hasStudents = students && students.length > 0;
   const numStudentRows = hasStudents ? Math.max(students.length, CONFIG.TEMPLATE.NUM_STUDENT_ROWS) : CONFIG.TEMPLATE.NUM_STUDENT_ROWS;
-  const startRow = 11;
+  const startRow = 10;
   
   if (numStudentRows > 0) {
     const ww = weights.writtenWork;
@@ -537,7 +534,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
       const protection1 = colABRange.protect().setWarningOnly(false);
       setProtectionWithOnlyCreator(protection1, creatorEmail);
       
-      const headerRowsRange = sheet.getRange(9, 1, 2, numCols);
+      const headerRowsRange = sheet.getRange(8, 1, 2, numCols);
       const protection2 = headerRowsRange.protect().setWarningOnly(false);
       setProtectionWithOnlyCreator(protection2, creatorEmail);
       
@@ -562,7 +559,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
     gradingDataRange.setNumberFormat('0.00');
     
     if (hasStudents) {
-      sheet.getRange(7, 2).setValue(students.length).setHorizontalAlignment('left');
+      sheet.getRange(6, 2).setValue(students.length).setHorizontalAlignment('left');
     }
   }
 }
