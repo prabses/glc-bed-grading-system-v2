@@ -459,24 +459,14 @@
           highlightedIndex = -1;
           
           if (academicYear) {
-            // Show loading state
-            const loadBtn = document.getElementById("loadBtn");
-            const originalText = loadBtn.textContent;
-            loadBtn.textContent = "Loading...";
-            loadBtn.disabled = true;
-            
             // Get student numbers for the selected academic year
             google.script.run
               .withSuccessHandler(function (studentNumbers) {
                 allStudentNumbers = studentNumbers;
-                loadBtn.textContent = originalText;
-                loadBtn.disabled = false;
               })
               .withFailureHandler(function (error) {
                 console.error("Error loading student numbers:", error);
                 alert("Error loading student numbers: " + error.toString());
-                loadBtn.textContent = originalText;
-                loadBtn.disabled = false;
               })
               .getStudentNumbers(academicYear);
           }
