@@ -355,7 +355,7 @@ Row 1 (Parent Header):
                      Col A-C
 
 Row 2 (Column Headers):
-Full Name | Email | Active
+Full Name | Email Address | Active
 ```
 
 **Column Details:**
@@ -363,14 +363,14 @@ Full Name | Email | Active
 | Column | Field Name    | Parent Header           | Description                      | Example              |
 |--------|---------------|-------------------------|----------------------------------|----------------------|
 | A      | Full Name     | Teacher Information  | Full name of teacher          | Rojo, R.             |
-| B      | Email         | Teacher Information  | Official email address           | rojo@school.edu      |
+| B      | Email Address | Teacher Information  | Official email address           | rojo@school.edu      |
 | C      | Active        | Teacher Information  | ✓ or blank (hide if inactive)    | ✓                    |
 
 **Sample Data:**
 
 ```
 Row 1: TEACHER INFORMATION (merged across A-C)
-Row 2: Full Name        | Email                | Active
+Row 2: Full Name        | Email Address        | Active
 Row 3: Rojo, R.         | rojo@school.edu      | ✓
 Row 4: Cruz, Maria A.   | mcruz@school.edu     | ✓
 Row 5: Santos, John P.  | jsantos@school.edu   | ✓

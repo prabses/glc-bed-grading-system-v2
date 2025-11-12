@@ -1481,11 +1481,12 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
   try {
     const masterSpreadsheet = getSpreadsheet();
     
-    // Generate template file name in format: OGS_GRADE1_A_2025-2026 - Teacher Name
-    const sanitizedGradeLevel = gradeLevel.replace(/\s+/g, '').toUpperCase();
+    // Generate template file name in format: OGS-GRADE-1A-2026-2027 - {teacher name}
+    const gradeMatch = gradeLevel.match(/\d+/);
+    const gradeNumber = gradeMatch ? gradeMatch[0] : gradeLevel.replace(/\s+/g, '').toUpperCase();
     const sanitizedSection = section.toUpperCase();
     const sanitizedYear = schoolYear.replace(/[^a-zA-Z0-9-]/g, '');
-    const templateFileName = `OGS_${sanitizedGradeLevel}_${sanitizedSection}_${sanitizedYear} - ${teacher}`;
+    const templateFileName = `OGS-GRADE-${gradeNumber}${sanitizedSection}-${sanitizedYear} - ${teacher}`;
     
     // Get the parent folder of the master spreadsheet
     const masterFile = DriveApp.getFileById(masterSpreadsheet.getId());
