@@ -728,15 +728,15 @@ function _isTeacherAdvisor(teacher, gradeLevel, section) {
 }
 
 /**
- * Helper function to get monthly school days from ATTENDANCE_MONTHLY_DAYS sheet
+ * Helper function to get monthly school days from ATTENDANCE_REF sheet
  * @param {string} schoolYear - The school year (e.g., "2024-2025")
  * @return {Object} Object with month names as keys and school days as values
  */
 function _getMonthlySchoolDays(schoolYear) {
   try {
-    const sheet = getSheet(CONFIG.SHEET_NAMES.ATTENDANCE_MONTHLY_DAYS);
+    const sheet = getSheet(CONFIG.SHEET_NAMES.ATTENDANCE_REF);
     if (!sheet) {
-      console.warn('ATTENDANCE_MONTHLY_DAYS sheet not found');
+      console.warn('ATTENDANCE_REF sheet not found');
       return {};
     }
     
@@ -806,7 +806,7 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   
   // If no months found in sheet, return empty (don't create attendance sheet with default months)
   if (monthsToUse.length === 0) {
-    console.warn(`No monthly school days found for school year ${schoolYear} in ATTENDANCE_MONTHLY_DAYS sheet`);
+    console.warn(`No monthly school days found for school year ${schoolYear} in ATTENDANCE_REF sheet`);
     // Still create the sheet structure but with no months
   }
   
@@ -1180,7 +1180,7 @@ function _setupQRSheet(sheet, schoolYear, gradeLevel, section, teacher, students
   // Get all subjects for this class (from all teachers)
   const allSubjects = _getAllSubjectsForClass(gradeLevel, section);
   
-  // Get months from ATTENDANCE_MONTHLY_DAYS for the school year
+  // Get months from ATTENDANCE_REF for the school year
   const monthlyDays = _getMonthlySchoolDays(schoolYear);
   
   // Sort months in typical school year order

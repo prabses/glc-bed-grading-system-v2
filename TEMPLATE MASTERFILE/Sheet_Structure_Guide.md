@@ -56,7 +56,7 @@ This document outlines the **Google Sheets-native structure** for the Template M
 | 5 | TEACHERS_REF   | ✅ Yes         | Teacher list with email                 |
 | 6 | SECTIONS_REF      | ✅ Yes         | Grade levels & sections                    |
 | 7 | GRADING_REF ⭐    | ✅ Yes         | Dynamic grading rules                      |
-| 8 | ATTENDANCE_MONTHLY_DAYS | ✅ Yes         | Number of school days per month per school year |
+| 8 | ATTENDANCE_REF | ✅ Yes         | Number of school days per month per school year |
 | 9 | CHARACTERS_REF    | ✅ Yes         | Character traits list                      |
 
 ### **🔑 Key Dynamicness Features**
@@ -557,7 +557,7 @@ Student | Last Name | First Name | Written Work (30%) | Performance Task (50%) |
 
 ---
 
-### **Sheet 8: ATTENDANCE_MONTHLY_DAYS** (Reference Sheet)
+### **Sheet 8: ATTENDANCE_REF** (Reference Sheet)
 
 **Purpose:** Defines the total number of school days for each month per school year. Used as the base for calculating attendance percentages in OGS templates.
 
@@ -681,7 +681,7 @@ Row 7: Old Trait       |     ← Inactive, won't show in templates
    - TEACHERS_REF
    - SECTIONS_REF
    - GRADING_REF
-   - ATTENDANCE_MONTHLY_DAYS
+   - ATTENDANCE_REF
    - CHARACTERS_REF
 
 ### **Step 2: Set Up Headers**
@@ -693,7 +693,7 @@ Row 7: Old Trait       |     ← Inactive, won't show in templates
 - Data starts at **Row 2**
 - ADVISORY sheet columns: Teacher | Grade Level | Section | Status | Created | Modified | Created By
 
-**For reference sheets (SUBJECTS_REF, TEACHERS_REF, SECTIONS_REF, GRADING_REF, ATTENDANCE_MONTHLY_DAYS, CHARACTERS_REF), create TWO header rows:**
+**For reference sheets (SUBJECTS_REF, TEACHERS_REF, SECTIONS_REF, GRADING_REF, ATTENDANCE_REF, CHARACTERS_REF), create TWO header rows:**
 
 **Row 1:** Parent Headers (merged cells across related columns)
 - Format: Bold, larger font (12-14pt), centered, background color (#f3f3f3)
@@ -744,7 +744,7 @@ Leave these **UNPROTECTED** (users need to edit):
 - TEACHERS_REF
 - SECTIONS_REF
 - GRADING_REF
-- ATTENDANCE_MONTHLY_DAYS
+- ATTENDANCE_REF
 - CHARACTERS_REF
 
 ### **Step 5: Set Up Conditional Formatting (Optional but Recommended)**
@@ -1282,6 +1282,6 @@ For questions or issues with this structure:
 | TEACHERS_REF   | 3       | ✅ Yes        | Teachers + emails                   |
 | SECTIONS_REF      | 3       | ✅ Yes        | Grade levels, sections & level tags   |
 | GRADING_REF       | 5       | ✅ Yes        | Dynamic grading weights                |
-| ATTENDANCE_MONTHLY_DAYS | 3       | ✅ Yes        | Monthly school days per school year   |
+| ATTENDANCE_REF | 3       | ✅ Yes        | Monthly school days per school year   |
 | CHARACTERS_REF    | 2       | ✅ Yes        | Character traits list                 |
 
