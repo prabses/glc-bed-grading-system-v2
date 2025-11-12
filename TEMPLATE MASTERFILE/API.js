@@ -1122,6 +1122,352 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, instructo
 }
 
 /**
+ * Helper function to get all subjects for a grade level and section (from all instructors)
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @return {Array} Array of subject names
+ */
+function _getAllSubjectsForClass(gradeLevel, section) {
+  try {
+    const sheet = getSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
+    if (!sheet) {
+      return [];
+    }
+    
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) {
+      return [];
+    }
+    
+    const data = sheet.getRange(2, 1, lastRow - 1, 8).getValues();
+    const subjects = [];
+    const seenSubjects = new Set();
+    
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+          row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
+          row[CONFIG.ASSIGNMENTS_COLUMNS.STATUS] === 'Active') {
+        const subject = String(row[CONFIG.ASSIGNMENTS_COLUMNS.SUBJECT] || '').trim();
+        if (subject && !seenSubjects.has(subject)) {
+          subjects.push(subject);
+          seenSubjects.add(subject);
+        }
+      }
+    }
+    
+    return subjects;
+  } catch (error) {
+    console.error('Error getting all subjects for class:', error);
+    return [];
+  }
+}
+
+/**
+ * Internal function to set up the QR (Quarterly Report) sheet structure
+ * Based on the CSV format from 1A-Grades-4th-AY-2024-2025-Rojo, R.-as of May 3, 2025.csv
+ * @param {Sheet} sheet - The target sheet
+ * @param {string} schoolYear - The school year
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @param {string} instructor - The instructor/advisor name
+ * @param {Array} students - Array of student objects
+ * @param {Spreadsheet} templateSpreadsheet - The template spreadsheet (to reference Attendance sheet)
+ */
+function _setupQRSheet(sheet, schoolYear, gradeLevel, section, instructor, students = [], templateSpreadsheet) {
+  // Clear the sheet first
+  sheet.clear();
+  
+  // Get all subjects for this class (from all instructors)
+  const allSubjects = _getAllSubjectsForClass(gradeLevel, section);
+  
+  // Get months from ATTENDANCE_MONTHLY_DAYS for the school year
+  const monthlyDays = _getMonthlySchoolDays(schoolYear);
+  
+  // Sort months in typical school year order
+  const monthOrder = ['August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'];
+  const monthsToUse = [];
+  monthOrder.forEach(month => {
+    // Check if this month exists in monthlyDays (try exact match and variations)
+    const monthKey = Object.keys(monthlyDays).find(key => {
+      const keyLower = key.toLowerCase().trim();
+      const monthLower = month.toLowerCase();
+      return keyLower === monthLower || 
+             keyLower.startsWith(monthLower.substring(0, 3)) ||
+             monthLower.startsWith(keyLower.substring(0, 3));
+    });
+    if (monthKey) {
+      monthsToUse.push(monthKey);
+    }
+  });
+  
+  // Build the QR sheet structure - compact layout
+  const allData = [];
+  // Calculate number of columns needed: Learning Areas (1) + spacing (3) + Periodic Assessment (5) + spacing (1) + STUDENT NAME/QUARTER (2) = 12
+  // Plus attendance months (dynamic) - but we'll use a reasonable max
+  const maxAttendanceCols = Math.max(monthsToUse.length + 3, 12); // At least 12, or months + 3 for ATTENDANCE label + spacing + TOTAL
+  const numCols = Math.max(15, maxAttendanceCols); // Use at least 15 columns, or more if needed for attendance
+  
+  // Helper function to pad row to numCols
+  const padRow = (row) => {
+    const padded = [...row];
+    while (padded.length < numCols) {
+      padded.push('');
+    }
+    return padded.slice(0, numCols);
+  };
+  
+  // Row 1: GOLDEN LINK COLLEGE (with STUDENT NAME in top right)
+  // Merge A-O for school name, then STUDENT NAME in P-Q
+  allData.push(padRow(['GOLDEN LINK COLLEGE', '', '', '', '', '', '', '', '', '', '', '', '', '', 'STUDENT NAME', '']));
+  
+  // Row 2: Address line 1 (with QUARTER and ALL in top right)
+  allData.push(padRow(['Waling-waling St., Brgy. 177 Camarin', '', '', '', '', '', '', '', '', '', '', '', '', '', 'QUARTER', 'ALL']));
+  
+  // Row 3: Address line 2
+  allData.push(padRow(['Caloocan City, Philippines']));
+  
+  // Row 4: Empty
+  allData.push(padRow(['']));
+  
+  // Row 5: Basic Education Department
+  allData.push(padRow(['Basic Education Department']));
+  
+  // Row 6: Elementary Progress Report
+  allData.push(padRow(['Elementary Progress Report']));
+  
+  // Row 7: Empty
+  allData.push(padRow(['']));
+  
+  // Row 8: Name :, (empty), (student name placeholder), (empty), Age :, (empty), (age placeholder)
+  allData.push(padRow(['Name :', '', '', '', 'Age :', '', '']));
+  
+  // Row 9: Date of birth :, (empty), (date placeholder), (empty), Sex :, (empty), (sex placeholder)
+  allData.push(padRow(['Date of birth :', '', '', '', 'Sex :', '', '']));
+  
+  // Row 10: School Year :, (empty), schoolYear, (empty), Grade :, (empty), gradeLevel
+  allData.push(padRow(['School Year :', '', schoolYear, '', 'Grade :', '', gradeLevel]));
+  
+  // Row 11: Empty
+  allData.push(padRow(['']));
+  
+  // Row 12: LEARNING AREAS, (empty), (empty), (empty), Periodic Assessment
+  allData.push(padRow(['LEARNING AREAS', '', '', '', 'Periodic Assessment']));
+  
+  // Row 13: Sub-headers (empty, empty, empty, empty, 1, empty, 2, empty, 3, empty, 4, empty, Final)
+  allData.push(padRow(['', '', '', '', '1', '', '2', '', '3', '', '4', '', 'Final']));
+  
+  // Rows 14+: Subject rows (each subject with empty cells for grades in columns E, G, I, K, M)
+  allSubjects.forEach((subject) => {
+    allData.push(padRow([subject, '', '', '', '', '', '', '', '', '', '', '', '']));
+  });
+  
+  // General Average row (after all subjects)
+  allData.push(padRow(['General Average', '', '', '', '', '', '', '', '', '', '', '', '']));
+  
+  // Empty row
+  allData.push(padRow(['']));
+  
+  // Attendance section
+  // Row: ATTENDANCE header with months in the same row
+  const monthHeaderRow = ['ATTENDANCE', ''];
+  monthsToUse.forEach((month) => {
+    monthHeaderRow.push(month.substring(0, 3).toUpperCase()); // Abbreviate month (AUG, SEP, etc.)
+  });
+  monthHeaderRow.push('TOTAL');
+  allData.push(padRow(monthHeaderRow));
+  
+  // Days of School row
+  const daysOfSchoolRow = ['Days of School', ''];
+  monthsToUse.forEach((month) => {
+    daysOfSchoolRow.push(monthlyDays[month] || '');
+  });
+  // Calculate total
+  const totalDays = monthsToUse.reduce((sum, month) => sum + (monthlyDays[month] || 0), 0);
+  daysOfSchoolRow.push(totalDays || '');
+  allData.push(padRow(daysOfSchoolRow));
+  
+  // Days Present row
+  const daysPresentRow = ['Days Present', ''];
+  monthsToUse.forEach(() => {
+    daysPresentRow.push('');
+  });
+  daysPresentRow.push(''); // Total (will be calculated by formula or manual entry)
+  allData.push(padRow(daysPresentRow));
+  
+  // Days Absent row
+  const daysAbsentRow = ['Days Absent', ''];
+  monthsToUse.forEach(() => {
+    daysAbsentRow.push('');
+  });
+  daysAbsentRow.push(''); // Total (will be calculated by formula or manual entry)
+  allData.push(padRow(daysAbsentRow));
+  
+  // Empty row
+  allData.push(padRow(['']));
+  
+  // Separator line row (dashes) - will be merged
+  allData.push(padRow(['---------------------------------------------------------------------------------------------------------------------']));
+  
+  // Acknowledgment section
+  // Row: "This is to acknowledge receipt of the periodical progress report of [STUDENT NAME] for the ______ period of school year [SCHOOL YEAR]."
+  const ackText = `This is to acknowledge receipt of the periodical progress report of  for the ______ period  of school year ${schoolYear} .`;
+  allData.push(padRow([ackText]));
+  
+  // Empty rows (3 empty rows)
+  allData.push(padRow(['']));
+  allData.push(padRow(['']));
+  allData.push(padRow(['']));
+  
+  // Parent's Name / Signature and Date row
+  allData.push(padRow(['Parent\'s Name / Signature', '', '', '', '', '', '', '', '', '', '', '', '', 'Date', '']));
+  
+  // Write all data
+  const numRows = allData.length;
+  const dataRange = sheet.getRange(1, 1, numRows, numCols);
+  dataRange.setValues(allData);
+  
+  // Formatting
+  // Row 1: School name - merge A-O (15 columns), then format STUDENT NAME in column P
+  sheet.getRange(1, 1, 1, 15).merge().setFontSize(16).setFontWeight('bold').setHorizontalAlignment('center');
+  sheet.getRange(1, 15, 1, 1).setFontWeight('bold'); // STUDENT NAME in column O (15)
+  
+  // Row 2: Address line 1 - merge A-O, then format QUARTER and ALL
+  sheet.getRange(2, 1, 1, 15).merge().setFontSize(10).setHorizontalAlignment('center');
+  sheet.getRange(2, 15, 1, 1).setFontWeight('bold'); // QUARTER in column O
+  sheet.getRange(2, 16, 1, 1).setFontWeight('bold'); // ALL in column P
+  
+  // Row 3: Address line 2 - merge and format
+  sheet.getRange(3, 1, 1, 15).merge().setFontSize(10).setHorizontalAlignment('center');
+  
+  // Row 5: Basic Education Department - merge and format
+  sheet.getRange(5, 1, 1, 15).merge().setFontSize(12).setHorizontalAlignment('center');
+  
+  // Row 6: Elementary Progress Report - merge and format with border
+  const progressReportRange = sheet.getRange(6, 1, 1, 15);
+  progressReportRange.merge()
+    .setFontSize(14)
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center')
+    .setBorder(true, true, true, true, true, true);
+  
+  // Row 8-10: Student info - format labels and values
+  sheet.getRange(8, 1, 3, 1).setFontWeight('bold'); // Name, Date of birth, School Year labels
+  sheet.getRange(8, 5, 3, 1).setFontWeight('bold'); // Age, Sex, Grade labels
+  
+  // Row 12: Learning Areas header - merge A-D and format E
+  sheet.getRange(12, 1, 1, 4).merge().setFontWeight('bold').setHorizontalAlignment('center');
+  sheet.getRange(12, 5, 1, 1).setFontWeight('bold').setHorizontalAlignment('center');
+  
+  // Row 13: Sub-headers (1, 2, 3, 4, Final) - format with spacing
+  const subHeaderCols = [5, 7, 9, 11, 13]; // Columns E, G, I, K, M for 1, 2, 3, 4, Final
+  subHeaderCols.forEach((col, index) => {
+    const headerText = index < 4 ? String(index + 1) : 'Final';
+    sheet.getRange(13, col).setValue(headerText)
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center')
+      .setBackground('#d9d9d9');
+  });
+  
+  // Subject rows - format first column (subject names)
+  const subjectStartRow = 14;
+  const subjectEndRow = subjectStartRow + allSubjects.length - 1;
+  if (subjectEndRow >= subjectStartRow && allSubjects.length > 0) {
+    sheet.getRange(subjectStartRow, 1, allSubjects.length, 1).setFontWeight('bold');
+  }
+  
+  // General Average row
+  const generalAvgRowNum = subjectEndRow + 1;
+  if (generalAvgRowNum > subjectEndRow) {
+    sheet.getRange(generalAvgRowNum, 1, 1, 1).setFontWeight('bold');
+  }
+  
+  // Attendance section
+  const attendanceHeaderRowNum = generalAvgRowNum + 2;
+  
+  // Month headers row - format ATTENDANCE header and month columns
+  const monthHeaderRowNum = attendanceHeaderRowNum;
+  sheet.getRange(monthHeaderRowNum, 1, 1, 1).setFontWeight('bold'); // ATTENDANCE in column A only
+  
+  // Format month headers (starting from column C)
+  const monthStartCol = 3;
+  monthsToUse.forEach((month, index) => {
+    sheet.getRange(monthHeaderRowNum, monthStartCol + index, 1, 1)
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center')
+      .setBackground('#d9d9d9');
+  });
+  // TOTAL column (after all months)
+  if (monthsToUse.length > 0) {
+    sheet.getRange(monthHeaderRowNum, monthStartCol + monthsToUse.length, 1, 1)
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center')
+      .setBackground('#d9d9d9');
+  }
+  
+  // Days of School, Days Present, Days Absent rows
+  const daysOfSchoolRowNum = monthHeaderRowNum + 1;
+  const daysPresentRowNum = daysOfSchoolRowNum + 1;
+  const daysAbsentRowNum = daysPresentRowNum + 1;
+  
+  // Labels are in column A only (not merged)
+  sheet.getRange(daysOfSchoolRowNum, 1, 1, 1).setFontWeight('bold');
+  sheet.getRange(daysPresentRowNum, 1, 1, 1).setFontWeight('bold');
+  sheet.getRange(daysAbsentRowNum, 1, 1, 1).setFontWeight('bold');
+  
+  // Right-align numeric values in attendance section
+  const attendanceDataStartCol = 3;
+  if (monthsToUse.length > 0) {
+    sheet.getRange(daysOfSchoolRowNum, attendanceDataStartCol, 1, monthsToUse.length + 1)
+      .setHorizontalAlignment('right');
+    sheet.getRange(daysPresentRowNum, attendanceDataStartCol, 1, monthsToUse.length + 1)
+      .setHorizontalAlignment('right');
+    sheet.getRange(daysAbsentRowNum, attendanceDataStartCol, 1, monthsToUse.length + 1)
+      .setHorizontalAlignment('right');
+  }
+  
+  // Separator line row
+  const separatorRow = daysAbsentRowNum + 1;
+  sheet.getRange(separatorRow, 1, 1, numCols).merge();
+  
+  // Acknowledgment section
+  const ackRow = separatorRow + 1;
+  sheet.getRange(ackRow, 1, 1, numCols).merge().setHorizontalAlignment('left');
+  
+  // Parent's Name / Signature and Date
+  const parentSigRow = ackRow + 4;
+  sheet.getRange(parentSigRow, 1, 1, 1).setFontWeight('bold');
+  // Date column - find it dynamically (should be near the end)
+  const dateCol = Math.min(numCols - 1, 15);
+  sheet.getRange(parentSigRow, dateCol, 1, 1).setFontWeight('bold');
+  
+  // Set column widths - compact layout
+  sheet.setColumnWidth(1, 200); // Learning Areas column
+  sheet.setColumnWidth(2, 30);  // Spacing
+  sheet.setColumnWidth(3, 30);  // Spacing
+  sheet.setColumnWidth(4, 30);  // Spacing
+  // Periodic Assessment columns (5, 7, 9, 11, 13) - wider for grades
+  sheet.setColumnWidth(5, 70);  // Column E for "1"
+  sheet.setColumnWidth(6, 30);  // Spacing
+  sheet.setColumnWidth(7, 70);  // Column G for "2"
+  sheet.setColumnWidth(8, 30);  // Spacing
+  sheet.setColumnWidth(9, 70);  // Column I for "3"
+  sheet.setColumnWidth(10, 30); // Spacing
+  sheet.setColumnWidth(11, 70); // Column K for "4"
+  sheet.setColumnWidth(12, 30); // Spacing
+  sheet.setColumnWidth(13, 70); // Column M for "Final"
+  // STUDENT NAME/QUARTER columns
+  sheet.setColumnWidth(15, 120); // STUDENT NAME / QUARTER
+  sheet.setColumnWidth(16, 80);  // ALL / student name value
+  // Attendance and remaining columns
+  for (let c = 14; c <= numCols; c++) {
+    if (c !== 15 && c !== 16) { // Skip already set columns
+      sheet.setColumnWidth(c, 60);
+    }
+  }
+}
+
+/**
  * Internal function to generate OGS template based on provided parameters
  * Creates a new Google Sheet file with one sheet per subject for the instructor
  * Organizes files into folders: "YYYY-YYYY Grade XY" format
@@ -1220,7 +1566,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
       createdSheets.push(subject);
     }
     
-    // Check if instructor is advisor for this class - if yes, add Attendance and Characters sheets
+    // Check if instructor is advisor for this class - if yes, add Attendance, Characters, and QR sheets
     const isAdvisor = _isInstructorAdvisor(instructor, gradeLevel, section);
     if (isAdvisor) {
       const attendanceSheet = templateSpreadsheet.insertSheet('Attendance');
@@ -1228,6 +1574,9 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
       
       const charactersSheet = templateSpreadsheet.insertSheet('Character');
       _setupCharactersSheet(charactersSheet, schoolYear, gradeLevel, section, instructor, students);
+      
+      const qrSheet = templateSpreadsheet.insertSheet('QR');
+      _setupQRSheet(qrSheet, schoolYear, gradeLevel, section, instructor, students, templateSpreadsheet);
     }
     
     // Get the template file URL
@@ -1238,7 +1587,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     
     const subjectsList = subjects.join(', ');
     const studentCountMsg = students.length > 0 ? `\nStudents: ${students.length} students loaded from STUDENTS DB` : '\nStudents: No students found (template generated with blank rows)';
-    const advisorSheetsMsg = isAdvisor ? '\nAttendance and Characters sheets included (instructor is advisor for this class)' : '';
+    const advisorSheetsMsg = isAdvisor ? '\nAttendance, Characters, and QR sheets included (instructor is advisor for this class)' : '';
     const message = `OGS Template generated successfully!\n\nFolder: ${folderName}\nTemplate: ${templateFileName}\nSchool Year: ${schoolYear}\nGrade Level: ${gradeLevel}\nSection: ${section}\nInstructor: ${instructor}${studentCountMsg}${advisorSheetsMsg}\n\nSubjects (${subjects.length} sheets):\n${subjects.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
     
     return { 
