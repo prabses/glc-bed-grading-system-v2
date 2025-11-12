@@ -28,7 +28,7 @@ const CONFIG = {
     ASSIGNMENTS: 'ASSIGNMENTS',
     ADVISORY: 'ADVISORY',
     SUBJECTS_REFERENCE: 'SUBJECTS_REFERENCE',
-    INSTRUCTORS_REFERENCE: 'INSTRUCTORS_REFERENCE',
+    TEACHERS_REFERENCE: 'TEACHERS_REFERENCE',
     SECTIONS_REFERENCE: 'SECTIONS_REFERENCE',
     GRADING_REFERENCE: 'GRADING_REFERENCE',
     ATTENDANCE_MONTHLY_DAYS: 'ATTENDANCE_MONTHLY_DAYS',
@@ -40,7 +40,7 @@ const CONFIG = {
     SCHOOL_YEAR: 0,      // Column A
     GRADE_LEVEL: 1,      // Column B
     SECTION: 2,          // Column C
-    INSTRUCTOR: 3,       // Column D
+    TEACHER: 3,       // Column D
     TEMPLATE_LINK: 4,    // Column E
     CREATED: 5,          // Column F
     MODIFIED: 6,         // Column G
@@ -60,7 +60,7 @@ const CONFIG = {
   ASSIGNMENTS_COLUMNS: {
     GRADE_LEVEL: 0,       // Column A
     SECTION: 1,          // Column B
-    INSTRUCTOR: 2,       // Column C
+    TEACHER: 2,       // Column C
     SUBJECT: 3,          // Column D
     STATUS: 4,            // Column E
     CREATED: 5,           // Column F
@@ -70,7 +70,7 @@ const CONFIG = {
   
   // Column mapping for ADVISORY (0-based index)
   ADVISORY_COLUMNS: {
-    INSTRUCTOR: 0,        // Column A
+    TEACHER: 0,        // Column A
     GRADE_LEVEL: 1,      // Column B
     SECTION: 2,          // Column C
     STATUS: 3,            // Column D

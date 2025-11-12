@@ -56,21 +56,21 @@ function doPost(e) {
           payload.schoolYear,
           payload.gradeLevel,
           payload.section,
-          payload.instructor,
+          payload.teacher,
           payload.subjects || []
         ));
       case "addAssignment":
         return response(200, _addAssignment(
           payload.gradeLevel,
           payload.section,
-          payload.instructor,
+          payload.teacher,
           payload.subject
         ));
       case "addAssignmentsBatch":
         return response(200, _addAssignmentsBatch(
           payload.gradeLevel,
           payload.section,
-          payload.instructor,
+          payload.teacher,
           typeof payload.subjects === 'string' ? JSON.parse(payload.subjects) : payload.subjects
         ));
       case "getAssignments":
@@ -82,7 +82,7 @@ function doPost(e) {
         return response(200, _deleteAssignment(
           payload.gradeLevel,
           payload.section,
-          payload.instructor,
+          payload.teacher,
           payload.subject
         ));
       case "deleteAssignmentsBatch":
@@ -91,17 +91,17 @@ function doPost(e) {
         ));
       case "addAdvisory":
         return response(200, _addAdvisory(
-          payload.instructor,
+          payload.teacher,
           payload.gradeLevel,
           payload.section
         ));
       case "getAdvisories":
         return response(200, _getAdvisories(
-          payload.instructor
+          payload.teacher
         ));
       case "deleteAdvisory":
         return response(200, _deleteAdvisory(
-          payload.instructor,
+          payload.teacher,
           payload.gradeLevel,
           payload.section
         ));
@@ -275,10 +275,10 @@ function _getGradingWeights(subjectName) {
  * @param {string} schoolYear - The school year
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {string} templateUrl - The URL of the generated template
  */
-function _saveToMasterData(schoolYear, gradeLevel, section, instructor, templateUrl) {
+function _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl) {
   let sheet = getSheet(CONFIG.SHEET_NAMES.MASTER_DATA);
   if (!sheet) {
     // Create MASTER_DATA sheet if it doesn't exist
@@ -289,7 +289,7 @@ function _saveToMasterData(schoolYear, gradeLevel, section, instructor, template
     sheet.getRange(1, 1).setValue('School Year');
     sheet.getRange(1, 2).setValue('Grade Level');
     sheet.getRange(1, 3).setValue('Section');
-    sheet.getRange(1, 4).setValue('Instructor');
+    sheet.getRange(1, 4).setValue('Teacher');
     sheet.getRange(1, 5).setValue('Template Link');
     sheet.getRange(1, 6).setValue('Created');
     sheet.getRange(1, 7).setValue('Modified');
@@ -306,7 +306,7 @@ function _saveToMasterData(schoolYear, gradeLevel, section, instructor, template
     schoolYear,                  // Column A: School_Year
     gradeLevel,                  // Column B: Grade_Level
     section,                     // Column C: Section
-    instructor,                  // Column D: Instructor
+    teacher,                  // Column D: Teacher
     templateLink,                // Column E: Template_Link
     timestamp,                   // Column F: Created
     timestamp,                   // Column G: Modified
@@ -324,11 +324,11 @@ function _saveToMasterData(schoolYear, gradeLevel, section, instructor, template
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @param {string} subject - The subject
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {Object} weights - Grading weights object
  * @param {Array} students - Array of student objects (optional)
  */
-function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, instructor, weights, students = []) {
+function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teacher, weights, students = []) {
   // Clear the sheet first
   sheet.clear();
   
@@ -349,7 +349,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
   allData.push(padRow(['OFFICIAL GRADE SHEET']));
   
   // Row 2-7: Info rows (matching Excel format exactly)
-  allData.push(padRow(['Instructor Name:', instructor]));
+  allData.push(padRow(['Teacher Name:', teacher]));
   allData.push(padRow(['School Year:', schoolYear]));
   allData.push(padRow(['Level:', gradeLevel]));
   allData.push(padRow(['Section:', section]));
@@ -565,15 +565,15 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
 }
 
 /**
- * Helper function to get instructor email from INSTRUCTORS_REFERENCE sheet
- * @param {string} instructorName - The instructor's full name
- * @return {string} The instructor's email, or empty string if not found
+ * Helper function to get teacher email from TEACHERS_REFERENCE sheet
+ * @param {string} teacherName - The teacher's full name
+ * @return {string} The teacher's email, or empty string if not found
  */
-function _getInstructorEmail(instructorName) {
+function _getTeacherEmail(teacherName) {
   try {
-    const sheet = getSheet(CONFIG.SHEET_NAMES.INSTRUCTORS_REFERENCE);
+    const sheet = getSheet(CONFIG.SHEET_NAMES.TEACHERS_REFERENCE);
     if (!sheet) {
-      console.warn('INSTRUCTORS_REFERENCE sheet not found');
+      console.warn('TEACHERS_REFERENCE sheet not found');
       return '';
     }
     
@@ -582,8 +582,8 @@ function _getInstructorEmail(instructorName) {
     const startRow = CONFIG.DATA_START_ROW - 1; // Convert to 0-based index (row 3 = index 2)
     const dataRows = data.slice(startRow);
     
-    // Find instructor by name (column A = 0, Email = column B = 1)
-    const match = dataRows.find(row => row[0] === instructorName);
+    // Find teacher by name (column A = 0, Email = column B = 1)
+    const match = dataRows.find(row => row[0] === teacherName);
     
     if (match && match[1]) {
       return match[1].toString().trim(); // Return email (column B)
@@ -591,7 +591,7 @@ function _getInstructorEmail(instructorName) {
     
     return '';
   } catch (error) {
-    console.error('Error getting instructor email:', error);
+    console.error('Error getting teacher email:', error);
     return '';
   }
 }
@@ -706,23 +706,23 @@ function _getStudentsFromDB(schoolYear, gradeLevel, section) {
 }
 
 /**
- * Helper function to check if instructor is an advisor for the given class
- * @param {string} instructor - The instructor name
+ * Helper function to check if teacher is an advisor for the given class
+ * @param {string} teacher - The teacher name
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @return {boolean} True if instructor is an active advisor for this class
+ * @return {boolean} True if teacher is an active advisor for this class
  */
-function _isInstructorAdvisor(instructor, gradeLevel, section) {
+function _isTeacherAdvisor(teacher, gradeLevel, section) {
   try {
-    const advisories = _getAdvisories(instructor);
+    const advisories = _getAdvisories(teacher);
     return advisories.some(adv => 
-      adv.instructor === instructor &&
+      adv.teacher === teacher &&
       adv.gradeLevel === gradeLevel &&
       adv.section === section &&
       adv.status === 'Active'
     );
   } catch (error) {
-    console.error('Error checking if instructor is advisor:', error);
+    console.error('Error checking if teacher is advisor:', error);
     return false;
   }
 }
@@ -773,10 +773,10 @@ function _getMonthlySchoolDays(schoolYear) {
  * @param {string} schoolYear - The school year
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor/advisor name
+ * @param {string} teacher - The teacher/advisor name
  * @param {Array} students - Array of student objects
  */
-function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, instructor, students = []) {
+function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, students = []) {
   // Clear the sheet first
   sheet.clear();
   
@@ -823,7 +823,7 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, instructo
   };
   
   // Row 1-5: Info rows (matching subject sheet format - no title row, no empty row after)
-  allData.push(padRow(['Advisor Name:', instructor]));
+  allData.push(padRow(['Advisor Name:', teacher]));
   allData.push(padRow(['School Year:', schoolYear]));
   allData.push(padRow(['Level:', gradeLevel]));
   allData.push(padRow(['Section:', section]));
@@ -968,10 +968,10 @@ function _getActiveTraits() {
  * @param {string} schoolYear - The school year
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor/advisor name
+ * @param {string} teacher - The teacher/advisor name
  * @param {Array} students - Array of student objects
  */
-function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, instructor, students = []) {
+function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, students = []) {
   // Clear the sheet first
   sheet.clear();
   
@@ -992,7 +992,7 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, instructo
   };
   
   // Row 1-5: Info rows (matching subject sheet format)
-  allData.push(padRow(['Advisor Name:', instructor]));
+  allData.push(padRow(['Advisor Name:', teacher]));
   allData.push(padRow(['School Year:', schoolYear]));
   allData.push(padRow(['Level:', gradeLevel]));
   allData.push(padRow(['Section:', section]));
@@ -1121,7 +1121,7 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, instructo
 }
 
 /**
- * Helper function to get all subjects for a grade level and section (from all instructors)
+ * Helper function to get all subjects for a grade level and section (from all teachers)
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @return {Array} Array of subject names
@@ -1169,15 +1169,15 @@ function _getAllSubjectsForClass(gradeLevel, section) {
  * @param {string} schoolYear - The school year
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor/advisor name
+ * @param {string} teacher - The teacher/advisor name
  * @param {Array} students - Array of student objects
  * @param {Spreadsheet} templateSpreadsheet - The template spreadsheet (to reference Attendance sheet)
  */
-function _setupQRSheet(sheet, schoolYear, gradeLevel, section, instructor, students = [], templateSpreadsheet) {
+function _setupQRSheet(sheet, schoolYear, gradeLevel, section, teacher, students = [], templateSpreadsheet) {
   // Clear the sheet first
   sheet.clear();
   
-  // Get all subjects for this class (from all instructors)
+  // Get all subjects for this class (from all teachers)
   const allSubjects = _getAllSubjectsForClass(gradeLevel, section);
   
   // Get months from ATTENDANCE_MONTHLY_DAYS for the school year
@@ -1468,16 +1468,16 @@ function _setupQRSheet(sheet, schoolYear, gradeLevel, section, instructor, stude
 
 /**
  * Internal function to generate OGS template based on provided parameters
- * Creates a new Google Sheet file with one sheet per subject for the instructor
+ * Creates a new Google Sheet file with one sheet per subject for the teacher
  * Organizes files into folders: "YYYY-YYYY Grade XY" format
  * @param {string} schoolYear - The school year (e.g., "2024-2025")
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {Array} subjects - Array of subject names to generate sheets for
  * @return {Object} Result object with success status and message
  */
-function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subjects) {
+function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects) {
   try {
     const masterSpreadsheet = getSpreadsheet();
     
@@ -1485,7 +1485,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     const sanitizedGradeLevel = gradeLevel.replace(/\s+/g, '').toUpperCase();
     const sanitizedSection = section.toUpperCase();
     const sanitizedYear = schoolYear.replace(/[^a-zA-Z0-9-]/g, '');
-    const templateFileName = `OGS_${sanitizedGradeLevel}_${sanitizedSection}_${sanitizedYear} - ${instructor}`;
+    const templateFileName = `OGS_${sanitizedGradeLevel}_${sanitizedSection}_${sanitizedYear} - ${teacher}`;
     
     // Get the parent folder of the master spreadsheet
     const masterFile = DriveApp.getFileById(masterSpreadsheet.getId());
@@ -1516,24 +1516,24 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     const templateFile = DriveApp.getFileById(templateSpreadsheet.getId());
     
     // OPTIMIZATION: Streamlined file permissions setup
-    // Set file permissions: Creator and instructor have edit access
+    // Set file permissions: Creator and teacher have edit access
     const creatorEmail = Session.getActiveUser().getEmail();
     
-    // Get instructor email from INSTRUCTORS_REFERENCE sheet
-    const instructorEmail = _getInstructorEmail(instructor);
+    // Get teacher email from TEACHERS_REFERENCE sheet
+    const teacherEmail = _getTeacherEmail(teacher);
     
-    // OPTIMIZATION: Only modify permissions if instructor email exists
-    // Creator is automatically added when file is created, so we only need to add instructor
-    if (instructorEmail && instructorEmail !== creatorEmail) {
+    // OPTIMIZATION: Only modify permissions if teacher email exists
+    // Creator is automatically added when file is created, so we only need to add teacher
+    if (teacherEmail && teacherEmail !== creatorEmail) {
       try {
-        templateFile.addEditor(instructorEmail);
+        templateFile.addEditor(teacherEmail);
       } catch (e) {
-        console.log('Note: Could not add instructor as editor:', e.message);
+        console.log('Note: Could not add teacher as editor:', e.message);
       }
     }
     
     // NOTE: Protected ranges (student data, formulas, headers) are locked to only creator
-    // Instructor can edit unprotected grading input columns (C, D, E, G, H, I, K, L, M, O, P, Q)
+    // Teacher can edit unprotected grading input columns (C, D, E, G, H, I, K, L, M, O, P, Q)
     
     // Move the new file to the target folder (always move from root)
       targetFolder.addFile(templateFile);
@@ -1554,40 +1554,40 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
     defaultSheet.setName(firstSubject);
     
     // Set up the first OGS template sheet with student data
-    _setupOGSTemplate(defaultSheet, schoolYear, gradeLevel, section, firstSubject, instructor, subjectWeights[firstSubject], students);
+    _setupOGSTemplate(defaultSheet, schoolYear, gradeLevel, section, firstSubject, teacher, subjectWeights[firstSubject], students);
     
     // Create sheets for remaining subjects with same student data
     const createdSheets = [firstSubject];
     for (let i = 1; i < subjects.length; i++) {
       const subject = subjects[i];
       const newSheet = templateSpreadsheet.insertSheet(subject);
-      _setupOGSTemplate(newSheet, schoolYear, gradeLevel, section, subject, instructor, subjectWeights[subject], students);
+      _setupOGSTemplate(newSheet, schoolYear, gradeLevel, section, subject, teacher, subjectWeights[subject], students);
       createdSheets.push(subject);
     }
     
-    // Check if instructor is advisor for this class - if yes, add Attendance, Characters, and QR sheets
-    const isAdvisor = _isInstructorAdvisor(instructor, gradeLevel, section);
+    // Check if teacher is advisor for this class - if yes, add Attendance, Characters, and QR sheets
+    const isAdvisor = _isTeacherAdvisor(teacher, gradeLevel, section);
     if (isAdvisor) {
       const attendanceSheet = templateSpreadsheet.insertSheet('Attendance');
-      _setupAttendanceSheet(attendanceSheet, schoolYear, gradeLevel, section, instructor, students);
+      _setupAttendanceSheet(attendanceSheet, schoolYear, gradeLevel, section, teacher, students);
       
       const charactersSheet = templateSpreadsheet.insertSheet('Character');
-      _setupCharactersSheet(charactersSheet, schoolYear, gradeLevel, section, instructor, students);
+      _setupCharactersSheet(charactersSheet, schoolYear, gradeLevel, section, teacher, students);
       
       const qrSheet = templateSpreadsheet.insertSheet('QR');
-      _setupQRSheet(qrSheet, schoolYear, gradeLevel, section, instructor, students, templateSpreadsheet);
+      _setupQRSheet(qrSheet, schoolYear, gradeLevel, section, teacher, students, templateSpreadsheet);
     }
     
     // Get the template file URL
     const templateUrl = templateSpreadsheet.getUrl();
     
     // Save one row to MASTER_DATA (one row per template file, not per subject)
-    _saveToMasterData(schoolYear, gradeLevel, section, instructor, templateUrl);
+    _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl);
     
     const subjectsList = subjects.join(', ');
     const studentCountMsg = students.length > 0 ? `\nStudents: ${students.length} students loaded from STUDENTS DB` : '\nStudents: No students found (template generated with blank rows)';
-    const advisorSheetsMsg = isAdvisor ? '\nAttendance, Characters, and QR sheets included (instructor is advisor for this class)' : '';
-    const message = `OGS Template generated successfully!\n\nFolder: ${folderName}\nTemplate: ${templateFileName}\nSchool Year: ${schoolYear}\nGrade Level: ${gradeLevel}\nSection: ${section}\nInstructor: ${instructor}${studentCountMsg}${advisorSheetsMsg}\n\nSubjects (${subjects.length} sheets):\n${subjects.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+    const advisorSheetsMsg = isAdvisor ? '\nAttendance, Characters, and QR sheets included (teacher is advisor for this class)' : '';
+    const message = `OGS Template generated successfully!\n\nFolder: ${folderName}\nTemplate: ${templateFileName}\nSchool Year: ${schoolYear}\nGrade Level: ${gradeLevel}\nSection: ${section}\nTeacher: ${teacher}${studentCountMsg}${advisorSheetsMsg}\n\nSubjects (${subjects.length} sheets):\n${subjects.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
     
     return { 
       success: true, 
@@ -1611,11 +1611,11 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subje
  * Internal function to add an assignment
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {string} subject - The subject name
  * @return {Object} Result object with success status
  */
-function _addAssignment(gradeLevel, section, instructor, subject) {
+function _addAssignment(gradeLevel, section, teacher, subject) {
   try {
     let sheet = getSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
     
@@ -1627,7 +1627,7 @@ function _addAssignment(gradeLevel, section, instructor, subject) {
       // Set up headers (no parent header row)
       sheet.getRange(1, 1).setValue('Grade Level');
       sheet.getRange(1, 2).setValue('Section');
-      sheet.getRange(1, 3).setValue('Instructor');
+      sheet.getRange(1, 3).setValue('Teacher');
       sheet.getRange(1, 4).setValue('Subject');
       sheet.getRange(1, 5).setValue('Status');
       sheet.getRange(1, 6).setValue('Created');
@@ -1645,7 +1645,7 @@ function _addAssignment(gradeLevel, section, instructor, subject) {
       const row = data[i];
       if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
           row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.INSTRUCTOR] === instructor &&
+          row[CONFIG.ASSIGNMENTS_COLUMNS.TEACHER] === teacher &&
           row[CONFIG.ASSIGNMENTS_COLUMNS.SUBJECT] === subject) {
         // Update existing assignment to active and update modified date
         sheet.getRange(i + 1, CONFIG.ASSIGNMENTS_COLUMNS.STATUS + 1).setValue('Active');
@@ -1655,7 +1655,7 @@ function _addAssignment(gradeLevel, section, instructor, subject) {
     }
     
     // Add new assignment with audit trail
-    sheet.appendRow([gradeLevel, section, instructor, subject, 'Active', timestamp, timestamp, userEmail]);
+    sheet.appendRow([gradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, userEmail]);
     
     return { success: true, message: 'Assignment added successfully' };
   } catch (error) {
@@ -1668,11 +1668,11 @@ function _addAssignment(gradeLevel, section, instructor, subject) {
  * Internal function to add multiple assignments in batch (OPTIMIZED for performance)
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {Array} subjects - Array of subject names
  * @return {Object} Result object with success status and counts
  */
-function _addAssignmentsBatch(gradeLevel, section, instructor, subjects) {
+function _addAssignmentsBatch(gradeLevel, section, teacher, subjects) {
   try {
     let sheet = getSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
     
@@ -1684,7 +1684,7 @@ function _addAssignmentsBatch(gradeLevel, section, instructor, subjects) {
       // Set up headers (no parent header row)
       sheet.getRange(1, 1).setValue('Grade Level');
       sheet.getRange(1, 2).setValue('Section');
-      sheet.getRange(1, 3).setValue('Instructor');
+      sheet.getRange(1, 3).setValue('Teacher');
       sheet.getRange(1, 4).setValue('Subject');
       sheet.getRange(1, 5).setValue('Status');
       sheet.getRange(1, 6).setValue('Created');
@@ -1705,7 +1705,7 @@ function _addAssignmentsBatch(gradeLevel, section, instructor, subjects) {
       const row = data[i];
       if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
           row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.INSTRUCTOR] === instructor) {
+          row[CONFIG.ASSIGNMENTS_COLUMNS.TEACHER] === teacher) {
         const subject = row[CONFIG.ASSIGNMENTS_COLUMNS.SUBJECT];
         existingAssignments.add(subject);
       }
@@ -1722,7 +1722,7 @@ function _addAssignmentsBatch(gradeLevel, section, instructor, subjects) {
           const row = data[i];
           if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
               row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
-              row[CONFIG.ASSIGNMENTS_COLUMNS.INSTRUCTOR] === instructor &&
+              row[CONFIG.ASSIGNMENTS_COLUMNS.TEACHER] === teacher &&
               row[CONFIG.ASSIGNMENTS_COLUMNS.SUBJECT] === subject) {
             updateRows.push({ rowIndex: i + 1, subject: subject });
             break;
@@ -1730,7 +1730,7 @@ function _addAssignmentsBatch(gradeLevel, section, instructor, subjects) {
         }
       } else {
         // New assignment
-        newRows.push([gradeLevel, section, instructor, subject, 'Active', timestamp, timestamp, userEmail]);
+        newRows.push([gradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, userEmail]);
       }
     });
     
@@ -1815,7 +1815,7 @@ function _getAssignments(gradeLevel, section) {
     }
     
     // OPTIMIZATION 1: Only read necessary columns (A-E) instead of all columns
-    // Columns: Grade Level (A), Section (B), Instructor (C), Subject (D), Status (E)
+    // Columns: Grade Level (A), Section (B), Teacher (C), Subject (D), Status (E)
     const numCols = 5; // Only read first 5 columns (we only need these)
     const dataRange = sheet.getRange(2, 1, lastRow - 1, numCols); // Start from row 2 (skip header)
     const data = dataRange.getValues();
@@ -1826,7 +1826,7 @@ function _getAssignments(gradeLevel, section) {
     // OPTIMIZATION 2: Use column indices directly (no CONFIG lookup in loop)
     const COL_GRADE = 0;
     const COL_SECTION = 1;
-    const COL_INSTRUCTOR = 2;
+    const COL_TEACHER = 2;
     const COL_SUBJECT = 3;
     const COL_STATUS = 4;
     
@@ -1850,7 +1850,7 @@ function _getAssignments(gradeLevel, section) {
       assignments.push({
         gradeLevel: row[COL_GRADE],
         section: row[COL_SECTION],
-        instructor: row[COL_INSTRUCTOR],
+        teacher: row[COL_TEACHER],
         subject: row[COL_SUBJECT]
       });
     }
@@ -1867,11 +1867,11 @@ function _getAssignments(gradeLevel, section) {
  * OPTIMIZED for performance with minimal data retrieval and batch updates
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {string} subject - The subject name
  * @return {Object} Result object with success status
  */
-function _deleteAssignment(gradeLevel, section, instructor, subject) {
+function _deleteAssignment(gradeLevel, section, teacher, subject) {
   try {
     const sheet = getSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
     if (!sheet) {
@@ -1886,14 +1886,14 @@ function _deleteAssignment(gradeLevel, section, instructor, subject) {
     }
     
     // OPTIMIZATION 1: Only read necessary columns (A-D) instead of all columns
-    // We only need: Grade Level, Section, Instructor, Subject
+    // We only need: Grade Level, Section, Teacher, Subject
     const dataRange = sheet.getRange(2, 1, lastRow - 1, 4); // Start from row 2
     const data = dataRange.getValues();
     
     // OPTIMIZATION 2: Use column indices directly
     const COL_GRADE = 0;
     const COL_SECTION = 1;
-    const COL_INSTRUCTOR = 2;
+    const COL_TEACHER = 2;
     const COL_SUBJECT = 3;
     
     const timestamp = new Date();
@@ -1906,7 +1906,7 @@ function _deleteAssignment(gradeLevel, section, instructor, subject) {
       // OPTIMIZATION 4: Check all conditions in order of likelihood to fail
       // (most specific first for faster rejection)
       if (row[COL_SUBJECT] === subject &&
-          row[COL_INSTRUCTOR] === instructor &&
+          row[COL_TEACHER] === teacher &&
           row[COL_SECTION] === section &&
           row[COL_GRADE] === gradeLevel) {
         
@@ -1957,7 +1957,7 @@ function _deleteAssignmentsBatch(assignments) {
     // OPTIMIZATION 2: Create a lookup set for fast matching
     const assignmentKeys = new Set();
     assignments.forEach(a => {
-      const key = `${a.gradeLevel}|${a.section}|${a.instructor}|${a.subject}`;
+      const key = `${a.gradeLevel}|${a.section}|${a.teacher}|${a.subject}`;
       assignmentKeys.add(key);
     });
     
@@ -1967,12 +1967,12 @@ function _deleteAssignmentsBatch(assignments) {
     
     const COL_GRADE = 0;
     const COL_SECTION = 1;
-    const COL_INSTRUCTOR = 2;
+    const COL_TEACHER = 2;
     const COL_SUBJECT = 3;
     
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
-      const key = `${row[COL_GRADE]}|${row[COL_SECTION]}|${row[COL_INSTRUCTOR]}|${row[COL_SUBJECT]}`;
+      const key = `${row[COL_GRADE]}|${row[COL_SECTION]}|${row[COL_TEACHER]}|${row[COL_SUBJECT]}`;
       
       if (assignmentKeys.has(key)) {
         rowsToUpdate.push(i + 2); // +2 because data starts at row 2
@@ -2018,12 +2018,12 @@ function _deleteAssignmentsBatch(assignments) {
 
 /**
  * Internal function to add an advisory class
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @return {Object} Result object with success status
  */
-function _addAdvisory(instructor, gradeLevel, section) {
+function _addAdvisory(teacher, gradeLevel, section) {
   try {
     let sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
     
@@ -2033,7 +2033,7 @@ function _addAdvisory(instructor, gradeLevel, section) {
       sheet = spreadsheet.insertSheet(CONFIG.SHEET_NAMES.ADVISORY);
       
       // Set up headers (no parent header row)
-      sheet.getRange(1, 1).setValue('Instructor');
+      sheet.getRange(1, 1).setValue('Teacher');
       sheet.getRange(1, 2).setValue('Grade Level');
       sheet.getRange(1, 3).setValue('Section');
       sheet.getRange(1, 4).setValue('Status');
@@ -2051,11 +2051,11 @@ function _addAdvisory(instructor, gradeLevel, section) {
     const statusCol = CONFIG.ADVISORY_COLUMNS.STATUS + 1;
     const modifiedCol = CONFIG.ADVISORY_COLUMNS.MODIFIED + 1;
     
-    // Check if exact advisory already exists (same instructor, grade, section)
+    // Check if exact advisory already exists (same teacher, grade, section)
     let exactMatchRow = null;
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR] === instructor &&
+      if (row[CONFIG.ADVISORY_COLUMNS.TEACHER] === teacher &&
           row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] === gradeLevel &&
           row[CONFIG.ADVISORY_COLUMNS.SECTION] === section) {
         exactMatchRow = i + 1; // Store 1-based row number
@@ -2063,31 +2063,31 @@ function _addAdvisory(instructor, gradeLevel, section) {
       }
     }
     
-    // VALIDATION: Prevent another instructor from being assigned to a class that already has an active advisory
-    // Check if this class (grade + section) already has an active advisory with a different instructor
+    // VALIDATION: Prevent another teacher from being assigned to a class that already has an active advisory
+    // Check if this class (grade + section) already has an active advisory with a different teacher
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       if (row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] === gradeLevel &&
           row[CONFIG.ADVISORY_COLUMNS.SECTION] === section &&
           row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
-        const existingInstructor = row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR];
-        if (existingInstructor !== instructor) {
+        const existingTeacher = row[CONFIG.ADVISORY_COLUMNS.TEACHER];
+        if (existingTeacher !== teacher) {
           return { 
             success: false, 
-            message: `${gradeLevel}${section} already has an active advisory with ${existingInstructor}. Cannot assign another instructor to the same class. Please deactivate the existing advisory first.` 
+            message: `${gradeLevel}${section} already has an active advisory with ${existingTeacher}. Cannot assign another teacher to the same class. Please deactivate the existing advisory first.` 
           };
         }
       }
     }
     
-    // ONE-TO-ONE RULE: Instructor can only have one active advisory
-    // Set all other active advisories for this instructor to Inactive (including the exact match if it exists)
+    // ONE-TO-ONE RULE: Teacher can only have one active advisory
+    // Set all other active advisories for this teacher to Inactive (including the exact match if it exists)
     const rowsToDeactivate = [];
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR] === instructor &&
+      if (row[CONFIG.ADVISORY_COLUMNS.TEACHER] === teacher &&
           row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
-        // Deactivate all active advisories for this instructor, even if it's the exact match
+        // Deactivate all active advisories for this teacher, even if it's the exact match
         rowsToDeactivate.push(i + 1); // Store 1-based row number
       }
     }
@@ -2107,7 +2107,7 @@ function _addAdvisory(instructor, gradeLevel, section) {
       sheet.getRange(exactMatchRow, modifiedCol).setValue(timestamp);
     } else {
       // Add new advisory with audit trail
-      sheet.appendRow([instructor, gradeLevel, section, 'Active', timestamp, timestamp, userEmail]);
+      sheet.appendRow([teacher, gradeLevel, section, 'Active', timestamp, timestamp, userEmail]);
     }
     
     const deactivateMsg = rowsToDeactivate.length > 0 
@@ -2126,10 +2126,10 @@ function _addAdvisory(instructor, gradeLevel, section) {
 
 /**
  * Internal function to get advisories (OPTIMIZED)
- * @param {string} instructor - The instructor name (optional filter)
+ * @param {string} teacher - The teacher name (optional filter)
  * @return {Array} Array of advisory objects
  */
-function _getAdvisories(instructor = null) {
+function _getAdvisories(teacher = null) {
   try {
     const sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
     
@@ -2144,18 +2144,18 @@ function _getAdvisories(instructor = null) {
     }
     
     const advisories = [];
-    const hasInstructorFilter = instructor !== null && instructor !== '';
+    const hasTeacherFilter = teacher !== null && teacher !== '';
     
     // OPTIMIZATION: Single pass filtering
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      const rowInstructor = row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR];
+      const rowTeacher = row[CONFIG.ADVISORY_COLUMNS.TEACHER];
       
       // Apply filter
-      if (hasInstructorFilter && rowInstructor !== instructor) continue;
+      if (hasTeacherFilter && rowTeacher !== teacher) continue;
       
       advisories.push({
-        instructor: rowInstructor || '',
+        teacher: rowTeacher || '',
         gradeLevel: row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] || '',
         section: row[CONFIG.ADVISORY_COLUMNS.SECTION] || '',
         status: row[CONFIG.ADVISORY_COLUMNS.STATUS] || '',
@@ -2174,12 +2174,12 @@ function _getAdvisories(instructor = null) {
 
 /**
  * Internal function to delete an advisory
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @return {Object} Result object with success status
  */
-function _deleteAdvisory(instructor, gradeLevel, section) {
+function _deleteAdvisory(teacher, gradeLevel, section) {
   try {
     const sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
     
@@ -2194,7 +2194,7 @@ function _deleteAdvisory(instructor, gradeLevel, section) {
     // OPTIMIZATION: Single pass search and update
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR] === instructor &&
+      if (row[CONFIG.ADVISORY_COLUMNS.TEACHER] === teacher &&
           row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL] === gradeLevel &&
           row[CONFIG.ADVISORY_COLUMNS.SECTION] === section) {
         // Update status to Inactive and modified date
@@ -2237,7 +2237,7 @@ function _deleteAdvisoriesBatch(advisories) {
     // OPTIMIZATION: Build Set for fast lookup
     const advisoryKeys = new Set();
     advisories.forEach(adv => {
-      const key = `${adv.instructor}|||${adv.gradeLevel}|||${adv.section}`;
+      const key = `${adv.teacher}|||${adv.gradeLevel}|||${adv.section}`;
       advisoryKeys.add(key);
     });
     
@@ -2245,7 +2245,7 @@ function _deleteAdvisoriesBatch(advisories) {
     const rowsToUpdate = [];
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      const key = `${row[CONFIG.ADVISORY_COLUMNS.INSTRUCTOR]}|||${row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL]}|||${row[CONFIG.ADVISORY_COLUMNS.SECTION]}`;
+      const key = `${row[CONFIG.ADVISORY_COLUMNS.TEACHER]}|||${row[CONFIG.ADVISORY_COLUMNS.GRADE_LEVEL]}|||${row[CONFIG.ADVISORY_COLUMNS.SECTION]}`;
       
       if (advisoryKeys.has(key) && row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
         rowsToUpdate.push(i + 1); // Store 1-based row number

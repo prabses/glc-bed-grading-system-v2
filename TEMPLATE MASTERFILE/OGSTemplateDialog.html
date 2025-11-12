@@ -165,7 +165,7 @@
       </div>
 
       <div class="info-box">
-        📋 Select grade level and section to see assigned instructors. Subjects will be auto-detected.
+        📋 Select grade level and section to see assigned teachers. Subjects will be auto-detected.
       </div>
 
       <form id="ogsTemplateForm">
@@ -201,10 +201,10 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="instructor">
-            Instructor <span class="required">*</span>
+          <label class="form-label" for="teacher">
+            Teacher <span class="required">*</span>
           </label>
-          <select id="instructor" class="form-control" required disabled>
+          <select id="teacher" class="form-control" required disabled>
             <option value="">Select grade level and section first...</option>
           </select>
         </div>
@@ -236,8 +236,8 @@
       let gradeLevels = [];
       let allSections = {};
       let subjects = [];
-      let instructors = [];
-      let assignedSubjects = []; // Store assigned subjects for the selected instructor
+      let teachers = [];
+      let assignedSubjects = []; // Store assigned subjects for the selected teacher
 
       // Populate dropdowns when page loads - OPTIMIZED: Load all at once
       document.addEventListener('DOMContentLoaded', function() {
@@ -288,24 +288,24 @@
             subjectSelect.innerHTML = '';
             subjectSelect.appendChild(subjectFragment);
             
-            // Populate instructors
-            instructors = data.instructors || [];
-            const instructorSelect = document.getElementById('instructor');
-            const instructorFragment = document.createDocumentFragment();
+            // Populate teachers
+            teachers = data.teachers || [];
+            const teacherSelect = document.getElementById('teacher');
+            const teacherFragment = document.createDocumentFragment();
             
-            const instructorDefault = document.createElement('option');
-            instructorDefault.value = '';
-            instructorDefault.textContent = 'Select instructor...';
-            instructorFragment.appendChild(instructorDefault);
+            const teacherDefault = document.createElement('option');
+            teacherDefault.value = '';
+            teacherDefault.textContent = 'Select teacher...';
+            teacherFragment.appendChild(teacherDefault);
             
-            instructors.forEach(function(instructor) {
+            teachers.forEach(function(teacher) {
               const option = document.createElement('option');
-              option.value = instructor;
-              option.textContent = instructor;
-              instructorFragment.appendChild(option);
+              option.value = teacher;
+              option.textContent = teacher;
+              teacherFragment.appendChild(option);
             });
-            instructorSelect.innerHTML = '';
-            instructorSelect.appendChild(instructorFragment);
+            teacherSelect.innerHTML = '';
+            teacherSelect.appendChild(teacherFragment);
           })
           .withFailureHandler(function(error) {
             console.error('Error loading dropdown data:', error);
@@ -318,7 +318,7 @@
       document.getElementById('gradeLevel').addEventListener('change', function() {
         const gradeLevel = this.value;
         const sectionSelect = document.getElementById('section');
-        const instructorSelect = document.getElementById('instructor');
+        const teacherSelect = document.getElementById('teacher');
         const subjectsInfoDiv = document.getElementById('subjectsInfo');
         
         // Clear subjects when grade level changes
@@ -328,8 +328,8 @@
         if (!gradeLevel) {
           sectionSelect.innerHTML = '<option value="">Select grade level first...</option>';
           sectionSelect.disabled = true;
-          instructorSelect.innerHTML = '<option value="">Select grade level and section first...</option>';
-          instructorSelect.disabled = true;
+          teacherSelect.innerHTML = '<option value="">Select grade level and section first...</option>';
+          teacherSelect.disabled = true;
           return;
         }
         
@@ -378,11 +378,11 @@
           .getSectionsForGrade(gradeLevel);
       });
 
-      // Handle section change - load assigned instructors
+      // Handle section change - load assigned teachers
       document.getElementById('section').addEventListener('change', function() {
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = this.value;
-        const instructorSelect = document.getElementById('instructor');
+        const teacherSelect = document.getElementById('teacher');
         const subjectsInfoDiv = document.getElementById('subjectsInfo');
         
         // Clear subjects when section changes
@@ -390,50 +390,50 @@
         subjectsInfoDiv.style.display = 'none';
         
         if (!gradeLevel || !section) {
-          instructorSelect.innerHTML = '<option value="">Select grade level and section first...</option>';
-          instructorSelect.disabled = true;
+          teacherSelect.innerHTML = '<option value="">Select grade level and section first...</option>';
+          teacherSelect.disabled = true;
           return;
         }
         
-        instructorSelect.innerHTML = '<option value="">Loading instructors...</option>';
-        instructorSelect.disabled = true;
+        teacherSelect.innerHTML = '<option value="">Loading teachers...</option>';
+        teacherSelect.disabled = true;
         
         google.script.run
-          .withSuccessHandler(function(instructors) {
-            instructorSelect.innerHTML = '<option value="">Select instructor...</option>';
+          .withSuccessHandler(function(teachers) {
+            teacherSelect.innerHTML = '<option value="">Select teacher...</option>';
             
-            if (instructors.length === 0) {
-              instructorSelect.innerHTML = '<option value="">No instructors assigned</option>';
-              instructorSelect.disabled = true;
+            if (teachers.length === 0) {
+              teacherSelect.innerHTML = '<option value="">No teachers assigned</option>';
+              teacherSelect.disabled = true;
               return;
             }
             
-            instructors.forEach(function(instructor) {
+            teachers.forEach(function(teacher) {
               const option = document.createElement('option');
-              option.value = instructor;
-              option.textContent = instructor;
-              instructorSelect.appendChild(option);
+              option.value = teacher;
+              option.textContent = teacher;
+              teacherSelect.appendChild(option);
             });
             
-            instructorSelect.disabled = false;
+            teacherSelect.disabled = false;
           })
           .withFailureHandler(function(error) {
-            alert('Error loading instructors: ' + error.toString());
+            alert('Error loading teachers: ' + error.toString());
           })
-          .getAssignedInstructors(gradeLevel, section);
+          .getAssignedTeachers(gradeLevel, section);
       });
 
-      // Handle instructor change - load assigned subjects automatically
-      document.getElementById('instructor').addEventListener('change', function() {
+      // Handle teacher change - load assigned subjects automatically
+      document.getElementById('teacher').addEventListener('change', function() {
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = document.getElementById('section').value;
-        const instructor = this.value;
+        const teacher = this.value;
         const subjectsListDiv = document.getElementById('subjectsList');
         const subjectsInfoDiv = document.getElementById('subjectsInfo');
         
-        if (!gradeLevel || !section || !instructor) {
+        if (!gradeLevel || !section || !teacher) {
           assignedSubjects = [];
-          subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d;">Select grade level, section, and instructor to view subjects</p>';
+          subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d;">Select grade level, section, and teacher to view subjects</p>';
           subjectsInfoDiv.style.display = 'none';
           return;
         }
@@ -449,7 +449,7 @@
             const subjectsInfoDiv = document.getElementById('subjectsInfo');
             
             if (assignedSubjects.length === 0) {
-              subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d;">No subjects assigned to this instructor for the selected grade level and section.</p>';
+              subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d;">No subjects assigned to this teacher for the selected grade level and section.</p>';
               subjectsInfoDiv.style.display = 'block';
               return;
             }
@@ -468,7 +468,7 @@
             subjectsListDiv.innerHTML = '<p style="margin: 0; color: #e74c3c;">Error loading subjects: ' + error.toString() + '</p>';
             subjectsInfoDiv.style.display = 'block';
           })
-          .getAssignedSubjects(gradeLevel, section, instructor);
+          .getAssignedSubjects(gradeLevel, section, teacher);
       });
 
       // Form submission
@@ -478,7 +478,7 @@
         const schoolYear = document.getElementById("schoolYear").value.trim();
         const gradeLevel = document.getElementById("gradeLevel").value;
         const section = document.getElementById("section").value;
-        const instructor = document.getElementById("instructor").value;
+        const teacher = document.getElementById("teacher").value;
 
         // Validation
         if (!schoolYear) {
@@ -496,13 +496,13 @@
           return;
         }
 
-        if (!instructor) {
-          alert("Please select an instructor.");
+        if (!teacher) {
+          alert("Please select an teacher.");
           return;
         }
 
         if (assignedSubjects.length === 0) {
-          alert("No subjects assigned to this instructor for the selected grade level and section. Please add assignments first.");
+          alert("No subjects assigned to this teacher for the selected grade level and section. Please add assignments first.");
           return;
         }
 
@@ -529,7 +529,7 @@
             submitButton.textContent = originalText;
             submitButton.disabled = false;
           })
-          .generateOGSTemplate(schoolYear, gradeLevel, section, instructor, assignedSubjects);
+          .generateOGSTemplate(schoolYear, gradeLevel, section, teacher, assignedSubjects);
       });
     </script>
   </body>

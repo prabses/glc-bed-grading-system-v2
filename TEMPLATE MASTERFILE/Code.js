@@ -61,23 +61,23 @@ function getActiveSubjects() {
 }
 
 /**
- * Gets active instructors from INSTRUCTORS_REFERENCE sheet
- * @return {Array} Array of active instructor names
+ * Gets active teachers from TEACHERS_REFERENCE sheet
+ * @return {Array} Array of active teacher names
  */
-function getActiveInstructors() {
-  return getActiveItems(CONFIG.SHEET_NAMES.INSTRUCTORS_REFERENCE, 0);
+function getActiveTeachers() {
+  return getActiveItems(CONFIG.SHEET_NAMES.TEACHERS_REFERENCE, 0);
 }
 
 /**
  * Gets all dropdown data at once for performance optimization
- * @return {Object} Object containing gradeLevels, subjects, and instructors
+ * @return {Object} Object containing gradeLevels, subjects, and teachers
  */
 function getAllDropdownData() {
   try {
     // Add timeout protection and better error handling
     const gradeLevels = [];
     const subjects = [];
-    const instructors = [];
+    const teachers = [];
     
     try {
       gradeLevels.push(...getGradeLevels());
@@ -94,16 +94,16 @@ function getAllDropdownData() {
     }
     
     try {
-      instructors.push(...getActiveInstructors());
+      teachers.push(...getActiveTeachers());
     } catch (error) {
-      console.error('Error getting instructors:', error);
+      console.error('Error getting teachers:', error);
       // Continue with empty array
     }
     
     return { 
       gradeLevels: gradeLevels,
       subjects: subjects,
-      instructors: instructors
+      teachers: teachers
     };
   } catch (error) {
     console.error('Error loading dropdown data:', error);
@@ -111,18 +111,18 @@ function getAllDropdownData() {
     return { 
       gradeLevels: [],
       subjects: [],
-      instructors: []
+      teachers: []
     };
   }
 }
 
 /**
- * Gets instructors assigned to a specific grade level and section
+ * Gets teachers assigned to a specific grade level and section
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @return {Array} Array of instructor names
+ * @return {Array} Array of teacher names
  */
-function getAssignedInstructors(gradeLevel, section) {
+function getAssignedTeachers(gradeLevel, section) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.ASSIGNMENTS);
     if (!sheet) {
@@ -130,7 +130,7 @@ function getAssignedInstructors(gradeLevel, section) {
     }
     
     const data = sheet.getDataRange().getValues();
-    const instructors = [];
+    const teachers = [];
     
     // Skip header row (row 1)
     for (let i = 1; i < data.length; i++) {
@@ -138,28 +138,28 @@ function getAssignedInstructors(gradeLevel, section) {
       if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
           row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
           row[CONFIG.ASSIGNMENTS_COLUMNS.STATUS] === 'Active') {
-        const instructor = row[CONFIG.ASSIGNMENTS_COLUMNS.INSTRUCTOR];
-        if (instructor && !instructors.includes(instructor)) {
-          instructors.push(instructor);
+        const teacher = row[CONFIG.ASSIGNMENTS_COLUMNS.TEACHER];
+        if (teacher && !teachers.includes(teacher)) {
+          teachers.push(teacher);
         }
       }
     }
     
-    return instructors;
+    return teachers;
   } catch (error) {
-    console.error('Error getting assigned instructors:', error);
+    console.error('Error getting assigned teachers:', error);
     return [];
   }
 }
 
 /**
- * Gets subjects assigned to a specific instructor, grade level, and section
+ * Gets subjects assigned to a specific teacher, grade level, and section
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @return {Array} Array of subject names
  */
-function getAssignedSubjects(gradeLevel, section, instructor) {
+function getAssignedSubjects(gradeLevel, section, teacher) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.ASSIGNMENTS);
     if (!sheet) {
@@ -174,7 +174,7 @@ function getAssignedSubjects(gradeLevel, section, instructor) {
       const row = data[i];
       if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
           row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.INSTRUCTOR] === instructor &&
+          row[CONFIG.ASSIGNMENTS_COLUMNS.TEACHER] === teacher &&
           row[CONFIG.ASSIGNMENTS_COLUMNS.STATUS] === 'Active') {
         const subject = row[CONFIG.ASSIGNMENTS_COLUMNS.SUBJECT];
         if (subject) {
@@ -373,11 +373,11 @@ function getActiveItems(sheetName, columnIndex = 0) {
  * @param {string} schoolYear - The school year (e.g., "2024-2025")
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {Array} subjects - Array of subject names
  * @return {Object} Result object with success status and message
  */
-function generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subjects) {
+function generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects) {
   console.log(
     "Function generateOGSTemplate executed by: " + Session.getActiveUser().getEmail()
   );
@@ -385,7 +385,7 @@ function generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subjec
     schoolYear, 
     gradeLevel, 
     section, 
-    instructor,
+    teacher,
     subjects 
   });
 }
@@ -394,15 +394,15 @@ function generateOGSTemplate(schoolYear, gradeLevel, section, instructor, subjec
  * Client-callable function to add an assignment via API
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {string} subject - The subject name
  * @return {Object} Result object with success status
  */
-function addAssignment(gradeLevel, section, instructor, subject) {
+function addAssignment(gradeLevel, section, teacher, subject) {
   return callApi("addAssignment", {
     gradeLevel,
     section,
-    instructor,
+    teacher,
     subject
   });
 }
@@ -411,15 +411,15 @@ function addAssignment(gradeLevel, section, instructor, subject) {
  * Client-callable function to add multiple assignments in batch via API (OPTIMIZED)
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {Array} subjects - Array of subject names
  * @return {Object} Result object with success status and counts
  */
-function addAssignmentsBatch(gradeLevel, section, instructor, subjects) {
+function addAssignmentsBatch(gradeLevel, section, teacher, subjects) {
   return callApi("addAssignmentsBatch", {
     gradeLevel,
     section,
-    instructor,
+    teacher,
     subjects: JSON.stringify(subjects) // Serialize array for API
   });
 }
@@ -441,15 +441,15 @@ function getAssignments(gradeLevel, section) {
  * Client-callable function to delete an assignment via API
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {string} subject - The subject name
  * @return {Object} Result object with success status
  */
-function deleteAssignment(gradeLevel, section, instructor, subject) {
+function deleteAssignment(gradeLevel, section, teacher, subject) {
   return callApi("deleteAssignment", {
     gradeLevel,
     section,
-    instructor,
+    teacher,
     subject
   });
 }
@@ -468,14 +468,14 @@ function deleteAssignmentsBatch(assignments) {
 
 /**
  * Client-callable function to add an advisory via API
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @return {Object} Result object with success status
  */
-function addAdvisory(instructor, gradeLevel, section) {
+function addAdvisory(teacher, gradeLevel, section) {
   return callApi("addAdvisory", {
-    instructor,
+    teacher,
     gradeLevel,
     section
   });
@@ -483,25 +483,25 @@ function addAdvisory(instructor, gradeLevel, section) {
 
 /**
  * Client-callable function to get advisories via API
- * @param {string} instructor - The instructor name (optional filter)
+ * @param {string} teacher - The teacher name (optional filter)
  * @return {Array} Array of advisory objects
  */
-function getAdvisories(instructor) {
+function getAdvisories(teacher) {
   return callApi("getAdvisories", {
-    instructor: instructor || null
+    teacher: teacher || null
   });
 }
 
 /**
  * Client-callable function to delete an advisory via API
- * @param {string} instructor - The instructor name
+ * @param {string} teacher - The teacher name
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @return {Object} Result object with success status
  */
-function deleteAdvisory(instructor, gradeLevel, section) {
+function deleteAdvisory(teacher, gradeLevel, section) {
   return callApi("deleteAdvisory", {
-    instructor,
+    teacher,
     gradeLevel,
     section
   });

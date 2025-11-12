@@ -230,7 +230,7 @@
     <div class="container">
       <div class="header">
         <h2>Manage Assignments</h2>
-        <p>Assign instructors to grade levels, sections, and subjects</p>
+        <p>Assign teachers to grade levels, sections, and subjects</p>
       </div>
 
       <form id="assignmentForm">
@@ -253,11 +253,11 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="instructor">
-            Instructor <span style="color: #e74c3c;">*</span>
+          <label class="form-label" for="teacher">
+            Teacher <span style="color: #e74c3c;">*</span>
           </label>
-          <select id="instructor" class="form-control" required>
-            <option value="">Select instructor...</option>
+          <select id="teacher" class="form-control" required>
+            <option value="">Select teacher...</option>
           </select>
         </div>
 
@@ -306,7 +306,7 @@
       let gradeLevels = [];
       let allSections = {};
       let subjects = [];
-      let instructors = [];
+      let teachers = [];
 
       document.addEventListener('DOMContentLoaded', function() {
         loadInitialData();
@@ -326,7 +326,7 @@
           .withSuccessHandler(function(data) {
             gradeLevels = data.gradeLevels || [];
             subjects = data.subjects || [];
-            instructors = data.instructors || [];
+            teachers = data.teachers || [];
             
             // OPTIMIZATION: Use DocumentFragment for batch DOM operations (faster)
             
@@ -356,16 +356,16 @@
             subjectsContainer.innerHTML = '';
             subjectsContainer.appendChild(subjectsFragment);
             
-            // Populate instructors
-            const instructorSelect = document.getElementById('instructor');
-            const instructorFragment = document.createDocumentFragment();
-            instructors.forEach(function(instructor) {
+            // Populate teachers
+            const teacherSelect = document.getElementById('teacher');
+            const teacherFragment = document.createDocumentFragment();
+            teachers.forEach(function(teacher) {
               const option = document.createElement('option');
-              option.value = instructor;
-              option.textContent = instructor;
-              instructorFragment.appendChild(option);
+              option.value = teacher;
+              option.textContent = teacher;
+              teacherFragment.appendChild(option);
             });
-            instructorSelect.appendChild(instructorFragment);
+            teacherSelect.appendChild(teacherFragment);
           })
           .withFailureHandler(function(error) {
             alert('Error loading data: ' + error.toString());
@@ -443,7 +443,7 @@
               const assignmentData = JSON.stringify({
                 gradeLevel: assignment.gradeLevel,
                 section: assignment.section,
-                instructor: assignment.instructor,
+                teacher: assignment.teacher,
                 subject: assignment.subject
               }).replace(/"/g, '&quot;');
               
@@ -453,7 +453,7 @@
                     <input type="checkbox" id="${assignmentId}" class="assignment-checkbox-input" 
                            data-assignment='${assignmentData}' onchange="updateSelectedCount()">
                     <label for="${assignmentId}" class="assignment-info">
-                      <strong>${assignment.instructor}</strong> - ${assignment.subject}
+                      <strong>${assignment.teacher}</strong> - ${assignment.subject}
                     </label>
                   </div>
                 </div>
@@ -569,7 +569,7 @@
         
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = document.getElementById('section').value;
-        const instructor = document.getElementById('instructor').value;
+        const teacher = document.getElementById('teacher').value;
         
         // Get selected subjects
         const checkboxes = document.querySelectorAll('input[name="subjects"]:checked');
@@ -612,7 +612,7 @@
             alert(`❌ Error: ${error.toString()}`);
             loadAssignments();
           })
-          .addAssignmentsBatch(gradeLevel, section, instructor, selectedSubjects);
+          .addAssignmentsBatch(gradeLevel, section, teacher, selectedSubjects);
       });
     </script>
   </body>
