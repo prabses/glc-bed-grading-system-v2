@@ -187,14 +187,12 @@
          google.script.run
            .withSuccessHandler(function(sheets) {
              const select = document.getElementById('academicYear');
-             sheets.forEach(function(sheetName) {
-               const option = document.createElement('option');
-               option.value = sheetName;
-               // Remove "A.Y." from display text, keeping only the year part
-               const displayText = sheetName.replace(/A\.Y\.?\s*/gi, '').trim();
-               option.textContent = displayText;
-               select.appendChild(option);
-             });
+            sheets.forEach(function(sheetName) {
+              const option = document.createElement('option');
+              option.value = sheetName;
+              option.textContent = sheetName;
+              select.appendChild(option);
+            });
            })
            .withFailureHandler(function(error) {
              console.error('Error loading sheets:', error);

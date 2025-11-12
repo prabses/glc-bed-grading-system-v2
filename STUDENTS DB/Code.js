@@ -20,22 +20,8 @@ function onOpen() {
 
 /**
  * Shows the import dialog with HTML interface
- * Only works on sheets containing "A.Y."
  */
 function showImportDialog() {
-  const activeSheet = SpreadsheetApp.getActiveSheet();
-  const sheetName = activeSheet.getName();
-  
-  // Check if current sheet contains "A.Y." (case-insensitive)
-  if (!sheetName.toLowerCase().includes('a.y.')) {
-    SpreadsheetApp.getUi().alert(
-      'Access Denied',
-      'This function can only be used on sheets containing "A.Y." in the name.\n\nCurrent sheet: ' + sheetName,
-      SpreadsheetApp.getUi().ButtonSet.OK
-    );
-    return;
-  }
-  
   const htmlOutput = HtmlService.createHtmlOutputFromFile("StudentImportDialog")
     .setWidth(500)
     .setHeight(450)
@@ -45,22 +31,26 @@ function showImportDialog() {
 }
 
 /**
- * Gets the list of sheets containing "A.Y." (case-insensitive)
- * @return {Array} Array of valid academic year sheet names
+ * Gets the list of sheets that follow the YYYY-YYYY format (e.g., "2024-2025")
+ * @return {Array} Array of sheet names matching the academic year format
  */
 function getStudentSheets() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const sheets = spreadsheet.getSheets();
-  const validAcademicYearSheets = [];
+  const sheetNames = [];
+  
+  // Regular expression to match YYYY-YYYY format (4 digits, hyphen, 4 digits)
+  const yearPattern = /^\d{4}-\d{4}$/;
   
   for (let i = 0; i < sheets.length; i++) {
     const sheetName = sheets[i].getName();
-    if (sheetName.toLowerCase().includes('a.y.')) {
-      validAcademicYearSheets.push(sheetName);
+    // Only include sheets that match the YYYY-YYYY format
+    if (yearPattern.test(sheetName)) {
+      sheetNames.push(sheetName);
     }
   }
   
-  return validAcademicYearSheets;
+  return sheetNames;
 }
 
 /**
@@ -126,22 +116,8 @@ function parseCSVLine(line) {
 
 /**
  * Shows the update student information dialog
- * Only works on sheets containing "A.Y."
  */
 function showUpdateDialog() {
-  const activeSheet = SpreadsheetApp.getActiveSheet();
-  const sheetName = activeSheet.getName();
-  
-  // Check if current sheet contains "A.Y." (case-insensitive)
-  if (!sheetName.toLowerCase().includes('a.y.')) {
-    SpreadsheetApp.getUi().alert(
-      'Access Denied',
-      'This function can only be used on sheets containing "A.Y." in the name.\n\nCurrent sheet: ' + sheetName,
-      SpreadsheetApp.getUi().ButtonSet.OK
-    );
-    return;
-  }
-  
   const htmlOutput = HtmlService.createHtmlOutputFromFile("StudentUpdateDialog")
     .setWidth(500)
     .setHeight(600)
