@@ -107,7 +107,11 @@ const CONFIG = {
       'Last Name',
       'First Name',
       'Middle Name'
-    ]
+    ],
+    // Protection settings
+    // Set to false to disable sheet protections (much faster generation, ~5-15 seconds vs ~90-100 seconds)
+    // Set to true to enable protections (required for sharing with others - protects student info, headers, and formulas)
+    ENABLE_PROTECTIONS: false
   }
 };
 

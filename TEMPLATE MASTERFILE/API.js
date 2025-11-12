@@ -500,9 +500,8 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, inst
     // Protected: Student info (A-B), Headers (9-10), Formulas (F, J, N, R, S)
     // Editable by others: Grading input columns (C, D, E, G, H, I, K, L, M, O, P, Q)
     // Note: Protection operations are slow (~2-5 seconds each), resulting in ~90-100 second generation time
-    const ENABLE_PROTECTIONS = true;
-    
-    if (ENABLE_PROTECTIONS) {
+    // Configure via CONFIG.TEMPLATE.ENABLE_PROTECTIONS in Config.js
+    if (CONFIG.TEMPLATE.ENABLE_PROTECTIONS) {
       const creatorEmail = Session.getActiveUser().getEmail();
       const endRow = startRow + numStudentRows - 1;
       const protectToRow = Math.max(endRow + 20, 50);
