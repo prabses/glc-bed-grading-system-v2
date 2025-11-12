@@ -20,7 +20,7 @@ This document outlines the **Google Sheets-native structure** for the Template M
 ## 👤 User Interaction Model
 
 **What Users Do:**
-- ✅ Manage assignments via "Manage Assignments" dialog (assign teachers to grade/section/subject)
+- ✅ Manage subjects via "Manage Subjects" dialog (assign teachers to grade/section/subject)
 - ✅ Manage advisory classes via "Manage Advisory Classes" dialog (assign teachers to advisory classes)
 - ✅ Fill out OGS template generation dialog (select grade, section, teacher)
 - ✅ Click "Generate Template" button
@@ -28,14 +28,14 @@ This document outlines the **Google Sheets-native structure** for the Template M
 - ✅ Update reference lists (Subjects, Teachers) occasionally
 
 **What Users DON'T Do:**
-- ❌ Manually enter data in MASTER_DATA, ASSIGNMENTS, or ADVISORY sheets
+- ❌ Manually enter data in MASTER_DATA, SUBJECTS, or ADVISORY sheets
 - ❌ Write formulas
 - ❌ Track template URLs
 - ❌ Update timestamps
-- ❌ Select subjects manually (auto-detected from assignments)
+- ❌ Select subjects manually (auto-detected from subjects)
 
 **Scripts Handle Everything:**
-- Auto-detect subjects from assignments
+- Auto-detect subjects from subjects
 - Generate template files with one sheet per subject
 - Auto-fill all template data
 - Track who created each template
@@ -50,8 +50,8 @@ This document outlines the **Google Sheets-native structure** for the Template M
 | # | Sheet Name              | User Editable? | Purpose                                    |
 |---|-------------------------|----------------|--------------------------------------------|
 | 1 | MASTER_DATA             | ❌ Protected   | Auto-managed OGS template generation records |
-| 2 | ASSIGNMENTS             | ❌ Protected   | Teacher-grade-section-subject assignments |
-| 3 | ADVISORY                | ❌ Protected   | Teacher advisory class assignments       |
+| 2 | SUBJECTS             | ❌ Protected   | Teacher-grade-section-subject subjects |
+| 3 | ADVISORY                | ❌ Protected   | Teacher advisory class subjects       |
 | 4 | SUBJECTS_REFERENCE      | ✅ Yes         | Simple subject list                        |
 | 5 | TEACHERS_REFERENCE   | ✅ Yes         | Teacher list with email                 |
 | 6 | SECTIONS_REFERENCE      | ✅ Yes         | Grade levels & sections                    |
@@ -74,22 +74,22 @@ This document outlines the **Google Sheets-native structure** for the Template M
    - Add sections anytime (just type grade + section name)
    - Inactive items hidden but preserved for history
 
-3. **Assignment-Based System**
+3. **Subject-Based System**
    - Teachers are assigned to grade/section/subject combinations
-   - OGS template generation uses assignments to auto-detect subjects
+   - OGS template generation uses subjects to auto-detect subjects
    - No need to manually select subjects - system knows which subjects each teacher teaches
    - One template file contains multiple sheets (one per subject)
-   - Assignments managed via dedicated dialog
+   - Subjects managed via dedicated dialog
 
 4. **Zero Manual Data Entry**
    - Users interact via dialogs only
    - Scripts auto-fill all data
    - Scripts auto-generate templates
    - Scripts auto-link files
-   - Subjects auto-detected from assignments
+   - Subjects auto-detected from subjects
 
 5. **Historical Tracking**
-   - Never delete data, just archive (inactive assignments)
+   - Never delete data, just archive (inactive subjects)
    - All template generation logged in MASTER_DATA
    - Complete audit trail with user tracking
    - View all generated templates in one place
@@ -98,7 +98,7 @@ This document outlines the **Google Sheets-native structure** for the Template M
    - School year entered by user in dialog
    - No complex configuration needed
    - Grading weights in GRADING_REFERENCE sheet
-   - Assignment-based workflow reduces errors
+   - Subject-based workflow reduces errors
 
 ---
 
@@ -124,7 +124,7 @@ School Year | Grade Level | Section | Teacher | Template Link | Created | Modifi
 | A      | School Year        | 💬 Dialog    | User enters in dialog                         | 2024-2025                |
 | B      | Grade Level        | 💬 Dialog    | User selects in dialog                        | Grade 1                  |
 | C      | Section            | 💬 Dialog    | User selects in dialog (A, B, C, etc.)        | A                        |
-| D      | Teacher         | 💬 Dialog    | User selects teacher (from assignments)     | Rojo, R.                 |
+| D      | Teacher         | 💬 Dialog    | User selects teacher (from subjects)     | Rojo, R.                 |
 | E      | Template Link      | 🤖 Auto      | Auto-filled when template is generated        | [Open Template]          |
 | F      | Created            | 🤖 Auto      | Auto-timestamp when created                   | 2025-05-03 10:30         |
 | G      | Modified           | 🤖 Auto      | Auto-timestamp when modified                  | 2025-05-03 14:15         |
@@ -155,11 +155,11 @@ School Year | Grade Level | Section | Teacher | Template Link | Created | Modifi
 
 ---
 
-### **Sheet 2: ASSIGNMENTS** (Teacher Assignments)
+### **Sheet 2: SUBJECTS** (Teacher Subjects)
 
 **Purpose:** Stores which teachers are assigned to which subjects for each grade level and section combination. This is the master assignment list that drives the OGS template generation.
 
-**🔒 PROTECTED SHEET - Scripts manage this automatically. Users manage via "Manage Assignments" dialog.**
+**🔒 PROTECTED SHEET - Scripts manage this automatically. Users manage via "Manage Subjects" dialog.**
 
 **Sheet Structure:**
 
@@ -176,7 +176,7 @@ Grade Level | Section | Teacher | Subject | Status | Created | Modified | Create
 | B      | Section       | 💬 Dialog    | Section letter (A, B, C, etc.)                | A                        |
 | C      | Teacher    | 💬 Dialog    | Full name of assigned teacher              | Rojo, R.                 |
 | D      | Subject       | 💬 Dialog    | Subject name                                  | English 1                |
-| E      | Status        | 🤖 Auto      | "Active" for active assignments, "Inactive" for inactive | Active                  |
+| E      | Status        | 🤖 Auto      | "Active" for active subjects, "Inactive" for inactive | Active                  |
 | F      | Created       | 🤖 Auto      | Auto-timestamp when assignment was created    | 2025-05-03 10:30         |
 | G      | Modified      | 🤖 Auto      | Auto-timestamp when assignment was modified   | 2025-05-03 14:15         |
 | H      | Created By    | 🤖 Auto      | Email of user who created the assignment      | admin@school.edu         |
@@ -197,29 +197,29 @@ Grade Level | Section | Teacher | Subject | Status | Created | Modified | Create
 ```
 
 **Key Features:**
-- ✅ Managed via "Manage Assignments" dialog (Actions menu)
+- ✅ Managed via "Manage Subjects" dialog (Actions menu)
 - ✅ One row per teacher-subject-grade-section combination
-- ✅ Active assignments (Status = "Active") are used for template generation
-- ✅ Inactive assignments (Status = "Inactive") are preserved for history
-- ✅ OGS template dialog only shows teachers with active assignments
-- ✅ Subjects are auto-detected from assignments when generating templates
+- ✅ Active subjects (Status = "Active") are used for template generation
+- ✅ Inactive subjects (Status = "Inactive") are preserved for history
+- ✅ OGS template dialog only shows teachers with active subjects
+- ✅ Subjects are auto-detected from subjects when generating templates
 - ✅ Sheet is auto-created when first assignment is added
 - ✅ Complete audit trail with creation/modification dates and user tracking
 - ✅ Modified date updates when assignment is reactivated or deleted
 
 **Workflow:**
-1. Admin uses "Manage Assignments" dialog to assign teachers
+1. Admin uses "Manage Subjects" dialog to assign teachers
 2. When generating OGS template, user selects Grade Level → Section
-3. System shows only teachers with active assignments for that grade/section
+3. System shows only teachers with active subjects for that grade/section
 4. User selects teacher
 5. System auto-detects all subjects assigned to that teacher for that grade/section
 6. Template is generated with one sheet per subject
 
 ---
 
-### **Sheet 3: ADVISORY** (Advisory Class Assignments)
+### **Sheet 3: ADVISORY** (Advisory Class Subjects)
 
-**Purpose:** Stores which teachers are assigned as advisors to which grade level and section combinations. This tracks advisory class assignments separately from subject teaching assignments. Uses status (Active/Inactive) to manage changes over time.
+**Purpose:** Stores which teachers are assigned as advisors to which grade level and section combinations. This tracks advisory class subjects separately from subject teaching subjects. Uses status (Active/Inactive) to manage changes over time.
 
 **🔒 PROTECTED SHEET - Scripts manage this automatically. Users manage via "Manage Advisory Classes" dialog.**
 
@@ -237,7 +237,7 @@ Teacher | Grade Level | Section | Status | Created | Modified | Created By
 | A      | Teacher    | 💬 Dialog    | Full name of assigned teacher              | Rojo, R.                 |
 | B      | Grade Level   | 💬 Dialog    | Grade level for the advisory class           | Grade 1                  |
 | C      | Section       | 💬 Dialog    | Section letter (A, B, C, etc.)                | A                        |
-| D      | Status        | 🤖 Auto      | "Active" for active assignments, "Inactive" for inactive | Active                  |
+| D      | Status        | 🤖 Auto      | "Active" for active subjects, "Inactive" for inactive | Active                  |
 | E      | Created       | 🤖 Auto      | Auto-timestamp when advisory was created      | 2025-05-03 10:30         |
 | F      | Modified      | 🤖 Auto      | Auto-timestamp when advisory was modified     | 2025-05-03 14:15         |
 | G      | Created By    | 🤖 Auto      | Email of user who created the advisory        | admin@school.edu         |
@@ -258,12 +258,12 @@ Teacher | Grade Level | Section | Status | Created | Modified | Created By
 **Key Features:**
 - ✅ Managed via "Manage Advisory Classes" dialog (Actions menu)
 - ✅ One row per teacher-grade-section combination
-- ✅ Active advisories (Status = "Active") are tracked for current assignments
+- ✅ Active advisories (Status = "Active") are tracked for current subjects
 - ✅ Inactive advisories (Status = "Inactive") are preserved for history
 - ✅ Sheet is auto-created when first advisory is added
 - ✅ Complete audit trail with creation/modification dates and user tracking
 - ✅ Modified date updates when advisory is reactivated or deleted
-- ✅ Separate from subject teaching assignments (ASSIGNMENTS sheet)
+- ✅ Separate from subject teaching subjects (SUBJECTS sheet)
 - ✅ Simplified structure - no school year field, relies on status for management
 
 **One-to-One Rules:**
@@ -280,8 +280,8 @@ Teacher | Grade Level | Section | Status | Created | Modified | Created By
 5. Bulk delete available for managing multiple advisories at once
 6. Status (Active/Inactive) manages changes over time without needing school year tracking
 
-**Difference from ASSIGNMENTS:**
-- **ASSIGNMENTS**: Tracks which teachers teach which subjects (for OGS template generation)
+**Difference from SUBJECTS:**
+- **SUBJECTS**: Tracks which teachers teach which subjects (for OGS template generation)
 - **ADVISORY**: Tracks which teachers are advisors for which classes (for class management)
 
 ---
@@ -469,11 +469,11 @@ Row 12: Grade 12   | A       | SHS
 **Sheet Structure with Parent Headers:**
 
 ```
-Row 1 (Parent Headers):
-┌──────────────┬────────────────────────────────────────────────────────────┬────────┐
-│ SUBJECT NAME │                  GRADING COMPONENTS (%)                    │ STATUS │
-└──────────────┴────────────────────────────────────────────────────────────┴────────┘
-     Col A                           Col B-D                                 Col E
+Row 1 (Parent Header):
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        GRADING COMPONENTS (%)                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+                              Col A-E (merged)
 
 Row 2 (Column Headers):
 Subject Name | Written Work | Performance Task | Assessment | Active
@@ -483,16 +483,16 @@ Subject Name | Written Work | Performance Task | Assessment | Active
 
 | Column | Field Name       | Parent Header        | Description                                      | Example           |
 |--------|------------------|----------------------|--------------------------------------------------|-------------------|
-| A      | Subject Name     | Subject Name         | "DEFAULT" or specific subject name               | DEFAULT           |
+| A      | Subject Name     | Grading Components   | "DEFAULT" or specific subject name               | DEFAULT           |
 | B      | Written Work     | Grading Components   | Percentage weight for Written Work               | 30                |
 | C      | Performance Task | Grading Components   | Percentage weight for Performance Task           | 50                |
 | D      | Assessment       | Grading Components   | Percentage weight for Assessment                 | 20                |
-| E      | Active           | Status               | ✓ or blank                                       | ✓                 |
+| E      | Active           | Grading Components   | ✓ or blank                                       | ✓                 |
 
 **Sample Data (Dynamic Configuration):**
 
 ```
-Row 1: SUBJECT NAME | GRADING COMPONENTS (%) (merged B-D) | STATUS
+Row 1: GRADING COMPONENTS (%) (merged A-E)
 Row 2: Subject Name     | Written Work | Performance Task | Assessment | Active
 Row 3: DEFAULT          | 30           | 50               | 20         | ✓
 Row 4: Physical Ed 1    | 20           | 60               | 20         | ✓
@@ -676,7 +676,7 @@ Row 7: Old Trait       |     ← Inactive, won't show in templates
 ### **Step 1: Create the Spreadsheet**
 1. Create a new Google Spreadsheet
 2. Name it: "Template Masterfile - 2024-2025"
-3. Create **7 reference sheets** with these exact names (MASTER_DATA, ASSIGNMENTS, and ADVISORY are auto-created by scripts):
+3. Create **7 reference sheets** with these exact names (MASTER_DATA, SUBJECTS, and ADVISORY are auto-created by scripts):
    - SUBJECTS_REFERENCE
    - TEACHERS_REFERENCE
    - SECTIONS_REFERENCE
@@ -686,7 +686,7 @@ Row 7: Old Trait       |     ← Inactive, won't show in templates
 
 ### **Step 2: Set Up Headers**
 
-**For MASTER_DATA, ASSIGNMENTS, and ADVISORY sheets:**
+**For MASTER_DATA, SUBJECTS, and ADVISORY sheets:**
 - These sheets are **auto-created by scripts** with column headers only (no parent headers)
 - **Row 1:** Column Headers only
 - Format: Bold, background color (#d9d9d9), centered
@@ -712,9 +712,7 @@ Row 2: Cell A2 = "Subject Name", Cell B2 = "Active"
 **Example for GRADING_REFERENCE:**
 ```
 Row 1: 
-  - Merge A1 = "SUBJECT NAME"
-  - Merge B1:D1 = "GRADING COMPONENTS (%)"
-  - Merge E1 = "STATUS"
+  - Merge A1:E1 = "GRADING COMPONENTS (%)"
 Row 2: Subject Name | Written Work | Performance Task | Assessment | Active
 ```
 
@@ -723,13 +721,13 @@ Row 2: Subject Name | Written Work | Performance Task | Assessment | Active
 **⚠️ Important Note: Data starts at Row 3 for reference sheets**  
 Since reference sheets have 2 header rows (Row 1 = Parent Headers, Row 2 = Column Headers), all actual data starts at **Row 3**.
 
-**For MASTER_DATA and ASSIGNMENTS:**
+**For MASTER_DATA and SUBJECTS:**
 - Data starts at **Row 2** (only one header row)
 
 **GRADING_REFERENCE Sheet:**
 Add at least the DEFAULT row starting at Row 3:
 ```
-Row 1: SUBJECT NAME | GRADING COMPONENTS (%) (merged B1:D1) | STATUS
+Row 1: GRADING COMPONENTS (%) (merged A1:E1)
 Row 2: Subject Name | Written Work | Performance Task | Assessment | Active
 Row 3: DEFAULT      | 30           | 50               | 20         | ✓
 ```
@@ -757,7 +755,7 @@ Leave these **UNPROTECTED** (users need to edit):
 - Custom formula: `=$G2="Active"` → Green background (#d9ead3)
 - Add another rule: `=$G2="Archived"` → Gray background (#efefef)
 
-This visually highlights active vs archived assignments.
+This visually highlights active vs archived subjects.
 
 **Note:** Since MASTER_DATA no longer has a Status column, you may want to remove or update this conditional formatting.
 
@@ -770,14 +768,14 @@ Copy the Apps Script code (Code.js) and attach it to this spreadsheet via Extens
 
 ## 💡 Usage Examples (User-Friendly Workflow)
 
-### **Example 1: Creating a New Assignment (Primary Workflow)**
+### **Example 1: Creating a New Subject (Primary Workflow)**
 
-**User clicks menu: Actions → Create New Assignment**
+**User clicks menu: Actions → Create New Subject**
 
 Dialog appears:
 ```
 ┌─────────────────────────────────────────┐
-│ Create New Assignment                   │
+│ Create New Subject                   │
 ├─────────────────────────────────────────┤
 │ School Year:  [Input: 2024-2025]       │
 │ Grade Level:  [Dropdown: Grade 1▼]     │
@@ -819,7 +817,7 @@ Result: Template created, zero manual data entry, complete audit trail!
 3. Put ✓ in Active column
 4. Done!
 
-Next time user opens "Create New Assignment" dialog, "Calculus 1" appears in dropdown.
+Next time user opens "Create New Subject" dialog, "Calculus 1" appears in dropdown.
 
 ---
 
@@ -832,7 +830,7 @@ Next time user opens "Create New Assignment" dialog, "Calculus 1" appears in dro
 4. Put ✓ in Active column
 5. Done!
 
-Next time user opens "Create New Assignment" dialog, new teacher appears in dropdown.
+Next time user opens "Create New Subject" dialog, new teacher appears in dropdown.
 
 ---
 
@@ -845,7 +843,7 @@ Dialog appears:
 ┌─────────────────────────────────────────┐
 │ Change Teacher                       │
 ├─────────────────────────────────────────┤
-│ Find Assignment:                        │
+│ Find Subject:                        │
 │ Grade Level:  [Dropdown: Grade 1▼]     │
 │ Section:      [Dropdown: A▼]           │
 │ Subject:      [Dropdown: English 1▼]    │
@@ -889,7 +887,7 @@ Next time template is generated for "Physical Ed 1", it will use these custom we
 
 **User opens MASTER_DATA sheet:**
 
-See all assignments:
+See all subjects:
 - Filter by School Year, Grade Level, Section, Subject, or Teacher
 - Sort by any column
 - Click Template Link to open template directly
@@ -902,13 +900,13 @@ Use Google Sheets built-in filters (Data → Create a filter) for easy searching
 ### **Example 7: Preparing for New Academic Year**
 
 **Admin:**
-1. When creating new assignments, users simply enter the new school year in the dialog
+1. When creating new subjects, users simply enter the new school year in the dialog
 2. Example: "2025-2026"
 3. Done!
 
 Each assignment can have its own school year, making it flexible and simple.
 
-Old assignments remain visible in MASTER_DATA (Status = "Archived" or still "Active" for reference).
+Old subjects remain visible in MASTER_DATA (Status = "Archived" or still "Active" for reference).
 
 ---
 
@@ -1024,7 +1022,7 @@ function getSectionsForGrade(gradeLevel) {
 │                    USER INTERACTION FLOW                             │
 └──────────────────────────────────────────────────────────────────────┘
 
-1. USER ACTION: Clicks "Actions" → "Create New Assignment"
+1. USER ACTION: Clicks "Actions" → "Create New Subject"
                           │
                           ▼
 2. DIALOG APPEARS:  ┌─────────────────────┐
@@ -1137,7 +1135,7 @@ Step 3: Old templates unchanged (already generated)
 
 **Start of School Year:**
 1. SECTIONS_REFERENCE → Add new sections for the year
-2. When creating assignments, users simply enter the new school year in the dialog
+2. When creating subjects, users simply enter the new school year in the dialog
 3. Done! System ready for new year.
 
 **When New Teachers Join:**
@@ -1159,7 +1157,7 @@ Step 3: Old templates unchanged (already generated)
 ### **What Users Monitor**
 
 **Check MASTER_DATA sheet:**
-- View all template assignments
+- View all template subjects
 - Filter by School Year, Grade Level, Section, Subject, or Teacher
 - See who created each template and when
 - Click Template Link to open templates directly
@@ -1245,7 +1243,7 @@ The star of this structure! Features:
 
 | Date       | Version | Changes                                                                          | By    |
 |------------|---------|----------------------------------------------------------------------------------|-------|
-| 2025-11-11 | 1.8     | Added ADVISORY sheet for managing teacher advisory class assignments          | AI    |
+| 2025-11-11 | 1.8     | Added ADVISORY sheet for managing teacher advisory class subjects          | AI    |
 | 2025-10-30 | 1.7     | Removed DASHBOARD sheet (users can view/filter MASTER_DATA directly)            | AI    |
 | 2025-10-30 | 1.6     | Combined TEMPLATE_HISTORY into MASTER_DATA (added Created By column)             | AI    |
 | 2025-10-29 | 1.5     | Removed CONFIG sheet (School Year now user input in dialog)                      | AI    |
@@ -1261,7 +1259,7 @@ The star of this structure! Features:
 ## 📞 Support
 
 For questions or issues with this structure:
-1. Review MASTER_DATA for all assignments and recent actions (Created By, Created, Modified columns)
+1. Review MASTER_DATA for all subjects and recent actions (Created By, Created, Modified columns)
 2. Verify reference sheets have proper data
 3. Contact system administrator
 
@@ -1278,8 +1276,8 @@ For questions or issues with this structure:
 | Sheet Name              | Columns | User Editable | Purpose                                |
 |-------------------------|---------|---------------|----------------------------------------|
 | MASTER_DATA             | 8       | ❌ Protected  | OGS template generation records        |
-| ASSIGNMENTS             | 8       | ❌ Protected  | Teacher-grade-section-subject assignments |
-| ADVISORY                | 7       | ❌ Protected  | Teacher advisory class assignments  |
+| SUBJECTS             | 8       | ❌ Protected  | Teacher-grade-section-subject subjects |
+| ADVISORY                | 7       | ❌ Protected  | Teacher advisory class subjects  |
 | SUBJECTS_REFERENCE      | 2       | ✅ Yes        | Subject names                          |
 | TEACHERS_REFERENCE   | 3       | ✅ Yes        | Teachers + emails                   |
 | SECTIONS_REFERENCE      | 3       | ✅ Yes        | Grade levels, sections & level tags   |

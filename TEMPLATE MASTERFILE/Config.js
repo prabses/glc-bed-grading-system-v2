@@ -25,7 +25,7 @@ const CONFIG = {
   // Sheet names
   SHEET_NAMES: {
     MASTER_DATA: 'MASTER_DATA',
-    ASSIGNMENTS: 'ASSIGNMENTS',
+    SUBJECTS: 'SUBJECTS',
     ADVISORY: 'ADVISORY',
     SUBJECTS_REFERENCE: 'SUBJECTS_REFERENCE',
     TEACHERS_REFERENCE: 'TEACHERS_REFERENCE',
@@ -56,8 +56,8 @@ const CONFIG = {
     ACTIVE: 4             // Column E
   },
   
-  // Column mapping for ASSIGNMENTS (0-based index)
-  ASSIGNMENTS_COLUMNS: {
+  // Column mapping for SUBJECTS (0-based index)
+  SUBJECTS_COLUMNS: {
     GRADE_LEVEL: 0,       // Column A
     SECTION: 1,          // Column B
     TEACHER: 2,       // Column C

@@ -15,7 +15,7 @@ function onOpen() {
   ui.createMenu("Actions")
     .addItem("Generate OGS Template", "showOGSTemplateDialog")
     .addSeparator()
-    .addItem("Manage Assignments", "showAssignmentDialog")
+    .addItem("Manage Subjects", "showAssignmentDialog")
     .addItem("Manage Advisory Classes", "showAdvisoryDialog")
     .addToUi();
 }
@@ -49,7 +49,7 @@ function showAssignmentDialog() {
     .setHeight(700)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
-  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Manage Assignments");
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Manage Subjects");
 }
 
 /**
@@ -124,7 +124,7 @@ function getAllDropdownData() {
  */
 function getAssignedTeachers(gradeLevel, section) {
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.ASSIGNMENTS);
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
       return []; // Return empty if sheet doesn't exist
     }
@@ -135,10 +135,10 @@ function getAssignedTeachers(gradeLevel, section) {
     // Skip header row (row 1)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.STATUS] === 'Active') {
-        const teacher = row[CONFIG.ASSIGNMENTS_COLUMNS.TEACHER];
+      if (row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+          row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
+        const teacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
         if (teacher && !teachers.includes(teacher)) {
           teachers.push(teacher);
         }
@@ -161,7 +161,7 @@ function getAssignedTeachers(gradeLevel, section) {
  */
 function getAssignedSubjects(gradeLevel, section, teacher) {
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.ASSIGNMENTS);
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
       return []; // Return empty if sheet doesn't exist
     }
@@ -172,11 +172,11 @@ function getAssignedSubjects(gradeLevel, section, teacher) {
     // Skip header row (row 1)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.TEACHER] === teacher &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.STATUS] === 'Active') {
-        const subject = row[CONFIG.ASSIGNMENTS_COLUMNS.SUBJECT];
+      if (row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+          row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
+          row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
+        const subject = row[CONFIG.SUBJECTS_COLUMNS.SUBJECT];
         if (subject) {
           subjects.push(subject);
         }
@@ -408,15 +408,15 @@ function addAssignment(gradeLevel, section, teacher, subject) {
 }
 
 /**
- * Client-callable function to add multiple assignments in batch via API (OPTIMIZED)
+ * Client-callable function to add multiple subjects in batch via API (OPTIMIZED)
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
  * @param {Array} subjects - Array of subject names
  * @return {Object} Result object with success status and counts
  */
-function addAssignmentsBatch(gradeLevel, section, teacher, subjects) {
-  return callApi("addAssignmentsBatch", {
+function addSubjectsBatch(gradeLevel, section, teacher, subjects) {
+  return callApi("addSubjectsBatch", {
     gradeLevel,
     section,
     teacher,
@@ -425,13 +425,13 @@ function addAssignmentsBatch(gradeLevel, section, teacher, subjects) {
 }
 
 /**
- * Client-callable function to get assignments via API
+ * Client-callable function to get subjects via API
  * @param {string} gradeLevel - The grade level (optional)
  * @param {string} section - The section (optional)
  * @return {Array} Array of assignment objects
  */
-function getAssignments(gradeLevel, section) {
-  return callApi("getAssignments", {
+function getSubjects(gradeLevel, section) {
+  return callApi("getSubjects", {
     gradeLevel: gradeLevel || null,
     section: section || null
   });
@@ -455,14 +455,14 @@ function deleteAssignment(gradeLevel, section, teacher, subject) {
 }
 
 /**
- * Client-callable function to delete multiple assignments in batch via API (OPTIMIZED)
+ * Client-callable function to delete multiple subjects in batch via API (OPTIMIZED)
  * Much faster than calling deleteAssignment multiple times
- * @param {Array} assignments - Array of assignment objects to delete
+ * @param {Array} subjects - Array of assignment objects to delete
  * @return {Object} Result object with success status and counts
  */
-function deleteAssignmentsBatch(assignments) {
-  return callApi("deleteAssignmentsBatch", {
-    assignments: JSON.stringify(assignments)
+function deleteSubjectsBatch(subjects) {
+  return callApi("deleteSubjectsBatch", {
+    subjects: JSON.stringify(subjects)
   });
 }
 

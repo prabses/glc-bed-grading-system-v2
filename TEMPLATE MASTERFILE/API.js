@@ -66,15 +66,15 @@ function doPost(e) {
           payload.teacher,
           payload.subject
         ));
-      case "addAssignmentsBatch":
-        return response(200, _addAssignmentsBatch(
+      case "addSubjectsBatch":
+        return response(200, _addSubjectsBatch(
           payload.gradeLevel,
           payload.section,
           payload.teacher,
           typeof payload.subjects === 'string' ? JSON.parse(payload.subjects) : payload.subjects
         ));
-      case "getAssignments":
-        return response(200, _getAssignments(
+      case "getSubjects":
+        return response(200, _getSubjects(
           payload.gradeLevel,
           payload.section
         ));
@@ -85,9 +85,9 @@ function doPost(e) {
           payload.teacher,
           payload.subject
         ));
-      case "deleteAssignmentsBatch":
-        return response(200, _deleteAssignmentsBatch(
-          typeof payload.assignments === 'string' ? JSON.parse(payload.assignments) : payload.assignments
+      case "deleteSubjectsBatch":
+        return response(200, _deleteSubjectsBatch(
+          typeof payload.subjects === 'string' ? JSON.parse(payload.subjects) : payload.subjects
         ));
       case "addAdvisory":
         return response(200, _addAdvisory(
@@ -910,9 +910,9 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
         row.push('', '', ''); // School DAYS, Days PRESENT, Days ABSENT
       });
       studentValues.push(padRow(row));
-    }
-    
-    // Write student data
+  }
+  
+  // Write student data
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setValues(studentValues);
     
@@ -1108,7 +1108,7 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     // No students or no traits - create empty rows
     const numStudentRows = CONFIG.TEMPLATE.NUM_STUDENT_ROWS * (hasTraits ? traits.length : 1);
     const emptyValues = [];
-    for (let i = 0; i < numStudentRows; i++) {
+      for (let i = 0; i < numStudentRows; i++) {
       const row = ['', '', '', '', '', '', '', '', '', '', '', '', '']; // All 13 columns empty
       emptyValues.push(padRow(row));
     }
@@ -1128,7 +1128,7 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
  */
 function _getAllSubjectsForClass(gradeLevel, section) {
   try {
-    const sheet = getSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
+    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
       return [];
     }
@@ -1144,10 +1144,10 @@ function _getAllSubjectsForClass(gradeLevel, section) {
     
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.STATUS] === 'Active') {
-        const subject = String(row[CONFIG.ASSIGNMENTS_COLUMNS.SUBJECT] || '').trim();
+      if (row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+          row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
+        const subject = String(row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] || '').trim();
         if (subject && !seenSubjects.has(subject)) {
           subjects.push(subject);
           seenSubjects.add(subject);
@@ -1617,12 +1617,12 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
  */
 function _addAssignment(gradeLevel, section, teacher, subject) {
   try {
-    let sheet = getSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
+    let sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     
     // Create sheet if it doesn't exist
     if (!sheet) {
       const spreadsheet = getSpreadsheet();
-      sheet = spreadsheet.insertSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
+      sheet = spreadsheet.insertSheet(CONFIG.SHEET_NAMES.SUBJECTS);
       
       // Set up headers (no parent header row)
       sheet.getRange(1, 1).setValue('Grade Level');
@@ -1643,13 +1643,13 @@ function _addAssignment(gradeLevel, section, teacher, subject) {
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.TEACHER] === teacher &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.SUBJECT] === subject) {
+      if (row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+          row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
+          row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject) {
         // Update existing assignment to active and update modified date
-        sheet.getRange(i + 1, CONFIG.ASSIGNMENTS_COLUMNS.STATUS + 1).setValue('Active');
-        sheet.getRange(i + 1, CONFIG.ASSIGNMENTS_COLUMNS.MODIFIED + 1).setValue(timestamp);
+        sheet.getRange(i + 1, CONFIG.SUBJECTS_COLUMNS.STATUS + 1).setValue('Active');
+        sheet.getRange(i + 1, CONFIG.SUBJECTS_COLUMNS.MODIFIED + 1).setValue(timestamp);
         return { success: true, message: 'Assignment updated successfully' };
       }
     }
@@ -1665,21 +1665,21 @@ function _addAssignment(gradeLevel, section, teacher, subject) {
 }
 
 /**
- * Internal function to add multiple assignments in batch (OPTIMIZED for performance)
+ * Internal function to add multiple subjects in batch (OPTIMIZED for performance)
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
  * @param {Array} subjects - Array of subject names
  * @return {Object} Result object with success status and counts
  */
-function _addAssignmentsBatch(gradeLevel, section, teacher, subjects) {
+function _addSubjectsBatch(gradeLevel, section, teacher, subjects) {
   try {
-    let sheet = getSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
+    let sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     
     // Create sheet if it doesn't exist
     if (!sheet) {
       const spreadsheet = getSpreadsheet();
-      sheet = spreadsheet.insertSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
+      sheet = spreadsheet.insertSheet(CONFIG.SHEET_NAMES.SUBJECTS);
       
       // Set up headers (no parent header row)
       sheet.getRange(1, 1).setValue('Grade Level');
@@ -1698,32 +1698,32 @@ function _addAssignmentsBatch(gradeLevel, section, teacher, subjects) {
     
     // Get all existing data once (batch read)
     const data = sheet.getDataRange().getValues();
-    const existingAssignments = new Set();
+    const existingSubjects = new Set();
     
-    // Build set of existing assignments for fast lookup
+    // Build set of existing subjects for fast lookup
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
-          row[CONFIG.ASSIGNMENTS_COLUMNS.TEACHER] === teacher) {
-        const subject = row[CONFIG.ASSIGNMENTS_COLUMNS.SUBJECT];
-        existingAssignments.add(subject);
+      if (row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+          row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher) {
+        const subject = row[CONFIG.SUBJECTS_COLUMNS.SUBJECT];
+        existingSubjects.add(subject);
       }
     }
     
-    // Separate new assignments from updates
+    // Separate new subjects from updates
     const newRows = [];
     const updateRows = [];
     
     subjects.forEach(subject => {
-      if (existingAssignments.has(subject)) {
+      if (existingSubjects.has(subject)) {
         // Find row index for update
         for (let i = 1; i < data.length; i++) {
           const row = data[i];
-          if (row[CONFIG.ASSIGNMENTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
-              row[CONFIG.ASSIGNMENTS_COLUMNS.SECTION] === section &&
-              row[CONFIG.ASSIGNMENTS_COLUMNS.TEACHER] === teacher &&
-              row[CONFIG.ASSIGNMENTS_COLUMNS.SUBJECT] === subject) {
+          if (row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] === gradeLevel &&
+              row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+              row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
+              row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject) {
             updateRows.push({ rowIndex: i + 1, subject: subject });
             break;
           }
@@ -1734,7 +1734,7 @@ function _addAssignmentsBatch(gradeLevel, section, teacher, subjects) {
       }
     });
     
-    // Batch update existing assignments (optimized - batch operations)
+    // Batch update existing subjects (optimized - batch operations)
     if (updateRows.length > 0) {
       // Sort by row index to group contiguous rows for batch operations
       updateRows.sort((a, b) => a.rowIndex - b.rowIndex);
@@ -1763,13 +1763,13 @@ function _addAssignmentsBatch(gradeLevel, section, teacher, subjects) {
         const modifiedValues = Array(numRows).fill([timestamp]);
         
         // Batch update status column
-        sheet.getRange(startRow, CONFIG.ASSIGNMENTS_COLUMNS.STATUS + 1, numRows, 1).setValues(statusValues);
+        sheet.getRange(startRow, CONFIG.SUBJECTS_COLUMNS.STATUS + 1, numRows, 1).setValues(statusValues);
         // Batch update modified column
-        sheet.getRange(startRow, CONFIG.ASSIGNMENTS_COLUMNS.MODIFIED + 1, numRows, 1).setValues(modifiedValues);
+        sheet.getRange(startRow, CONFIG.SUBJECTS_COLUMNS.MODIFIED + 1, numRows, 1).setValues(modifiedValues);
       });
     }
     
-    // Batch insert new assignments (single API call instead of multiple appendRow calls)
+    // Batch insert new subjects (single API call instead of multiple appendRow calls)
     if (newRows.length > 0) {
       const lastRow = sheet.getLastRow();
       const targetRange = sheet.getRange(lastRow + 1, 1, newRows.length, 8);
@@ -1788,21 +1788,21 @@ function _addAssignmentsBatch(gradeLevel, section, teacher, subjects) {
       total: totalProcessed
     };
   } catch (error) {
-    console.error('Error adding assignments batch:', error);
-    return { success: false, message: `Error adding assignments: ${error.toString()}` };
+    console.error('Error adding subjects batch:', error);
+    return { success: false, message: `Error adding subjects: ${error.toString()}` };
   }
 }
 
 /**
- * Internal function to get assignments for a grade level and section
+ * Internal function to get subjects for a grade level and section
  * OPTIMIZED for performance with early returns and minimal data retrieval
  * @param {string} gradeLevel - The grade level (optional)
  * @param {string} section - The section (optional)
  * @return {Array} Array of assignment objects
  */
-function _getAssignments(gradeLevel, section) {
+function _getSubjects(gradeLevel, section) {
   try {
-    const sheet = getSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
+    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
       return [];
     }
@@ -1821,7 +1821,7 @@ function _getAssignments(gradeLevel, section) {
     const data = dataRange.getValues();
     
     // Pre-allocate array size for better performance (estimate)
-    const assignments = [];
+    const subjects = [];
     
     // OPTIMIZATION 2: Use column indices directly (no CONFIG lookup in loop)
     const COL_GRADE = 0;
@@ -1847,7 +1847,7 @@ function _getAssignments(gradeLevel, section) {
       if (hasSectionFilter && row[COL_SECTION] !== section) continue;
       
       // OPTIMIZATION 7: Direct object creation without intermediate variables
-      assignments.push({
+      subjects.push({
         gradeLevel: row[COL_GRADE],
         section: row[COL_SECTION],
         teacher: row[COL_TEACHER],
@@ -1855,9 +1855,9 @@ function _getAssignments(gradeLevel, section) {
       });
     }
     
-    return assignments;
+    return subjects;
   } catch (error) {
-    console.error('Error getting assignments:', error);
+    console.error('Error getting subjects:', error);
     return [];
   }
 }
@@ -1873,9 +1873,9 @@ function _getAssignments(gradeLevel, section) {
  */
 function _deleteAssignment(gradeLevel, section, teacher, subject) {
   try {
-    const sheet = getSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
+    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
-      return { success: false, message: 'ASSIGNMENTS sheet not found' };
+      return { success: false, message: 'SUBJECTS sheet not found' };
     }
     
     const lastRow = sheet.getLastRow();
@@ -1912,8 +1912,8 @@ function _deleteAssignment(gradeLevel, section, teacher, subject) {
         
         // OPTIMIZATION 5: Batch update both cells at once
         const actualRow = i + 2; // +2 because data starts at row 2 (row 1 is header)
-        const statusCol = CONFIG.ASSIGNMENTS_COLUMNS.STATUS + 1; // E column
-        const modifiedCol = CONFIG.ASSIGNMENTS_COLUMNS.MODIFIED + 1; // G column
+        const statusCol = CONFIG.SUBJECTS_COLUMNS.STATUS + 1; // E column
+        const modifiedCol = CONFIG.SUBJECTS_COLUMNS.MODIFIED + 1; // G column
         
         // Batch update using setValues for better performance
         sheet.getRange(actualRow, statusCol, 1, 1).setValue('Inactive');
@@ -1931,23 +1931,23 @@ function _deleteAssignment(gradeLevel, section, teacher, subject) {
 }
 
 /**
- * Internal function to delete multiple assignments in batch (OPTIMIZED)
+ * Internal function to delete multiple subjects in batch (OPTIMIZED)
  * Much faster than calling _deleteAssignment multiple times
- * @param {Array} assignments - Array of assignment objects to delete
+ * @param {Array} subjects - Array of assignment objects to delete
  * @return {Object} Result object with success status and counts
  */
-function _deleteAssignmentsBatch(assignments) {
+function _deleteSubjectsBatch(subjects) {
   try {
-    const sheet = getSheet(CONFIG.SHEET_NAMES.ASSIGNMENTS);
+    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
-      return { success: false, message: 'ASSIGNMENTS sheet not found', deleted: 0, failed: 0 };
+      return { success: false, message: 'SUBJECTS sheet not found', deleted: 0, failed: 0 };
     }
     
     const lastRow = sheet.getLastRow();
     
     // Early return if sheet only has headers
-    if (lastRow <= 1 || !assignments || assignments.length === 0) {
-      return { success: true, message: 'No assignments to delete', deleted: 0, failed: 0 };
+    if (lastRow <= 1 || !subjects || subjects.length === 0) {
+      return { success: true, message: 'No subjects to delete', deleted: 0, failed: 0 };
     }
     
     // OPTIMIZATION 1: Read all data once
@@ -1956,7 +1956,7 @@ function _deleteAssignmentsBatch(assignments) {
     
     // OPTIMIZATION 2: Create a lookup set for fast matching
     const assignmentKeys = new Set();
-    assignments.forEach(a => {
+    subjects.forEach(a => {
       const key = `${a.gradeLevel}|${a.section}|${a.teacher}|${a.subject}`;
       assignmentKeys.add(key);
     });
@@ -1981,8 +1981,8 @@ function _deleteAssignmentsBatch(assignments) {
     
     // OPTIMIZATION 4: Batch update all rows at once
     if (rowsToUpdate.length > 0) {
-      const statusCol = CONFIG.ASSIGNMENTS_COLUMNS.STATUS + 1;
-      const modifiedCol = CONFIG.ASSIGNMENTS_COLUMNS.MODIFIED + 1;
+      const statusCol = CONFIG.SUBJECTS_COLUMNS.STATUS + 1;
+      const modifiedCol = CONFIG.SUBJECTS_COLUMNS.MODIFIED + 1;
       
       // Update each row (Google Apps Script doesn't support non-contiguous ranges efficiently)
       // But we still optimize by minimizing API calls
@@ -1995,23 +1995,23 @@ function _deleteAssignmentsBatch(assignments) {
         success: true, 
         message: `Successfully deleted ${rowsToUpdate.length} assignment(s)`,
         deleted: rowsToUpdate.length,
-        failed: assignments.length - rowsToUpdate.length
+        failed: subjects.length - rowsToUpdate.length
       };
     }
     
     return { 
       success: false, 
-      message: 'No matching assignments found',
+      message: 'No matching subjects found',
       deleted: 0,
-      failed: assignments.length
+      failed: subjects.length
     };
   } catch (error) {
-    console.error('Error deleting assignments batch:', error);
+    console.error('Error deleting subjects batch:', error);
     return { 
       success: false, 
-      message: `Error deleting assignments: ${error.toString()}`,
+      message: `Error deleting subjects: ${error.toString()}`,
       deleted: 0,
-      failed: assignments.length
+      failed: subjects.length
     };
   }
 }
