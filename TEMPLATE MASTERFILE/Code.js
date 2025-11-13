@@ -447,11 +447,13 @@ function generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects)
  * @return {Object} Result object with success status
  */
 function addAssignment(gradeLevel, section, teacher, subject) {
+  const userEmail = Session.getActiveUser().getEmail();
   return callApi("addAssignment", {
     gradeLevel,
     section,
     teacher,
-    subject
+    subject,
+    userEmail: userEmail
   });
 }
 
@@ -464,11 +466,13 @@ function addAssignment(gradeLevel, section, teacher, subject) {
  * @return {Object} Result object with success status and counts
  */
 function addSubjectsBatch(gradeLevel, section, teacher, subjects) {
+  const userEmail = Session.getActiveUser().getEmail();
   return callApi("addSubjectsBatch", {
     gradeLevel,
     section,
     teacher,
-    subjects: JSON.stringify(subjects) // Serialize array for API
+    subjects: JSON.stringify(subjects), // Serialize array for API
+    userEmail: userEmail
   });
 }
 
@@ -522,10 +526,12 @@ function deleteSubjectsBatch(subjects) {
  * @return {Object} Result object with success status
  */
 function addAdvisory(teacher, gradeLevel, section) {
+  const userEmail = Session.getActiveUser().getEmail();
   return callApi("addAdvisory", {
     teacher,
     gradeLevel,
-    section
+    section,
+    userEmail: userEmail
   });
 }
 

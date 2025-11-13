@@ -64,14 +64,16 @@ function doPost(e) {
           payload.gradeLevel,
           payload.section,
           payload.teacher,
-          payload.subject
+          payload.subject,
+          payload.userEmail
         ));
       case "addSubjectsBatch":
         return response(200, _addSubjectsBatch(
           payload.gradeLevel,
           payload.section,
           payload.teacher,
-          typeof payload.subjects === 'string' ? JSON.parse(payload.subjects) : payload.subjects
+          typeof payload.subjects === 'string' ? JSON.parse(payload.subjects) : payload.subjects,
+          payload.userEmail
         ));
       case "getSubjects":
         return response(200, _getSubjects(
@@ -93,7 +95,8 @@ function doPost(e) {
         return response(200, _addAdvisory(
           payload.teacher,
           payload.gradeLevel,
-          payload.section
+          payload.section,
+          payload.userEmail
         ));
       case "getAdvisories":
         return response(200, _getAdvisories(
@@ -1681,9 +1684,10 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
  * @param {string} subject - The subject name
+ * @param {string} userEmail - The email of the user creating the assignment (passed from client)
  * @return {Object} Result object with success status
  */
-function _addAssignment(gradeLevel, section, teacher, subject) {
+function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
   try {
     // Normalize grade level for storage (sheet stores just numbers)
     const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
@@ -1708,10 +1712,13 @@ function _addAssignment(gradeLevel, section, teacher, subject) {
     }
     
     const timestamp = new Date();
-    const userEmail = Session.getActiveUser().getEmail();
+    // Use passed userEmail, or fallback to Session.getActiveUser() if not provided (for backward compatibility)
+    const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
     
     // Check if assignment already exists (skip header row 1)
     const data = sheet.getDataRange().getValues();
+    
+    // First, check if exact match exists (same teacher, grade, section, subject)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
@@ -1722,12 +1729,38 @@ function _addAssignment(gradeLevel, section, teacher, subject) {
         // Update existing assignment to active and update modified date
         sheet.getRange(i + 1, CONFIG.SUBJECTS_COLUMNS.STATUS + 1).setValue('Active');
         sheet.getRange(i + 1, CONFIG.SUBJECTS_COLUMNS.MODIFIED + 1).setValue(timestamp);
+        // If Created By is empty, set it (for existing data that might not have it)
+        const createdByCol = CONFIG.SUBJECTS_COLUMNS.CREATED_BY + 1; // Column H
+        const existingCreatedBy = sheet.getRange(i + 1, createdByCol).getValue();
+        if (!existingCreatedBy || existingCreatedBy.toString().trim() === '') {
+          sheet.getRange(i + 1, createdByCol).setValue(actualUserEmail);
+        }
         return { success: true, message: 'Assignment updated successfully' };
       }
     }
     
+    // VALIDATION: Prevent same grade level + section + subject from being assigned to different teachers
+    // Check if this subject already exists for this grade/section with a different teacher (and is Active)
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      if (rowGradeLevel === normalizedGradeLevel &&
+          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+          row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject &&
+          row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
+        const existingTeacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
+        if (existingTeacher !== teacher) {
+          const formattedGradeLevel = _formatGradeLevel(gradeLevel);
+          return { 
+            success: false, 
+            message: `${formattedGradeLevel}${section} - ${subject} is already assigned to ${existingTeacher}. Cannot assign the same subject to a different teacher for the same class. Please deactivate the existing assignment first.` 
+          };
+        }
+      }
+    }
+    
     // Add new assignment with audit trail (store normalized grade level)
-    sheet.appendRow([normalizedGradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, userEmail]);
+    sheet.appendRow([normalizedGradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, actualUserEmail]);
     
     return { success: true, message: 'Assignment added successfully' };
   } catch (error) {
@@ -1742,9 +1775,10 @@ function _addAssignment(gradeLevel, section, teacher, subject) {
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
  * @param {Array} subjects - Array of subject names
+ * @param {string} userEmail - The email of the user creating the subjects (passed from client)
  * @return {Object} Result object with success status and counts
  */
-function _addSubjectsBatch(gradeLevel, section, teacher, subjects) {
+function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
   try {
     // Normalize grade level for storage (sheet stores just numbers)
     const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
@@ -1769,13 +1803,14 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects) {
     }
     
     const timestamp = new Date();
-    const userEmail = Session.getActiveUser().getEmail();
+    // Use passed userEmail, or fallback to Session.getActiveUser() if not provided (for backward compatibility)
+    const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
     
     // Get all existing data once (batch read)
     const data = sheet.getDataRange().getValues();
     const existingSubjects = new Set();
     
-    // Build set of existing subjects for fast lookup
+    // Build set of existing subjects for fast lookup (same teacher only)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
@@ -1785,6 +1820,37 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects) {
         const subject = row[CONFIG.SUBJECTS_COLUMNS.SUBJECT];
         existingSubjects.add(subject);
       }
+    }
+    
+    // VALIDATION: Check for conflicts - same grade/section/subject with different teacher
+    const conflictErrors = [];
+    const formattedGradeLevel = _formatGradeLevel(gradeLevel);
+    subjects.forEach(subject => {
+      // Only check if this is a new subject (not already assigned to this teacher)
+      if (!existingSubjects.has(subject)) {
+        for (let i = 1; i < data.length; i++) {
+          const row = data[i];
+          const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+          if (rowGradeLevel === normalizedGradeLevel &&
+              row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+              row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject &&
+              row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
+            const existingTeacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
+            if (existingTeacher !== teacher) {
+              conflictErrors.push(`${formattedGradeLevel}${section} - ${subject} is already assigned to ${existingTeacher}`);
+              break;
+            }
+          }
+        }
+      }
+    });
+    
+    // If there are conflicts, return error
+    if (conflictErrors.length > 0) {
+      return {
+        success: false,
+        message: `Cannot assign subject(s) to a different teacher:\n\n${conflictErrors.join('\n')}\n\nPlease deactivate the existing assignment(s) first.`
+      };
     }
     
     // Separate new subjects from updates
@@ -1807,7 +1873,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects) {
         }
       } else {
         // New assignment (store normalized grade level)
-        newRows.push([normalizedGradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, userEmail]);
+        newRows.push([normalizedGradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, actualUserEmail]);
       }
     });
     
@@ -1815,6 +1881,15 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects) {
     if (updateRows.length > 0) {
       // Sort by row index to group contiguous rows for batch operations
       updateRows.sort((a, b) => a.rowIndex - b.rowIndex);
+      
+      // Update Created By for existing subjects if empty
+      const createdByCol = CONFIG.SUBJECTS_COLUMNS.CREATED_BY + 1; // Column H
+      updateRows.forEach(({ rowIndex }) => {
+        const existingCreatedBy = sheet.getRange(rowIndex, createdByCol).getValue();
+        if (!existingCreatedBy || existingCreatedBy.toString().trim() === '') {
+          sheet.getRange(rowIndex, createdByCol).setValue(actualUserEmail);
+        }
+      });
       
       // Group contiguous rows for batch updates
       let currentGroup = [updateRows[0]];
@@ -2113,9 +2188,10 @@ function _deleteSubjectsBatch(subjects) {
  * @param {string} teacher - The teacher name
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
+ * @param {string} userEmail - The email of the user creating the advisory (passed from client)
  * @return {Object} Result object with success status
  */
-function _addAdvisory(teacher, gradeLevel, section) {
+function _addAdvisory(teacher, gradeLevel, section, userEmail) {
   try {
     let sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
     
@@ -2136,7 +2212,8 @@ function _addAdvisory(teacher, gradeLevel, section) {
     }
     
     const timestamp = new Date();
-    const userEmail = Session.getActiveUser().getEmail();
+    // Use passed userEmail, or fallback to Session.getActiveUser() if not provided (for backward compatibility)
+    const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
     
     // OPTIMIZATION: Read all data once
     const data = sheet.getDataRange().getValues();
@@ -2203,9 +2280,15 @@ function _addAdvisory(teacher, gradeLevel, section) {
       // Reactivate the exact match
       sheet.getRange(exactMatchRow, statusCol).setValue('Active');
       sheet.getRange(exactMatchRow, modifiedCol).setValue(timestamp);
+      // If Created By is empty, set it (for existing data that might not have it)
+      const createdByCol = CONFIG.ADVISORY_COLUMNS.CREATED_BY + 1; // Column G
+      const existingCreatedBy = sheet.getRange(exactMatchRow, createdByCol).getValue();
+      if (!existingCreatedBy || existingCreatedBy.toString().trim() === '') {
+        sheet.getRange(exactMatchRow, createdByCol).setValue(actualUserEmail);
+      }
     } else {
       // Add new advisory with audit trail (store normalized grade level)
-      sheet.appendRow([teacher, normalizedGradeLevel, section, 'Active', timestamp, timestamp, userEmail]);
+      sheet.appendRow([teacher, normalizedGradeLevel, section, 'Active', timestamp, timestamp, actualUserEmail]);
     }
     
     const deactivateMsg = rowsToDeactivate.length > 0 
