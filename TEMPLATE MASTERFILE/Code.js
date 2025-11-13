@@ -426,15 +426,17 @@ function getActiveItems(sheetName, columnIndex = 0) {
  * @return {Object} Result object with success status and message
  */
 function generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects) {
+  const userEmail = Session.getActiveUser().getEmail();
   console.log(
-    "Function generateOGSTemplate executed by: " + Session.getActiveUser().getEmail()
+    "Function generateOGSTemplate executed by: " + userEmail
   );
   return callApi("generateOGSTemplate", { 
     schoolYear, 
     gradeLevel, 
     section, 
     teacher,
-    subjects 
+    subjects,
+    userEmail: userEmail
   });
 }
 

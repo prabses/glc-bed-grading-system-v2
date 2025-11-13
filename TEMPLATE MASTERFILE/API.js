@@ -57,7 +57,8 @@ function doPost(e) {
           payload.gradeLevel,
           payload.section,
           payload.teacher,
-          payload.subjects || []
+          payload.subjects || [],
+          payload.userEmail
         ));
       case "addAssignment":
         return response(200, _addAssignment(
@@ -312,8 +313,9 @@ function _getGradingWeights(subjectName) {
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
  * @param {string} templateUrl - The URL of the generated template
+ * @param {string} userEmail - The email of the user creating the template (passed from client)
  */
-function _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl) {
+function _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl, userEmail) {
   let sheet = getSheet(CONFIG.SHEET_NAMES.MASTER_DATA);
   if (!sheet) {
     // Create MASTER_DATA sheet if it doesn't exist
@@ -334,7 +336,8 @@ function _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl
   
   const timestamp = new Date();
   const templateLink = `=HYPERLINK("${templateUrl}","Open Template")`;
-  const userEmail = Session.getActiveUser().getEmail();
+  // Use passed userEmail, or fallback to Session.getActiveUser() if not provided (for backward compatibility)
+  const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
   
   // Normalize grade level for storage (sheet stores just numbers)
   const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
@@ -348,7 +351,7 @@ function _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl
     templateLink,                // Column E: Template_Link
     timestamp,                   // Column F: Created
     timestamp,                   // Column G: Modified
-    userEmail                    // Column H: Created_By
+    actualUserEmail             // Column H: Created_By
   ]);
   
   // Background color removed - no green coloring
@@ -548,15 +551,16 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     
     // Add gray background color to formula columns to indicate they are protected/untypable
     // Formula columns: F (6), J (10), N (14), R (18), S (19)
-    // Apply to entire columns from row 1 to end of student data + buffer
+    // Apply from startRow (student data) onwards, excluding frozen header rows (rows 9-10)
     const endRow = startRow + numStudentRows - 1;
     const grayRangeEnd = Math.max(endRow + 20, 50); // Extend beyond student data for future rows
     const grayColor = '#d9d9d9'; // Light gray background
-    sheet.getRange(1, 6, grayRangeEnd, 1).setBackground(grayColor);  // Column F: 1st Transmuted
-    sheet.getRange(1, 10, grayRangeEnd, 1).setBackground(grayColor); // Column J: 2nd Transmuted
-    sheet.getRange(1, 14, grayRangeEnd, 1).setBackground(grayColor); // Column N: 3rd Transmuted
-    sheet.getRange(1, 18, grayRangeEnd, 1).setBackground(grayColor); // Column R: 4th Transmuted
-    sheet.getRange(1, 19, grayRangeEnd, 1).setBackground(grayColor); // Column S: Final Grading
+    const numRowsForGray = grayRangeEnd - startRow + 1; // Number of rows to color (from startRow to grayRangeEnd)
+    sheet.getRange(startRow, 6, numRowsForGray, 1).setBackground(grayColor);  // Column F: 1st Transmuted
+    sheet.getRange(startRow, 10, numRowsForGray, 1).setBackground(grayColor); // Column J: 2nd Transmuted
+    sheet.getRange(startRow, 14, numRowsForGray, 1).setBackground(grayColor); // Column N: 3rd Transmuted
+    sheet.getRange(startRow, 18, numRowsForGray, 1).setBackground(grayColor); // Column R: 4th Transmuted
+    sheet.getRange(startRow, 19, numRowsForGray, 1).setBackground(grayColor); // Column S: Final Grading
     
     // PROTECTION: Required for sharing with others (teachers/staff)
     // Protected: Student info (A-B), Headers (9-10), Formulas (F, J, N, R, S)
@@ -1542,9 +1546,10 @@ function _setupQRSheet(sheet, schoolYear, gradeLevel, section, teacher, students
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
  * @param {Array} subjects - Array of subject names to generate sheets for
+ * @param {string} userEmail - The email of the user creating the template (passed from client)
  * @return {Object} Result object with success status and message
  */
-function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects) {
+function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects, userEmail) {
   try {
     const masterSpreadsheet = getSpreadsheet();
     
@@ -1636,24 +1641,29 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
       createdSheets.push(subject);
     }
     
-    // Check if teacher is advisor for this class - if yes, add Attendance, Characters, and QR sheets
+    // Check if teacher is advisor for this class - if yes, add Attendance and Character sheets
     const isAdvisor = _isTeacherAdvisor(teacher, gradeLevel, section);
     if (isAdvisor) {
       const attendanceSheet = templateSpreadsheet.insertSheet('Attendance');
       _setupAttendanceSheet(attendanceSheet, schoolYear, gradeLevel, section, teacher, students);
+      // Add color to Attendance sheet tab to distinguish from subject sheets
+      attendanceSheet.setTabColor('#667eea'); // Blue color
       
       const charactersSheet = templateSpreadsheet.insertSheet('Character');
       _setupCharactersSheet(charactersSheet, schoolYear, gradeLevel, section, teacher, students);
+      // Add color to Character sheet tab to distinguish from subject sheets
+      charactersSheet.setTabColor('#667eea'); // Blue color
       
-      const qrSheet = templateSpreadsheet.insertSheet('QR');
-      _setupQRSheet(qrSheet, schoolYear, gradeLevel, section, teacher, students, templateSpreadsheet);
+      // QR sheet - commented out for now
+      // const qrSheet = templateSpreadsheet.insertSheet('QR');
+      // _setupQRSheet(qrSheet, schoolYear, gradeLevel, section, teacher, students, templateSpreadsheet);
     }
     
     // Get the template file URL
     const templateUrl = templateSpreadsheet.getUrl();
     
     // Save one row to MASTER_DATA (one row per template file, not per subject)
-    _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl);
+    _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl, userEmail);
     
     const subjectsList = subjects.join(', ');
     const studentCountMsg = students.length > 0 ? `\nStudents: ${students.length} students loaded from STUDENTS DB` : '\nStudents: No students found (template generated with blank rows)';
