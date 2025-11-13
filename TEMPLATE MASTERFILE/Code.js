@@ -73,6 +73,20 @@ function getActiveTeachers() {
 }
 
 /**
+ * Client-callable function to get all active teachers for autocomplete.
+ * This function is called from the client-side HTML form.
+ * @return {Array} Array of active teacher names
+ */
+function getTeachers() {
+  try {
+    return getActiveTeachers();
+  } catch (error) {
+    console.error('Error getting teachers:', error);
+    return [];
+  }
+}
+
+/**
  * Gets all dropdown data at once for performance optimization
  * @return {Object} Object containing gradeLevels, subjects, and teachers
  */
