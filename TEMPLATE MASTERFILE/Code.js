@@ -12,9 +12,13 @@
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
 
+  // Export OGS - directly runs the function (single item menu)
+  ui.createMenu("Export OGS")
+    .addItem("Export OGS", "showOGSTemplateDialog")
+    .addToUi();
+
+  // Actions submenu
   ui.createMenu("Actions")
-    .addItem("Generate OGS Template", "showOGSTemplateDialog")
-    .addSeparator()
     .addItem("Manage Subjects", "showAssignmentDialog")
     .addItem("Manage Advisory Classes", "showAdvisoryDialog")
     .addToUi();
