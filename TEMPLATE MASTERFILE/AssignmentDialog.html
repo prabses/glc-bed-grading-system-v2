@@ -265,7 +265,7 @@
           <label class="form-label">
             Subjects <span style="color: #e74c3c;">*</span>
           </label>
-          <div id="subjectsContainer" class="subjects-container">
+          <div id="subjectsCheckboxesContainer" class="subjects-container">
             <p style="text-align: center; color: #6c757d; margin: 0;">Loading subjects...</p>
           </div>
         </div>
@@ -341,8 +341,8 @@
             });
             gradeSelect.appendChild(gradeFragment);
             
-            // Populate subjects
-            const subjectsContainer = document.getElementById('subjectsContainer');
+            // Populate subjects (from SUBJECTS_REF - always visible)
+            const subjectsCheckboxesContainer = document.getElementById('subjectsCheckboxesContainer');
             const subjectsFragment = document.createDocumentFragment();
             subjects.forEach(function(subject) {
               const checkboxDiv = document.createElement('div');
@@ -353,8 +353,8 @@
               `;
               subjectsFragment.appendChild(checkboxDiv);
             });
-            subjectsContainer.innerHTML = '';
-            subjectsContainer.appendChild(subjectsFragment);
+            subjectsCheckboxesContainer.innerHTML = '';
+            subjectsCheckboxesContainer.appendChild(subjectsFragment);
             
             // Populate teachers
             const teacherSelect = document.getElementById('teacher');
@@ -415,7 +415,10 @@
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = document.getElementById('section').value;
         
+        // This function loads EXISTING assignments (not the subjects checkboxes)
+        // The subjects checkboxes (from SUBJECTS_REF) should always remain visible
         if (!gradeLevel || !section) {
+          // Hide the existing assignments list, show placeholder
           document.getElementById('subjectsContainer').style.display = 'none';
           document.getElementById('subjectsPlaceholder').style.display = 'block';
           return;

@@ -543,6 +543,18 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulaColumns[col]);
     });
     
+    // Add gray background color to formula columns to indicate they are protected/untypable
+    // Formula columns: F (6), J (10), N (14), R (18), S (19)
+    // Apply to entire columns from row 1 to end of student data + buffer
+    const endRow = startRow + numStudentRows - 1;
+    const grayRangeEnd = Math.max(endRow + 20, 50); // Extend beyond student data for future rows
+    const grayColor = '#d9d9d9'; // Light gray background
+    sheet.getRange(1, 6, grayRangeEnd, 1).setBackground(grayColor);  // Column F: 1st Transmuted
+    sheet.getRange(1, 10, grayRangeEnd, 1).setBackground(grayColor); // Column J: 2nd Transmuted
+    sheet.getRange(1, 14, grayRangeEnd, 1).setBackground(grayColor); // Column N: 3rd Transmuted
+    sheet.getRange(1, 18, grayRangeEnd, 1).setBackground(grayColor); // Column R: 4th Transmuted
+    sheet.getRange(1, 19, grayRangeEnd, 1).setBackground(grayColor); // Column S: Final Grading
+    
     // PROTECTION: Required for sharing with others (teachers/staff)
     // Protected: Student info (A-B), Headers (9-10), Formulas (F, J, N, R, S)
     // Editable by others: Grading input columns (C, D, E, G, H, I, K, L, M, O, P, Q)
@@ -550,7 +562,6 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     // Configure via CONFIG.TEMPLATE.ENABLE_PROTECTIONS in Config.js
     if (CONFIG.TEMPLATE.ENABLE_PROTECTIONS) {
       const creatorEmail = Session.getActiveUser().getEmail();
-      const endRow = startRow + numStudentRows - 1;
       const protectToRow = Math.max(endRow + 20, 50);
       
       const setProtectionWithOnlyCreator = (protection, creatorEmail) => {
