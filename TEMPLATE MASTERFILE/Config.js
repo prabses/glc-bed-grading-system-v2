@@ -112,6 +112,45 @@ const CONFIG = {
     // Set to false to disable sheet protections (much faster generation, ~5-15 seconds vs ~90-100 seconds)
     // Set to true to enable protections (required for sharing with others - protects student info, headers, and formulas)
     ENABLE_PROTECTIONS: false
+  },
+  
+  // Alert messages for user operations
+  MESSAGES: {
+    // Success messages
+    SUCCESS: {
+      ASSIGNMENT_ADDED: 'Assignment added successfully',
+      ASSIGNMENT_UPDATED: 'Assignment updated successfully',
+      ASSIGNMENT_DELETED: 'Assignment deleted successfully',
+      SUBJECTS_BATCH_ADDED: 'Successfully processed {total} assignment(s): {added} added, {updated} updated',
+      SUBJECTS_BATCH_DELETED: 'Successfully deleted {count} assignment(s)',
+      ADVISORY_ADDED: 'Advisory added successfully.{deactivateMsg}',
+      ADVISORY_DELETED: 'Advisory deleted successfully',
+      ADVISORIES_BATCH_DELETED: 'Successfully deleted {count} advisory(ies)'
+    },
+    
+    // Error messages
+    ERROR: {
+      TEMPLATE_GENERATION: 'Error generating template: {error}',
+      TEMPLATE_EXISTS: 'Template file already exists!\n\nFile: {fileName}\nFolder: {folderName}\n\nPlease delete the existing file first if you want to regenerate it.\n\nExisting file: {fileUrl}',
+      ASSIGNMENT_ADD: 'Error adding assignment: {error}',
+      ASSIGNMENT_DELETE: 'Error deleting assignment: {error}',
+      SUBJECTS_BATCH_ADD: 'Error adding subjects: {error}',
+      SUBJECTS_BATCH_DELETE: 'Error deleting subjects: {error}',
+      ADVISORY_ADD: 'Error adding advisory: {error}',
+      ADVISORY_DELETE: 'Error deleting advisory: {error}',
+      ADVISORIES_BATCH_DELETE: 'Error deleting advisories: {error}',
+      SHEET_NOT_FOUND: '{sheetName} sheet not found',
+      NOT_FOUND: '{item} not found',
+      NO_ITEMS: 'No {items} provided',
+      NO_MATCHES: 'No matching {items} found'
+    },
+    
+    // Validation messages
+    VALIDATION: {
+      SUBJECT_ALREADY_ASSIGNED: '{gradeSection} - {subject} is already assigned to {teacher}. Cannot assign the same subject to a different teacher for the same class. Please deactivate the existing assignment first.',
+      SUBJECTS_CONFLICT: 'Cannot assign subject(s) to a different teacher:\n\n{conflicts}\n\nPlease deactivate the existing assignment(s) first.',
+      ADVISORY_ALREADY_ASSIGNED: '{gradeSection} already has an active advisory with {teacher}. Cannot assign another teacher to the same class. Please deactivate the existing advisory first.'
+    }
   }
 };
 

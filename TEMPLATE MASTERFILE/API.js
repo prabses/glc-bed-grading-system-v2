@@ -123,6 +123,20 @@ function doPost(e) {
 }
 
 /**
+ * Helper function to format message with placeholders
+ * @param {string} template - Message template with {placeholder} syntax
+ * @param {Object} values - Object with placeholder values
+ * @return {string} Formatted message
+ */
+function _formatMessage(template, values = {}) {
+  let message = template;
+  for (const [key, value] of Object.entries(values)) {
+    message = message.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+  }
+  return message;
+}
+
+/**
  * Routes a request to the doPost API.
  * @param {string} action - The action to perform.
  * @param {Object} payload - The data for the action.
@@ -1581,7 +1595,11 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
       const existingFileUrl = existingFile.getUrl();
       return {
         success: false,
-        message: `Template file already exists!\n\nFile: ${templateFileName}\nFolder: ${folderName}\n\nPlease delete the existing file first if you want to regenerate it.\n\nExisting file: ${existingFileUrl}`,
+        message: _formatMessage(CONFIG.MESSAGES.ERROR.TEMPLATE_EXISTS, {
+          fileName: templateFileName,
+          folderName: folderName,
+          fileUrl: existingFileUrl
+        }),
         templateUrl: existingFileUrl,
         folderName: folderName
       };
@@ -1683,7 +1701,9 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     console.error('Error generating OGS template:', error);
     return { 
       success: false, 
-      message: `Error generating template: ${error.toString()}` 
+      message: _formatMessage(CONFIG.MESSAGES.ERROR.TEMPLATE_GENERATION, {
+        error: error.toString()
+      })
     };
   }
 }
@@ -1745,7 +1765,7 @@ function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
         if (!existingCreatedBy || existingCreatedBy.toString().trim() === '') {
           sheet.getRange(i + 1, createdByCol).setValue(actualUserEmail);
         }
-        return { success: true, message: 'Assignment updated successfully' };
+        return { success: true, message: CONFIG.MESSAGES.SUCCESS.ASSIGNMENT_UPDATED };
       }
     }
     
@@ -1763,7 +1783,11 @@ function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
           const formattedGradeLevel = _formatGradeLevel(gradeLevel);
           return { 
             success: false, 
-            message: `${formattedGradeLevel}${section} - ${subject} is already assigned to ${existingTeacher}. Cannot assign the same subject to a different teacher for the same class. Please deactivate the existing assignment first.` 
+            message: _formatMessage(CONFIG.MESSAGES.VALIDATION.SUBJECT_ALREADY_ASSIGNED, {
+              gradeSection: `${formattedGradeLevel}${section}`,
+              subject: subject,
+              teacher: existingTeacher
+            })
           };
         }
       }
@@ -1772,10 +1796,12 @@ function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
     // Add new assignment with audit trail (store normalized grade level)
     sheet.appendRow([normalizedGradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, actualUserEmail]);
     
-    return { success: true, message: 'Assignment added successfully' };
+    return { success: true, message: CONFIG.MESSAGES.SUCCESS.ASSIGNMENT_ADDED };
   } catch (error) {
     console.error('Error adding assignment:', error);
-    return { success: false, message: `Error adding assignment: ${error.toString()}` };
+    return { success: false, message: _formatMessage(CONFIG.MESSAGES.ERROR.ASSIGNMENT_ADD, {
+      error: error.toString()
+    }) };
   }
 }
 
@@ -1859,7 +1885,9 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
     if (conflictErrors.length > 0) {
       return {
         success: false,
-        message: `Cannot assign subject(s) to a different teacher:\n\n${conflictErrors.join('\n')}\n\nPlease deactivate the existing assignment(s) first.`
+        message: _formatMessage(CONFIG.MESSAGES.VALIDATION.SUBJECTS_CONFLICT, {
+          conflicts: conflictErrors.join('\n')
+        })
       };
     }
     
@@ -1944,14 +1972,20 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
     
     return { 
       success: true, 
-      message: `Successfully processed ${totalProcessed} assignment(s): ${added} added, ${updated} updated`,
+      message: _formatMessage(CONFIG.MESSAGES.SUCCESS.SUBJECTS_BATCH_ADDED, {
+        total: totalProcessed,
+        added: added,
+        updated: updated
+      }),
       added: added,
       updated: updated,
       total: totalProcessed
     };
   } catch (error) {
     console.error('Error adding subjects batch:', error);
-    return { success: false, message: `Error adding subjects: ${error.toString()}` };
+    return { success: false, message: _formatMessage(CONFIG.MESSAGES.ERROR.SUBJECTS_BATCH_ADD, {
+      error: error.toString()
+    }) };
   }
 }
 
@@ -2048,14 +2082,18 @@ function _deleteAssignment(gradeLevel, section, teacher, subject) {
     
     const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
-      return { success: false, message: 'SUBJECTS sheet not found' };
+      return { success: false, message: _formatMessage(CONFIG.MESSAGES.ERROR.SHEET_NOT_FOUND, {
+        sheetName: 'SUBJECTS'
+      }) };
     }
     
     const lastRow = sheet.getLastRow();
     
     // Early return if sheet only has headers
     if (lastRow <= 1) {
-      return { success: false, message: 'Assignment not found' };
+      return { success: false, message: _formatMessage(CONFIG.MESSAGES.ERROR.NOT_FOUND, {
+        item: 'Assignment'
+      }) };
     }
     
     // OPTIMIZATION 1: Only read necessary columns (A-D) instead of all columns
@@ -2094,14 +2132,18 @@ function _deleteAssignment(gradeLevel, section, teacher, subject) {
         sheet.getRange(actualRow, statusCol, 1, 1).setValue('Inactive');
         sheet.getRange(actualRow, modifiedCol, 1, 1).setValue(timestamp);
         
-        return { success: true, message: 'Assignment deleted successfully' };
+        return { success: true, message: CONFIG.MESSAGES.SUCCESS.ASSIGNMENT_DELETED };
       }
     }
     
-    return { success: false, message: 'Assignment not found' };
+    return { success: false, message: _formatMessage(CONFIG.MESSAGES.ERROR.NOT_FOUND, {
+      item: 'Assignment'
+    }) };
   } catch (error) {
     console.error('Error deleting assignment:', error);
-    return { success: false, message: `Error deleting assignment: ${error.toString()}` };
+    return { success: false, message: _formatMessage(CONFIG.MESSAGES.ERROR.ASSIGNMENT_DELETE, {
+      error: error.toString()
+    }) };
   }
 }
 
@@ -2115,7 +2157,9 @@ function _deleteSubjectsBatch(subjects) {
   try {
     const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
-      return { success: false, message: 'SUBJECTS sheet not found', deleted: 0, failed: 0 };
+      return { success: false, message: _formatMessage(CONFIG.MESSAGES.ERROR.SHEET_NOT_FOUND, {
+        sheetName: 'SUBJECTS'
+      }), deleted: 0, failed: 0 };
     }
     
     const lastRow = sheet.getLastRow();
@@ -2168,9 +2212,11 @@ function _deleteSubjectsBatch(subjects) {
         sheet.getRange(rowNum, modifiedCol).setValue(timestamp);
       });
       
-      return { 
+      return {
         success: true, 
-        message: `Successfully deleted ${rowsToUpdate.length} assignment(s)`,
+        message: _formatMessage(CONFIG.MESSAGES.SUCCESS.SUBJECTS_BATCH_DELETED, {
+          count: rowsToUpdate.length
+        }),
         deleted: rowsToUpdate.length,
         failed: subjects.length - rowsToUpdate.length
       };
@@ -2178,7 +2224,9 @@ function _deleteSubjectsBatch(subjects) {
     
     return { 
       success: false, 
-      message: 'No matching subjects found',
+      message: _formatMessage(CONFIG.MESSAGES.ERROR.NO_MATCHES, {
+        items: 'subjects'
+      }),
       deleted: 0,
       failed: subjects.length
     };
@@ -2186,7 +2234,9 @@ function _deleteSubjectsBatch(subjects) {
     console.error('Error deleting subjects batch:', error);
     return { 
       success: false, 
-      message: `Error deleting subjects: ${error.toString()}`,
+      message: _formatMessage(CONFIG.MESSAGES.ERROR.SUBJECTS_BATCH_DELETE, {
+        error: error.toString()
+      }),
       deleted: 0,
       failed: subjects.length
     };
@@ -2259,7 +2309,10 @@ function _addAdvisory(teacher, gradeLevel, section, userEmail) {
           const formattedGradeLevel = _formatGradeLevel(gradeLevel);
           return { 
             success: false, 
-            message: `${formattedGradeLevel}${section} already has an active advisory with ${existingTeacher}. Cannot assign another teacher to the same class. Please deactivate the existing advisory first.` 
+            message: _formatMessage(CONFIG.MESSAGES.VALIDATION.ADVISORY_ALREADY_ASSIGNED, {
+              gradeSection: `${formattedGradeLevel}${section}`,
+              teacher: existingTeacher
+            }) 
           };
         }
       }
@@ -2307,11 +2360,15 @@ function _addAdvisory(teacher, gradeLevel, section, userEmail) {
     
     return { 
       success: true, 
-      message: `Advisory added successfully.${deactivateMsg}` 
+      message: _formatMessage(CONFIG.MESSAGES.SUCCESS.ADVISORY_ADDED, {
+        deactivateMsg: deactivateMsg
+      })
     };
   } catch (error) {
     console.error('Error adding advisory:', error);
-    return { success: false, message: `Error adding advisory: ${error.toString()}` };
+    return { success: false, message: _formatMessage(CONFIG.MESSAGES.ERROR.ADVISORY_ADD, {
+      error: error.toString()
+    }) };
   }
 }
 
@@ -2399,14 +2456,18 @@ function _deleteAdvisory(teacher, gradeLevel, section) {
         const modifiedCol = CONFIG.ADVISORY_COLUMNS.MODIFIED + 1; // F column
         sheet.getRange(i + 1, statusCol).setValue('Inactive');
         sheet.getRange(i + 1, modifiedCol).setValue(timestamp);
-        return { success: true, message: 'Advisory deleted successfully' };
+        return { success: true, message: CONFIG.MESSAGES.SUCCESS.ADVISORY_DELETED };
       }
     }
     
-    return { success: false, message: 'Advisory not found' };
+    return { success: false, message: _formatMessage(CONFIG.MESSAGES.ERROR.NOT_FOUND, {
+      item: 'Advisory'
+    }) };
   } catch (error) {
     console.error('Error deleting advisory:', error);
-    return { success: false, message: `Error deleting advisory: ${error.toString()}` };
+    return { success: false, message: _formatMessage(CONFIG.MESSAGES.ERROR.ADVISORY_DELETE, {
+      error: error.toString()
+    }) };
   }
 }
 
@@ -2420,11 +2481,15 @@ function _deleteAdvisoriesBatch(advisories) {
     const sheet = getSheet(CONFIG.SHEET_NAMES.ADVISORY);
     
     if (!sheet) {
-      return { success: false, message: 'ADVISORY sheet not found', deleted: 0, failed: 0 };
+      return { success: false, message: _formatMessage(CONFIG.MESSAGES.ERROR.SHEET_NOT_FOUND, {
+        sheetName: 'ADVISORY'
+      }), deleted: 0, failed: 0 };
     }
     
     if (!advisories || advisories.length === 0) {
-      return { success: false, message: 'No advisories provided', deleted: 0, failed: 0 };
+      return { success: false, message: _formatMessage(CONFIG.MESSAGES.ERROR.NO_ITEMS, {
+        items: 'advisories'
+      }), deleted: 0, failed: 0 };
     }
     
     // OPTIMIZATION: Read all data once
@@ -2467,7 +2532,9 @@ function _deleteAdvisoriesBatch(advisories) {
       
       return {
         success: true, 
-        message: `Successfully deleted ${rowsToUpdate.length} advisory(ies)`,
+        message: _formatMessage(CONFIG.MESSAGES.SUCCESS.ADVISORIES_BATCH_DELETED, {
+          count: rowsToUpdate.length
+        }),
         deleted: rowsToUpdate.length,
         failed: advisories.length - rowsToUpdate.length
       };
@@ -2475,7 +2542,9 @@ function _deleteAdvisoriesBatch(advisories) {
     
     return { 
       success: false, 
-      message: 'No matching advisories found',
+      message: _formatMessage(CONFIG.MESSAGES.ERROR.NO_MATCHES, {
+        items: 'advisories'
+      }),
       deleted: 0,
       failed: advisories.length
     };
@@ -2483,7 +2552,9 @@ function _deleteAdvisoriesBatch(advisories) {
     console.error('Error deleting advisories batch:', error);
     return { 
       success: false, 
-      message: `Error deleting advisories: ${error.toString()}`,
+      message: _formatMessage(CONFIG.MESSAGES.ERROR.ADVISORIES_BATCH_DELETE, {
+        error: error.toString()
+      }),
       deleted: 0,
       failed: advisories.length
     };
