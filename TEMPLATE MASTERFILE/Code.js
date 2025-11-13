@@ -17,8 +17,8 @@ function onOpen() {
     .addItem("Export OGS", "showOGSTemplateDialog")
     .addToUi();
 
-  // Actions submenu
-  ui.createMenu("Actions")
+  // Menu submenu
+  ui.createMenu("Menu")
     .addItem("Manage Subjects", "showAssignmentDialog")
     .addItem("Manage Advisory Classes", "showAdvisoryDialog")
     .addToUi();
