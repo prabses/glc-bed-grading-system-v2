@@ -1683,9 +1683,9 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl, userEmail);
     
     const subjectsList = subjects.join(', ');
-    const studentCountMsg = students.length > 0 ? `\nStudents: ${students.length} students loaded from STUDENTS DB` : '\nStudents: No students found (template generated with blank rows)';
-    const advisorSheetsMsg = isAdvisor ? '\nAttendance, Characters, and QR sheets included (teacher is advisor for this class)' : '';
-    const message = `OGS Template generated successfully!\n\nFolder: ${folderName}\nTemplate: ${templateFileName}\nSchool Year: ${schoolYear}\nGrade Level: ${gradeLevel}\nSection: ${section}\nTeacher: ${teacher}${studentCountMsg}${advisorSheetsMsg}\n\nSubjects (${subjects.length} sheets):\n${subjects.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+    const studentCountMsg = students.length > 0 ? ` (${students.length} students)` : '';
+    const advisorSheetsMsg = isAdvisor ? ' (Advisor sheets included)' : '';
+    const message = `Template generated: ${templateFileName}${studentCountMsg}${advisorSheetsMsg}`;
     
     return { 
       success: true, 
@@ -2165,7 +2165,7 @@ function _deleteSubjectsBatch(subjects) {
     
     // Early return if sheet only has headers
     if (lastRow <= 1 || !subjects || subjects.length === 0) {
-      return { success: true, message: 'No subjects to delete', deleted: 0, failed: 0 };
+      return { success: true, message: CONFIG.MESSAGES.SUCCESS.NO_SUBJECTS_TO_DELETE, deleted: 0, failed: 0 };
     }
     
     // OPTIMIZATION 1: Read all data once
@@ -2354,7 +2354,7 @@ function _addAdvisory(teacher, gradeLevel, section, userEmail) {
     }
     
     const deactivateMsg = rowsToDeactivate.length > 0 
-      ? ` Previous advisory(ies) set to Inactive.` 
+      ? ` (Previous advisory set to Inactive)` 
       : '';
     
     return { 

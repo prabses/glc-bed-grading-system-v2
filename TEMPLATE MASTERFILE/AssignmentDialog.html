@@ -686,11 +686,7 @@
             deleteBtn.disabled = false;
             
             if (result.success) {
-              if (result.failed > 0) {
-                alert(`⚠️ Deleted ${result.deleted} assignment(s). ${result.failed} not found or failed.`);
-              } else {
-                alert(`✅ Successfully deleted ${result.deleted} assignment(s).`);
-              }
+              alert(`✅ ${result.message}`);
             } else {
               alert(`❌ Error: ${result.message}`);
             }

@@ -118,14 +118,15 @@ const CONFIG = {
   MESSAGES: {
     // Success messages
     SUCCESS: {
-      ASSIGNMENT_ADDED: 'Assignment added successfully',
-      ASSIGNMENT_UPDATED: 'Assignment updated successfully',
-      ASSIGNMENT_DELETED: 'Assignment deleted successfully',
-      SUBJECTS_BATCH_ADDED: 'Successfully processed {total} assignment(s): {added} added, {updated} updated',
-      SUBJECTS_BATCH_DELETED: 'Successfully deleted {count} assignment(s)',
-      ADVISORY_ADDED: 'Advisory added successfully.{deactivateMsg}',
-      ADVISORY_DELETED: 'Advisory deleted successfully',
-      ADVISORIES_BATCH_DELETED: 'Successfully deleted {count} advisory(ies)'
+      ASSIGNMENT_ADDED: 'Subject assigned',
+      ASSIGNMENT_UPDATED: 'Subject updated',
+      ASSIGNMENT_DELETED: 'Subject removed',
+      SUBJECTS_BATCH_ADDED: '{total} subject(s) added',
+      SUBJECTS_BATCH_DELETED: '{count} subject(s) removed',
+      NO_SUBJECTS_TO_DELETE: 'No subjects to delete',
+      ADVISORY_ADDED: 'Advisory assigned{deactivateMsg}',
+      ADVISORY_DELETED: 'Advisory removed',
+      ADVISORIES_BATCH_DELETED: '{count} advisory(ies) removed'
     },
     
     // Error messages

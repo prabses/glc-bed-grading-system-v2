@@ -655,10 +655,10 @@
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
-              alert('✅ Success!\n\n' + result.message);
+              alert('✅ ' + result.message);
               google.script.host.close();
             } else {
-              alert('❌ Generation Failed!\n\n' + result.message);
+              alert('❌ ' + result.message);
               submitButton.textContent = originalText;
               submitButton.disabled = false;
             }
