@@ -49,11 +49,11 @@ const CONFIG = {
   
   // Column mapping for GRADING_REF (0-based index)
   GRADING_COLUMNS: {
-    SUBJECT_NAME: 0,      // Column A
-    WRITTEN_WORK: 1,      // Column B
-    PERFORMANCE_TASK: 2,  // Column C
-    ASSESSMENT: 3,        // Column D
-    ACTIVE: 4             // Column E
+    SUBJECT_NAME: 1,      // Column B
+    WRITTEN_WORK: 2,      // Column C
+    PERFORMANCE_TASK: 3,  // Column D
+    ASSESSMENT: 4,        // Column E
+    ACTIVE: 5             // Column F
   },
   
   // Column mapping for SUBJECTS (0-based index)

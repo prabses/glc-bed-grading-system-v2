@@ -302,46 +302,47 @@ Teacher | Grade Level | Section | Status | Created | Modified | Created By
 
 ```
 Row 1 (Parent Header):
-┌─────────────────────────────────────────┐
-│         SUBJECT INFORMATION             │
-└─────────────────────────────────────────┘
-              Col A-B
+┌─────────────────────────────────────────────────────────┐
+│                    SUBJECT INFORMATION                  │
+└─────────────────────────────────────────────────────────┘
+                        Col A-C
 
 Row 2 (Column Headers):
-Subject Name | Active
+# | Subject Name | Active
 ```
 
 **Column Details:**
 
 | Column | Field Name    | Parent Header         | Description                    | Example         |
 |--------|---------------|-----------------------|--------------------------------|-----------------|
-| A      | Subject Name  | Subject Information   | Full subject name              | English 1       |
-| B      | Active        | Subject Information   | ✓ or blank (hide if inactive)  | ✓               |
+| A      | #             | Subject Information   | Row numbering (formula)        | 1               |
+| B      | Subject Name  | Subject Information   | Full subject name              | English 1       |
+| C      | Active        | Subject Information   | ✓ or blank (hide if inactive)  | ✓               |
 
 **Sample Data:**
 
 ```
-Row 1: SUBJECT INFORMATION (merged across A-B)
-Row 2: Subject Name      | Active
-Row 3: English 1         | ✓
-Row 4: Mathematics 1     | ✓
-Row 5: Filipino 7        | ✓
-Row 6: Science 1         | ✓
-Row 7: Physical Ed 1     | ✓
-Row 8: Chemistry 1       | ✓
-Row 9: Old Subject       |     ← Inactive, won't show in dialog
+Row 1: SUBJECT INFORMATION (merged across A-C)
+Row 2: # | Subject Name      | Active
+Row 3: 1 | English 1         | ✓
+Row 4: 2 | Mathematics 1     | ✓
+Row 5: 3 | Filipino 7        | ✓
+Row 6: 4 | Science 1         | ✓
+Row 7: 5 | Physical Ed 1     | ✓
+Row 8: 6 | Chemistry 1       | ✓
+Row 9: 7 | Old Subject       |     ← Inactive, won't show in dialog
 ```
 
 **Key Features:**
-- ✅ Ultra-minimal - just 2 columns
+- ✅ Ultra-minimal - just 3 columns (numbering + 2 data columns)
 - ✅ Easy to add new subjects (just type name + check mark)
 - ✅ Inactive subjects remain for historical reference
-- ✅ Dialog only shows active subjects (✓ in column B)
+- ✅ Dialog only shows active subjects (✓ in column C)
 - ✅ No unnecessary metadata
 
 **Usage:**
-- Scripts read column A for dropdown list in dialog
-- Only rows where column B = "✓" appear in dialog
+- Scripts read column B (Subject Name) for dropdown list in dialog
+- Only rows where column C (Active) = "✓" appear in dialog
 
 ---
 
@@ -355,47 +356,48 @@ Row 9: Old Subject       |     ← Inactive, won't show in dialog
 
 ```
 Row 1 (Parent Header):
-┌─────────────────────────────────────────────────────────────┐
-│              TEACHER INFORMATION                         │
-└─────────────────────────────────────────────────────────────┘
-                     Col A-C
+┌─────────────────────────────────────────────────────────────────────┐
+│                      TEACHER INFORMATION                          │
+└─────────────────────────────────────────────────────────────────────┘
+                            Col A-D
 
 Row 2 (Column Headers):
-Full Name | Email Address | Active
+# | Full Name | Email Address | Active
 ```
 
 **Column Details:**
 
 | Column | Field Name    | Parent Header           | Description                      | Example              |
 |--------|---------------|-------------------------|----------------------------------|----------------------|
-| A      | Full Name     | Teacher Information  | Full name of teacher          | Rojo, R.             |
-| B      | Email Address | Teacher Information  | Official email address           | rojo@school.edu      |
-| C      | Active        | Teacher Information  | ✓ or blank (hide if inactive)    | ✓                    |
+| A      | #             | Teacher Information     | Row numbering (formula)         | 1                    |
+| B      | Full Name     | Teacher Information  | Full name of teacher          | Rojo, R.             |
+| C      | Email Address | Teacher Information  | Official email address           | rojo@school.edu      |
+| D      | Active        | Teacher Information  | ✓ or blank (hide if inactive)    | ✓                    |
 
 **Sample Data:**
 
 ```
-Row 1: TEACHER INFORMATION (merged across A-C)
-Row 2: Full Name        | Email Address        | Active
-Row 3: Rojo, R.         | rojo@school.edu      | ✓
-Row 4: Cruz, Maria A.   | mcruz@school.edu     | ✓
-Row 5: Santos, John P.  | jsantos@school.edu   | ✓
-Row 6: Garcia, Ana M.   | agarcia@school.edu   |     ← On leave, inactive
-Row 7: Reyes, Pedro S.  | preyes@school.edu    | ✓
-Row 8: Lopez, Carmen D. | clopez@school.edu    | ✓
+Row 1: TEACHER INFORMATION (merged across A-D)
+Row 2: # | Full Name        | Email Address        | Active
+Row 3: 1 | Rojo, R.         | rojo@school.edu      | ✓
+Row 4: 2 | Cruz, Maria A.   | mcruz@school.edu     | ✓
+Row 5: 3 | Santos, John P.  | jsantos@school.edu   | ✓
+Row 6: 4 | Garcia, Ana M.   | agarcia@school.edu   |     ← On leave, inactive
+Row 7: 5 | Reyes, Pedro S.  | preyes@school.edu    | ✓
+Row 8: 6 | Lopez, Carmen D. | clopez@school.edu    | ✓
 ```
 
 **Key Features:**
-- ✅ Simple - just 3 columns (name, email, active)
+- ✅ Simple - just 4 columns (numbering + 3 data columns)
 - ✅ Easy to add new teachers
 - ✅ Email captured for communication/notifications
 - ✅ Inactive teachers stay for historical reference
-- ✅ Dialog only shows active teachers (✓ in column C)
+- ✅ Dialog only shows active teachers (✓ in column D)
 
 **Usage:**
-- Scripts read column A for dropdown list in dialog
-- Email (column B) can be used for auto-notifications
-- Only rows where column C = "✓" appear in dialog
+- Scripts read column B (Full Name) for dropdown list in dialog
+- Email (column C) can be used for auto-notifications
+- Only rows where column D (Active) = "✓" appear in dialog
 
 ---
 
@@ -409,44 +411,45 @@ Row 8: Lopez, Carmen D. | clopez@school.edu    | ✓
 
 ```
 Row 1 (Parent Header):
-┌─────────────────────────────────────────┐
-│         SECTION INFORMATION             │
-└─────────────────────────────────────────┘
-              Col A-C
+┌─────────────────────────────────────────────────────────┐
+│                    SECTION INFORMATION                  │
+└─────────────────────────────────────────────────────────┘
+                        Col A-D
 
 Row 2 (Column Headers):
-Grade Level | Section | Level
+# | Grade Level | Section | Level
 ```
 
 **Column Details:**
 
 | Column | Field Name    | Parent Header        | Description                    | Example        |
 |--------|---------------|----------------------|--------------------------------|----------------|
-| A      | Grade Level   | Section Information  | Grade level (number only: 1, 2, 3, etc.) | 1        |
-| B      | Section       | Section Information  | Section letter (A, B, C, etc.) | A              |
-| C      | Level         | Section Information  | School level (Elementary/JHS/SHS) | Elementary   |
+| A      | #             | Section Information  | Row numbering (formula)        | 1              |
+| B      | Grade Level   | Section Information  | Grade level (number only: 1, 2, 3, etc.) | 1        |
+| C      | Section       | Section Information  | Section letter (A, B, C, etc.) | A              |
+| D      | Level         | Section Information  | School level (Elementary/JHS/SHS) | Elementary   |
 
-**⚠️ IMPORTANT:** Column A (Grade Level) should contain **only the number** (1, 2, 3, 4, etc.), **NOT** "Grade 1" or "Grade 2". The system will automatically format it as "Grade 1", "Grade 2" for display in the UI.
+**⚠️ IMPORTANT:** Column B (Grade Level) should contain **only the number** (1, 2, 3, 4, etc.), **NOT** "Grade 1" or "Grade 2". The system will automatically format it as "Grade 1", "Grade 2" for display in the UI.
 
 **Sample Data:**
 
 ```
-Row 1: SECTION INFORMATION (merged across A-C)
-Row 2: Grade Level | Section | Level
-Row 3: 1           | A       | Elementary
-Row 4: 1           | B       | Elementary
-Row 5: 1           | C       | Elementary
-Row 6: 7           | A       | JHS
-Row 7: 7           | B       | JHS
-Row 8: 7           | C       | JHS
-Row 9: 11           | A       | SHS
-Row 10: 11          | B       | SHS
-Row 11: 11          | C       | SHS
-Row 12: 12          | A       | SHS
+Row 1: SECTION INFORMATION (merged across A-D)
+Row 2: # | Grade Level | Section | Level
+Row 3: 1 | 1           | A       | Elementary
+Row 4: 2 | 1           | B       | Elementary
+Row 5: 3 | 1           | C       | Elementary
+Row 6: 4 | 7           | A       | JHS
+Row 7: 5 | 7           | B       | JHS
+Row 8: 6 | 7           | C       | JHS
+Row 9: 7 | 11          | A       | SHS
+Row 10: 8 | 11          | B       | SHS
+Row 11: 9 | 11          | C       | SHS
+Row 12: 10 | 12          | A       | SHS
 ```
 
 **Key Features:**
-- ✅ Simple - just 3 columns (Grade Level, Section, Level)
+- ✅ Simple - just 4 columns (numbering + 3 data columns)
 - ✅ Easy to add sections for new school year
 - ✅ Sections are just letters (A, B, C, etc.) for simplicity
 - ✅ Level tagging (Elementary, JHS, SHS) used for template file naming
@@ -478,34 +481,35 @@ Row 12: 12          | A       | SHS
 
 ```
 Row 1 (Parent Header):
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        GRADING COMPONENTS (%)                               │
-└─────────────────────────────────────────────────────────────────────────────┘
-                              Col A-E (merged)
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            GRADING COMPONENTS (%)                               │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                  Col A-F (merged)
 
 Row 2 (Column Headers):
-Subject Name | Written Work | Performance Task | Assessment | Active
+# | Subject Name | Written Work | Performance Task | Assessment | Active
 ```
 
 **Column Details:**
 
 | Column | Field Name       | Parent Header        | Description                                      | Example           |
 |--------|------------------|----------------------|--------------------------------------------------|-------------------|
-| A      | Subject Name     | Grading Components   | "DEFAULT" or specific subject name               | DEFAULT           |
-| B      | Written Work     | Grading Components   | Percentage weight for Written Work               | 30                |
-| C      | Performance Task | Grading Components   | Percentage weight for Performance Task           | 50                |
-| D      | Assessment       | Grading Components   | Percentage weight for Assessment                 | 20                |
-| E      | Active           | Grading Components   | ✓ or blank                                       | ✓                 |
+| A      | #                | Grading Components   | Row numbering (formula)                          | 1                 |
+| B      | Subject Name     | Grading Components   | "DEFAULT" or specific subject name               | DEFAULT           |
+| C      | Written Work     | Grading Components   | Percentage weight for Written Work               | 30                |
+| D      | Performance Task | Grading Components   | Percentage weight for Performance Task           | 50                |
+| E      | Assessment       | Grading Components   | Percentage weight for Assessment                 | 20                |
+| F      | Active           | Grading Components   | ✓ or blank                                       | ✓                 |
 
 **Sample Data (Dynamic Configuration):**
 
 ```
-Row 1: GRADING COMPONENTS (%) (merged A-E)
-Row 2: Subject Name     | Written Work | Performance Task | Assessment | Active
-Row 3: DEFAULT          | 30           | 50               | 20         | ✓
-Row 4: Physical Ed 1    | 20           | 60               | 20         | ✓
-Row 5: Mathematics 1    | 30           | 40               | 30         | ✓
-Row 6: English 1        | 35           | 45               | 20         | ✓
+Row 1: GRADING COMPONENTS (%) (merged A-F)
+Row 2: # | Subject Name     | Written Work | Performance Task | Assessment | Active
+Row 3: 1 | DEFAULT          | 30           | 50               | 20         | ✓
+Row 4: 2 | Physical Ed 1    | 20           | 60               | 20         | ✓
+Row 5: 3 | Mathematics 1    | 30           | 40               | 30         | ✓
+Row 6: 4 | English 1        | 35           | 45               | 20         | ✓
 ```
 
 **Note:** All weights should add up to 100%
@@ -535,7 +539,7 @@ When generating template for "Filipino 7":
 - ✅ **Flexible weights** - Different percentages per subject
 - ✅ **Easy to update** - Change percentages anytime, takes effect immediately
 - ✅ **Dynamic application** - Scripts auto-select correct weights for each subject
-- ✅ **Simplified structure** - Only 5 columns, subject-based matching
+- ✅ **Simplified structure** - Only 6 columns (numbering + 5 data columns), subject-based matching
 - ✅ **Historical tracking** - Inactive rows preserved
 - ✅ **Always valid** - Must have DEFAULT row as fallback
 
@@ -575,38 +579,39 @@ Student | Last Name | First Name | Written Work (30%) | Performance Task (50%) |
 
 ```
 Row 1 (Parent Header):
-┌─────────────────────────────────────────────────────────────┐
-│                  MONTHLY SCHOOL DAYS INFORMATION            │
-└─────────────────────────────────────────────────────────────┘
-                          Col A-C
+┌─────────────────────────────────────────────────────────────────────┐
+│                    MONTHLY SCHOOL DAYS INFORMATION                │
+└─────────────────────────────────────────────────────────────────────┘
+                            Col A-D
 
 Row 2 (Column Headers):
-School Year | Month | Number of School Days
+# | School Year | Month | Number of School Days
 ```
 
 **Column Details:**
 
 | Column | Field Name         | Parent Header         | Description                                    | Example                  |
 |--------|-------------------|-----------------------|------------------------------------------------|--------------------------|
-| A      | School Year       | Monthly School Days   | School year this applies to                    | 2024-2025                |
-| B      | Month             | Monthly School Days   | Month name (full or abbreviated)              | June                     |
-| C      | Number of School Days | Monthly School Days | Total school days for this month              | 22                       |
+| A      | #                 | Monthly School Days   | Row numbering (formula)                        | 1                        |
+| B      | School Year       | Monthly School Days   | School year this applies to                    | 2024-2025                |
+| C      | Month             | Monthly School Days   | Month name (full or abbreviated)              | June                     |
+| D      | Number of School Days | Monthly School Days | Total school days for this month              | 22                       |
 
 **Sample Data:**
 
 ```
-Row 1: MONTHLY SCHOOL DAYS INFORMATION (merged across A-C)
-Row 2: School Year | Month  | Number of School Days
-Row 3: 2024-2025   | June    | 22
-Row 4: 2024-2025   | July    | 23
-Row 5: 2024-2025   | August  | 21
-Row 6: 2024-2025   | September | 20
-Row 5: 2024-2025   | October | 22
-Row 6: 2024-2025   | November | 19
-Row 7: 2024-2025   | December | 15
-Row 8: 2024-2025   | January | 22
-Row 9: 2024-2025   | February | 20
-Row 10: 2024-2025  | March   | 22
+Row 1: MONTHLY SCHOOL DAYS INFORMATION (merged across A-D)
+Row 2: # | School Year | Month  | Number of School Days
+Row 3: 1 | 2024-2025   | June    | 22
+Row 4: 2 | 2024-2025   | July    | 23
+Row 5: 3 | 2024-2025   | August  | 21
+Row 6: 4 | 2024-2025   | September | 20
+Row 7: 5 | 2024-2025   | October | 22
+Row 8: 6 | 2024-2025   | November | 19
+Row 9: 7 | 2024-2025   | December | 15
+Row 10: 8 | 2024-2025   | January | 22
+Row 11: 9 | 2024-2025   | February | 20
+Row 12: 10 | 2024-2025  | March   | 22
 ```
 
 **Key Features:**
@@ -638,36 +643,37 @@ Row 10: 2024-2025  | March   | 22
 
 ```
 Row 1 (Parent Header):
-┌─────────────────────────────────────────┐
-│         CHARACTER TRAITS INFORMATION   │
-└─────────────────────────────────────────┘
-              Col A-B
+┌─────────────────────────────────────────────────────────┐
+│              CHARACTER TRAITS INFORMATION              │
+└─────────────────────────────────────────────────────────┘
+                        Col A-C
 
 Row 2 (Column Headers):
-Trait Name | Active
+# | Trait Name | Active
 ```
 
 **Column Details:**
 
 | Column | Field Name    | Parent Header         | Description                    | Example         |
 |--------|---------------|-----------------------|--------------------------------|-----------------|
-| A      | Trait Name    | Character Traits Info  | Full trait name                 | Respect         |
-| B      | Active        | Character Traits Info  | ✓ or blank (hide if inactive)  | ✓               |
+| A      | #             | Character Traits Info | Row numbering (formula)        | 1               |
+| B      | Trait Name    | Character Traits Info  | Full trait name                 | Respect         |
+| C      | Active        | Character Traits Info  | ✓ or blank (hide if inactive)  | ✓               |
 
 **Sample Data:**
 
 ```
-Row 1: CHARACTER TRAITS INFORMATION (merged across A-B)
-Row 2: Trait Name      | Active
-Row 3: Respect         | ✓
-Row 4: Responsibility  | ✓
-Row 5: Honesty         | ✓
-Row 6: Cooperation     | ✓
-Row 7: Old Trait       |     ← Inactive, won't show in templates
+Row 1: CHARACTER TRAITS INFORMATION (merged across A-C)
+Row 2: # | Trait Name      | Active
+Row 3: 1 | Respect         | ✓
+Row 4: 2 | Responsibility  | ✓
+Row 5: 3 | Honesty         | ✓
+Row 6: 4 | Cooperation     | ✓
+Row 7: 5 | Old Trait       |     ← Inactive, won't show in templates
 ```
 
 **Key Features:**
-- ✅ Simple two-column structure (Trait Name, Active)
+- ✅ Simple three-column structure (numbering + Trait Name, Active)
 - ✅ Managed like SUBJECTS_REF
 - ✅ Only active traits are used in OGS template Characters sheet
 - ✅ Easy to add/remove traits by adding rows and marking Active
@@ -713,15 +719,15 @@ Row 7: Old Trait       |     ← Inactive, won't show in templates
 
 **Example for SUBJECTS_REF:**
 ```
-Row 1: Merge cells A1:B1, type "SUBJECT INFORMATION"
-Row 2: Cell A2 = "Subject Name", Cell B2 = "Active"
+Row 1: Merge cells A1:C1, type "SUBJECT INFORMATION"
+Row 2: Cell A2 = "#", Cell B2 = "Subject Name", Cell C2 = "Active"
 ```
 
 **Example for GRADING_REF:**
 ```
 Row 1: 
-  - Merge A1:E1 = "GRADING COMPONENTS (%)"
-Row 2: Subject Name | Written Work | Performance Task | Assessment | Active
+  - Merge A1:F1 = "GRADING COMPONENTS (%)"
+Row 2: # | Subject Name | Written Work | Performance Task | Assessment | Active
 ```
 
 ### **Step 3: Add Initial Data**
@@ -1286,10 +1292,10 @@ For questions or issues with this structure:
 | MASTER_DATA             | 8       | ❌ Protected  | OGS template generation records        |
 | SUBJECTS             | 8       | ❌ Protected  | Teacher-grade-section-subject subjects |
 | ADVISORY                | 7       | ❌ Protected  | Teacher advisory class subjects  |
-| SUBJECTS_REF      | 2       | ✅ Yes        | Subject names                          |
-| TEACHERS_REF   | 3       | ✅ Yes        | Teachers + emails                   |
-| SECTIONS_REF      | 3       | ✅ Yes        | Grade levels, sections & level tags   |
-| GRADING_REF       | 5       | ✅ Yes        | Dynamic grading weights                |
-| ATTENDANCE_REF | 3       | ✅ Yes        | Monthly school days per school year   |
-| CHARACTERS_REF    | 2       | ✅ Yes        | Character traits list                 |
+| SUBJECTS_REF      | 3       | ✅ Yes        | Subject names                          |
+| TEACHERS_REF   | 4       | ✅ Yes        | Teachers + emails                   |
+| SECTIONS_REF      | 4       | ✅ Yes        | Grade levels, sections & level tags   |
+| GRADING_REF       | 6       | ✅ Yes        | Dynamic grading weights                |
+| ATTENDANCE_REF | 4       | ✅ Yes        | Monthly school days per school year   |
+| CHARACTERS_REF    | 3       | ✅ Yes        | Character traits list                 |
 

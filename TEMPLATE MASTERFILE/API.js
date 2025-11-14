@@ -265,9 +265,9 @@ function _getLevelForGrade(gradeLevel) {
   
   // Skip 2 header rows (parent header + column headers)
   for (let i = CONFIG.HEADER_ROWS; i < data.length; i++) {
-    const rowGradeLevel = _normalizeGradeLevel(data[i][0]);
-    if (rowGradeLevel === normalizedGradeLevel && data[i][2]) {
-      return data[i][2]; // Column C (Level)
+    const rowGradeLevel = _normalizeGradeLevel(data[i][1]);
+    if (rowGradeLevel === normalizedGradeLevel && data[i][3]) {
+      return data[i][3];
     }
   }
   
@@ -651,11 +651,10 @@ function _getTeacherEmail(teacherName) {
     const startRow = CONFIG.DATA_START_ROW - 1; // Convert to 0-based index (row 3 = index 2)
     const dataRows = data.slice(startRow);
     
-    // Find teacher by name (column A = 0, Email = column B = 1)
-    const match = dataRows.find(row => row[0] === teacherName);
+    const match = dataRows.find(row => row[1] === teacherName);
     
-    if (match && match[1]) {
-      return match[1].toString().trim(); // Return email (column B)
+    if (match && match[2]) {
+      return match[2].toString().trim(); // Return email (Column C)
     }
     
     return '';
@@ -826,9 +825,9 @@ function _getMonthlySchoolDays(schoolYear) {
     
     // Filter by school year and build month -> days mapping
     dataRows.forEach(row => {
-      const rowSchoolYear = row[0]; // Column A: School Year
-      const month = row[1]; // Column B: Month
-      const days = row[2]; // Column C: Number of School Days
+      const rowSchoolYear = row[1]; // Column B: School Year
+      const month = row[2]; // Column C: Month
+      const days = row[3]; // Column D: Number of School Days
       
       if (rowSchoolYear === schoolYear && month && days) {
         // Normalize month name (handle variations like "June", "Jun", etc.)
@@ -1034,7 +1033,7 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
  */
 function _getActiveTraits() {
   try {
-    return _getActiveItems(CONFIG.SHEET_NAMES.CHARACTERS_REF, 0);
+    return _getActiveItems(CONFIG.SHEET_NAMES.CHARACTERS_REF, 1);
   } catch (error) {
     console.error('Error getting active traits:', error);
     return [];

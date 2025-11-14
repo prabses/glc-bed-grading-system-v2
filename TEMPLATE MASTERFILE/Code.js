@@ -61,7 +61,7 @@ function showAssignmentDialog() {
  * @return {Array} Array of active subject names
  */
 function getActiveSubjects() {
-  return getActiveItems(CONFIG.SHEET_NAMES.SUBJECTS_REF, 0);
+  return getActiveItems(CONFIG.SHEET_NAMES.SUBJECTS_REF, 1);
 }
 
 /**
@@ -69,7 +69,7 @@ function getActiveSubjects() {
  * @return {Array} Array of active teacher names
  */
 function getActiveTeachers() {
-  return getActiveItems(CONFIG.SHEET_NAMES.TEACHERS_REF, 0);
+  return getActiveItems(CONFIG.SHEET_NAMES.TEACHERS_REF, 1);
 }
 
 /**
@@ -264,11 +264,11 @@ function getGradeLevels() {
       return []; // No data rows
     }
     
-    // OPTIMIZATION 1: Only read column A (Grade Level - stores just numbers)
+    // OPTIMIZATION 1: Only read column B (Grade Level - stores just numbers)
     const maxRows = Math.min(lastRow, CONFIG.HEADER_ROWS + 1000);
     const startRow = CONFIG.HEADER_ROWS + 1;
     const numRows = maxRows - CONFIG.HEADER_ROWS;
-    const data = sheet.getRange(startRow, 1, numRows, 1).getValues(); // Only column A
+    const data = sheet.getRange(startRow, 2, numRows, 1).getValues();
     
     // OPTIMIZATION 2: Use Set for O(1) duplicate detection
     const gradeLevelSet = new Set();
@@ -323,10 +323,10 @@ function getSectionsForGrade(gradeLevel) {
       return [];
     }
     
-    // OPTIMIZATION 1: Only read columns A-B (Grade Level, Section)
+    // OPTIMIZATION 1: Only read columns B-C (Grade Level, Section)
     const startRow = CONFIG.HEADER_ROWS + 1;
     const numRows = lastRow - CONFIG.HEADER_ROWS;
-    const data = sheet.getRange(startRow, 1, numRows, 2).getValues();
+    const data = sheet.getRange(startRow, 2, numRows, 2).getValues();
     
     // OPTIMIZATION 2: Use Set for O(1) duplicate detection and faster lookups
     const sectionSet = new Set();
@@ -335,7 +335,7 @@ function getSectionsForGrade(gradeLevel) {
     // OPTIMIZATION 3: Single pass with efficient condition and duplicate prevention
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
-      const rowGradeLevel = normalizeGradeLevel(String(row[0] || '').trim()); // Normalize for comparison
+      const rowGradeLevel = normalizeGradeLevel(String(row[0] || '').trim());
       const section = String(row[1] || '').trim();
       
       // Match grade level (both normalized) and ensure section exists and not already added
@@ -370,9 +370,9 @@ function getLevelForGrade(gradeLevel) {
   
   // Skip 2 header rows (parent header + column headers)
   for (let i = CONFIG.HEADER_ROWS; i < data.length; i++) {
-    const rowGradeLevel = normalizeGradeLevel(String(data[i][0] || '').trim());
-    if (rowGradeLevel === normalizedGradeLevel && data[i][2]) {
-      return data[i][2]; // Column C (Level)
+    const rowGradeLevel = normalizeGradeLevel(String(data[i][1] || '').trim());
+    if (rowGradeLevel === normalizedGradeLevel && data[i][3]) {
+      return data[i][3];
     }
   }
   
