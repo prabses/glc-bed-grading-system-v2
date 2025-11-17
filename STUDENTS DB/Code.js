@@ -119,8 +119,8 @@ function parseCSVLine(line) {
  */
 function showUpdateDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("StudentUpdateDialog")
-    .setWidth(500)
-    .setHeight(600)
+    .setWidth(1200)
+    .setHeight(650)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Update Student Information");
