@@ -5,25 +5,62 @@
     <meta charset="utf-8" />
     <title>Manage Subjects</title>
     <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
+      
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        margin: 0;
         padding: 20px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        box-sizing: border-box;
+        height: 100%;
+        overflow: hidden;
       }
 
       .container {
         background: white;
         border-radius: 12px;
-        padding: 30px;
+        padding: 22px 28px 18px 28px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        margin: 0;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
         max-width: 100%;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        z-index: 1;
+      }
+
+      .container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
       }
 
       .header {
         text-align: center;
-        margin-bottom: 25px;
+        margin-bottom: 16px;
+        flex-shrink: 0;
+      }
+      
+      .header p {
+        margin-bottom: 0;
+        margin-top: 4px;
       }
 
       .header h2 {
@@ -33,8 +70,53 @@
         margin: 0 0 8px 0;
       }
 
+      .header p {
+        color: #666;
+        font-size: 15px;
+        margin: 0;
+      }
+
+      .main-content {
+        display: flex;
+        gap: 20px;
+        flex: 1;
+        overflow: hidden;
+        min-height: 0;
+        align-items: stretch;
+        position: relative;
+      }
+
+      .form-section {
+        flex: 0 0 280px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        min-height: 0;
+        max-height: 100%;
+      }
+
+      .subjects-selection-section {
+        flex: 0 0 300px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        min-height: 0;
+        max-height: 100%;
+      }
+
+      .list-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+      }
+
       .form-group {
-        margin-bottom: 18px;
+        margin-bottom: 14px;
+        flex-shrink: 0;
       }
 
       .form-label {
@@ -59,39 +141,75 @@
         outline: none;
         border-color: #667eea;
         background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .form-control:disabled {
+        background: #e9ecef;
+        color: #6c757d;
+        cursor: not-allowed;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 12px;
+        margin-top: auto;
+        padding-top: 12px;
+        flex-shrink: 0;
       }
 
       .btn {
-        padding: 12px 24px;
+        flex: 1;
+        padding: 12px 20px;
         border: none;
         border-radius: 8px;
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 500;
         cursor: pointer;
         transition: all 0.3s ease;
+        white-space: nowrap;
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
       }
 
       .btn-primary {
-        background: #667eea;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
       }
 
       .btn-primary:hover {
-        background: #5568d3;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
       }
 
       .btn-secondary {
-        background: #6c757d;
-        color: white;
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 2px solid #e9ecef;
+      }
+
+      .btn-secondary:hover {
+        background: #e9ecef;
+        color: #495057;
+      }
+
+      .divider {
+        width: 1px;
+        background: #e1e5e9;
+        flex-shrink: 0;
       }
 
       .subjects-list {
-        margin-top: 20px;
-        max-height: 300px;
+        flex: 1;
         overflow-y: auto;
-        border: 1px solid #e1e5e9;
+        border: 2px solid #e1e5e9;
         border-radius: 8px;
         padding: 10px;
+        background: #fafbfc;
+        min-height: 0;
       }
 
       .assignment-item {
@@ -156,6 +274,7 @@
         background: #f8f9fa;
         border-radius: 6px;
         border: 1px solid #e1e5e9;
+        flex-shrink: 0;
       }
 
       .select-all-container {
@@ -191,12 +310,12 @@
       }
 
       .subjects-container {
-        max-height: 200px;
         overflow-y: auto;
         border: 2px solid #e1e5e9;
         border-radius: 8px;
         padding: 10px;
         background: #fafbfc;
+        min-height: 0;
       }
 
       .subject-checkbox {
@@ -234,10 +353,10 @@
         border: 2px solid #e1e5e9;
         border-top: none;
         border-radius: 0 0 8px 8px;
-        max-height: 200px;
+        max-height: 300px;
         overflow-y: auto;
-        z-index: 1000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         margin-top: -2px;
       }
 
@@ -280,78 +399,93 @@
         <p>Assign teachers to grade levels, sections, and subjects</p>
       </div>
 
-      <form id="assignmentForm">
-        <div class="form-group">
-          <label class="form-label" for="gradeLevel">
-            Grade Level <span style="color: #e74c3c;">*</span>
-          </label>
-          <select id="gradeLevel" class="form-control" required>
-            <option value="">Select grade level...</option>
-          </select>
+      <div class="main-content">
+        <!-- Left Section: Form Fields -->
+        <div class="form-section">
+          <form id="assignmentForm" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
+            <div class="form-group">
+              <label class="form-label" for="gradeLevel">
+                Grade Level <span style="color: #e74c3c;">*</span>
+              </label>
+              <select id="gradeLevel" class="form-control" required>
+                <option value="">Select grade level...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="section">
+                Section <span style="color: #e74c3c;">*</span>
+              </label>
+              <select id="section" class="form-control" required disabled>
+                <option value="">Select grade level first...</option>
+              </select>
+            </div>
+
+            <div class="form-group form-group-autocomplete">
+              <label class="form-label" for="teacher">
+                Teacher <span style="color: #e74c3c;">*</span>
+              </label>
+              <input
+                type="text"
+                id="teacher"
+                class="form-control"
+                placeholder="Type to search teacher..."
+                autocomplete="off"
+                required
+              />
+              <div id="teacherDropdown" class="autocomplete-dropdown" style="display: none;"></div>
+            </div>
+
+            <div class="button-group">
+              <button type="submit" class="btn btn-primary">
+                Add Subject
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="google.script.host.close()">
+                Close
+              </button>
+            </div>
+          </form>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="section">
-            Section <span style="color: #e74c3c;">*</span>
-          </label>
-          <select id="section" class="form-control" required disabled>
-            <option value="">Select grade level first...</option>
-          </select>
-        </div>
+        <!-- Vertical Divider 1 -->
+        <div class="divider" id="divider1"></div>
 
-        <div class="form-group form-group-autocomplete">
-          <label class="form-label" for="teacher">
-            Teacher <span style="color: #e74c3c;">*</span>
-          </label>
-          <input
-            type="text"
-            id="teacher"
-            class="form-control"
-            placeholder="Type to search teacher..."
-            autocomplete="off"
-            required
-          />
-          <div id="teacherDropdown" class="autocomplete-dropdown" style="display: none;"></div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">
+        <!-- Middle Section: Subjects Selection -->
+        <div class="subjects-selection-section">
+          <label class="form-label" style="margin-bottom: 10px; flex-shrink: 0;">
             Subjects <span style="color: #e74c3c;">*</span>
           </label>
-          <div id="subjectsCheckboxesContainer" class="subjects-container">
+          <div id="subjectsCheckboxesContainer" class="subjects-container" style="flex: 1; min-height: 0;">
             <p style="text-align: center; color: #6c757d; margin: 0;">Loading subjects...</p>
           </div>
         </div>
 
-        <div style="display: flex; gap: 10px;">
-          <button type="submit" class="btn btn-primary" style="flex: 1;">
-            Add Subject
-          </button>
-          <button type="button" class="btn btn-secondary" onclick="google.script.host.close()">
-            Close
-          </button>
-        </div>
-      </form>
+        <!-- Vertical Divider 2 -->
+        <div class="divider" id="divider2" style="display: none;"></div>
 
-      <div id="subjectsContainer" style="display: none;">
-        <div class="subjects-header">
-          <div class="select-all-container">
-            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
-            <label for="selectAllCheckbox">Select All</label>
+        <!-- Right Section: Existing Subjects List -->
+        <div class="list-section">
+          <div id="subjectsContainer" style="display: none; flex: 1; flex-direction: column; min-height: 0;">
+            <div class="subjects-header">
+              <div class="select-all-container">
+                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                <label for="selectAllCheckbox">Select All</label>
+              </div>
+              <div class="delete-actions">
+                <span class="selected-count" id="selectedCount">0 selected</span>
+                <button class="btn-delete" id="deleteSelectedBtn" onclick="deleteSelectedSubjects()" disabled>
+                  Delete Selected
+                </button>
+              </div>
+            </div>
+            <div class="subjects-list" id="subjectsList">
+              <p style="text-align: center; color: #6c757d;">Select grade level and section to view subjects</p>
+            </div>
           </div>
-          <div class="delete-actions">
-            <span class="selected-count" id="selectedCount">0 selected</span>
-            <button class="btn-delete" id="deleteSelectedBtn" onclick="deleteSelectedSubjects()" disabled>
-              Delete Selected
-            </button>
+          <div id="subjectsPlaceholder" class="subjects-list" style="display: flex; flex: 1; flex-direction: column; min-height: 0;">
+            <p style="text-align: center; color: #6c757d; margin: auto;">Select grade level and section to view subjects</p>
           </div>
         </div>
-        <div class="subjects-list" id="subjectsList">
-          <p style="text-align: center; color: #6c757d;">Select grade level and section to view subjects</p>
-        </div>
-      </div>
-      <div id="subjectsPlaceholder" class="subjects-list">
-        <p style="text-align: center; color: #6c757d;">Select grade level and section to view subjects</p>
       </div>
     </div>
 
@@ -558,8 +692,12 @@
         // The subjects checkboxes (from SUBJECTS_REF) should always remain visible
         if (!gradeLevel || !section) {
           // Hide the existing assignments list, show placeholder
-          document.getElementById('subjectsContainer').style.display = 'none';
-          document.getElementById('subjectsPlaceholder').style.display = 'block';
+          const container = document.getElementById('subjectsContainer');
+          const placeholder = document.getElementById('subjectsPlaceholder');
+          const divider2 = document.getElementById('divider2');
+          if (container) container.style.display = 'none';
+          if (placeholder) placeholder.style.display = 'flex';
+          if (divider2) divider2.style.display = 'none';
           return;
         }
         
@@ -568,18 +706,27 @@
             const listDiv = document.getElementById('subjectsList');
             const container = document.getElementById('subjectsContainer');
             const placeholder = document.getElementById('subjectsPlaceholder');
+            const divider2 = document.getElementById('divider2');
             
             if (subjects.length === 0) {
-              container.style.display = 'none';
-              placeholder.style.display = 'block';
-              listDiv.innerHTML = '<p style="text-align: center; color: #6c757d;">No subjects found</p>';
+              if (container) container.style.display = 'none';
+              if (placeholder) {
+                placeholder.style.display = 'flex';
+                placeholder.innerHTML = '<p style="text-align: center; color: #6c757d; margin: auto;">No subjects found</p>';
+              }
+              if (divider2) divider2.style.display = 'none';
               return;
             }
             
-            placeholder.style.display = 'none';
-            container.style.display = 'block';
+            if (placeholder) placeholder.style.display = 'none';
+            if (container) {
+              container.style.display = 'flex';
+              container.style.flexDirection = 'column';
+              container.style.flex = '1';
+            }
+            if (divider2) divider2.style.display = 'block';
             
-            let html = '<h3 style="margin-top: 0; padding: 0 10px;">Current Subjects:</h3>';
+            let html = '';
             subjects.forEach(function(assignment, index) {
               const assignmentId = `assignment_${index}`;
               const assignmentData = JSON.stringify({
@@ -601,10 +748,11 @@
                 </div>
               `;
             });
-            listDiv.innerHTML = html;
+            if (listDiv) listDiv.innerHTML = html;
             
             // Reset select all checkbox and count
-            document.getElementById('selectAllCheckbox').checked = false;
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            if (selectAllCheckbox) selectAllCheckbox.checked = false;
             updateSelectedCount();
           })
           .withFailureHandler(function(error) {

@@ -49,7 +49,7 @@ function showAdvisoryDialog() {
 
 function showAssignmentDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("AssignmentDialog")
-    .setWidth(600)
+    .setWidth(1100)
     .setHeight(650)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
