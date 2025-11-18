@@ -30,7 +30,7 @@ function onOpen() {
 function showOGSTemplateDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("OGSTemplateDialog")
     .setWidth(500)
-    .setHeight(600)
+    .setHeight(650)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Generate OGS Template");
@@ -42,7 +42,7 @@ function showOGSTemplateDialog() {
 function showAdvisoryDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("AdvisoryDialog")
     .setWidth(600)
-    .setHeight(700)
+    .setHeight(650)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Manage Advisory Classes");
 }
@@ -50,7 +50,7 @@ function showAdvisoryDialog() {
 function showAssignmentDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("AssignmentDialog")
     .setWidth(600)
-    .setHeight(700)
+    .setHeight(650)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Manage Subjects");

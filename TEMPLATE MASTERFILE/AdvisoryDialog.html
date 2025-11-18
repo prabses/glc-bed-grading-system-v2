@@ -10,7 +10,12 @@
         margin: 0;
         padding: 20px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         min-height: 100vh;
+        overflow: hidden;
+        box-sizing: border-box;
       }
 
       .container {
@@ -18,7 +23,11 @@
         border-radius: 12px;
         padding: 30px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-        max-width: 100%;
+        max-width: 600px;
+        width: 100%;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+        box-sizing: border-box;
       }
 
       .header {
@@ -87,30 +96,22 @@
 
       .advisories-list {
         margin-top: 20px;
-        max-height: 300px;
-        overflow-y: auto;
-        border: 1px solid #e1e5e9;
-        border-radius: 8px;
-        padding: 10px;
       }
 
       .advisory-item {
-        padding: 10px;
-        border-bottom: 1px solid #e1e5e9;
+        padding: 16px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-      }
-
-      .advisory-item:last-child {
-        border-bottom: none;
+        background: #fafbfc;
+        border: 1px solid #e1e5e9;
+        border-radius: 8px;
       }
 
       .advisory-info {
         flex: 1;
-      }
-
-      .advisory-info strong {
+        font-size: 16px;
+        font-weight: 600;
         color: #333;
       }
 
@@ -131,84 +132,21 @@
         color: #6c757d;
       }
 
-      .advisories-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-        padding: 10px;
-        background: #f8f9fa;
-        border-radius: 8px;
-      }
 
-      .select-all-container {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .select-all-container input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-      }
-
-      .delete-actions {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-      }
-
-      .selected-count {
-        color: #6c757d;
-        font-size: 14px;
-      }
-
-      .btn-delete {
+      .advisory-item-delete {
         background: #dc3545;
         color: white;
-        padding: 8px 16px;
+        padding: 6px 14px;
         border: none;
         border-radius: 6px;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
         cursor: pointer;
         transition: background 0.3s;
       }
 
-      .btn-delete:hover:not(:disabled) {
+      .advisory-item-delete:hover {
         background: #c82333;
-      }
-
-      .btn-delete:disabled {
-        background: #ccc;
-        cursor: not-allowed;
-      }
-
-      .advisory-checkbox {
-        display: flex;
-        align-items: center;
-        padding: 8px;
-        margin: 4px 0;
-        border-radius: 4px;
-        transition: background 0.2s;
-      }
-
-      .advisory-checkbox:hover {
-        background: #e9ecef;
-      }
-
-      .advisory-checkbox input[type="checkbox"] {
-        margin-right: 10px;
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-      }
-
-      .advisory-checkbox label {
-        cursor: pointer;
-        flex: 1;
-        user-select: none;
       }
 
       .autocomplete-dropdown {
@@ -311,18 +249,6 @@
       </form>
 
       <div id="advisoriesContainer" style="display: none;">
-        <div class="advisories-header">
-          <div class="select-all-container">
-            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
-            <label for="selectAllCheckbox">Select All</label>
-          </div>
-          <div class="delete-actions">
-            <span class="selected-count" id="selectedCount">0 selected</span>
-            <button class="btn-delete" id="deleteSelectedBtn" onclick="deleteSelectedAdvisories()" disabled>
-              Delete Selected
-            </button>
-          </div>
-        </div>
         <div class="advisories-list" id="advisoriesList">
           <p style="text-align: center; color: #6c757d;">Select teacher to view advisories</p>
         </div>
@@ -416,7 +342,7 @@
 
           // Limit to 10 results for better UX
           const displayResults = filtered.slice(0, 10);
-          teacherDropdown.innerHTML = '';
+          const fragment = document.createDocumentFragment();
           
           displayResults.forEach(function(teacher) {
             const item = document.createElement('div');
@@ -426,10 +352,13 @@
               teacherInput.value = teacher;
               teacherDropdown.style.display = 'none';
               highlightedIndex = -1;
+              loadAdvisories();
             });
-            teacherDropdown.appendChild(item);
+            fragment.appendChild(item);
           });
-
+          
+          teacherDropdown.innerHTML = '';
+          teacherDropdown.appendChild(fragment);
           teacherDropdown.style.display = 'block';
         });
 
@@ -512,7 +441,7 @@
       }
 
       function loadAdvisories() {
-        const teacher = document.getElementById('teacher').value;
+        const teacher = document.getElementById('teacher').value.trim();
         
         if (!teacher) {
           document.getElementById('advisoriesContainer').style.display = 'none';
@@ -553,66 +482,34 @@
           return;
         }
         
-        // OPTIMIZATION: Use DocumentFragment for batch DOM operations
-        const fragment = document.createDocumentFragment();
+        // Since there's only one active advisory per teacher, display the first one
+        const advisory = activeAdvisories[0];
         
-        activeAdvisories.forEach(function(advisory) {
-          const checkboxDiv = document.createElement('div');
-          checkboxDiv.className = 'advisory-checkbox';
-          const advisoryKey = `${advisory.teacher}|||${advisory.gradeLevel}|||${advisory.section}`;
-          checkboxDiv.innerHTML = `
-            <input type="checkbox" id="advisory_${advisoryKey.replace(/\|\|\|/g, '_')}" 
-                   value="${advisoryKey}" 
-                   onchange="updateSelectedCount()">
-            <label for="advisory_${advisoryKey.replace(/\|\|\|/g, '_')}">
-              <strong>${advisory.gradeLevel}${advisory.section}</strong>
-            </label>
-          `;
-          fragment.appendChild(checkboxDiv);
+        const advisoryItem = document.createElement('div');
+        advisoryItem.className = 'advisory-item';
+        
+        const infoSpan = document.createElement('span');
+        infoSpan.className = 'advisory-info';
+        infoSpan.textContent = `${advisory.gradeLevel}${advisory.section}`;
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'advisory-item-delete';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', function() {
+          deleteAdvisory(advisory.teacher, advisory.gradeLevel, advisory.section);
         });
+        
+        advisoryItem.appendChild(infoSpan);
+        advisoryItem.appendChild(deleteBtn);
         
         list.innerHTML = '';
-        list.appendChild(fragment);
-        updateSelectedCount();
+        list.appendChild(advisoryItem);
       }
 
-      function toggleSelectAll() {
-        const selectAll = document.getElementById('selectAllCheckbox').checked;
-        const checkboxes = document.querySelectorAll('#advisoriesList input[type="checkbox"]');
-        checkboxes.forEach(function(checkbox) {
-          checkbox.checked = selectAll;
-        });
-        updateSelectedCount();
-      }
-
-      function updateSelectedCount() {
-        const checkboxes = document.querySelectorAll('#advisoriesList input[type="checkbox"]:checked');
-        const count = checkboxes.length;
-        document.getElementById('selectedCount').textContent = count + ' selected';
-        document.getElementById('deleteSelectedBtn').disabled = count === 0;
-        document.getElementById('selectAllCheckbox').checked = 
-          count > 0 && count === document.querySelectorAll('#advisoriesList input[type="checkbox"]').length;
-      }
-
-      function deleteSelectedAdvisories() {
-        const checkboxes = document.querySelectorAll('#advisoriesList input[type="checkbox"]:checked');
-        if (checkboxes.length === 0) {
-          alert('Please select at least one advisory to delete.');
+      function deleteAdvisory(teacher, gradeLevel, section) {
+        if (!confirm(`Are you sure you want to delete advisory for ${gradeLevel}${section}?`)) {
           return;
         }
-        
-        if (!confirm(`Are you sure you want to delete ${checkboxes.length} advisory(ies)?`)) {
-          return;
-        }
-        
-        const advisoriesToDelete = Array.from(checkboxes).map(function(checkbox) {
-          const parts = checkbox.value.split('|||');
-          return {
-            teacher: parts[0],
-            gradeLevel: parts[1],
-            section: parts[2]
-          };
-        });
         
         google.script.run
           .withSuccessHandler(function(result) {
@@ -626,7 +523,7 @@
           .withFailureHandler(function(error) {
             alert('❌ Error: ' + error.toString());
           })
-          .deleteAdvisoriesBatch(advisoriesToDelete);
+          .deleteAdvisory(teacher, gradeLevel, section);
       }
 
       document.getElementById('advisoryForm').addEventListener('submit', function(e) {
@@ -654,9 +551,15 @@
             
             if (result.success) {
               alert('✅ ' + result.message);
-              document.getElementById('advisoryForm').reset();
+              // Preserve teacher value and reload advisory
+              const currentTeacher = document.getElementById('teacher').value;
+              document.getElementById('gradeLevel').value = '';
+              document.getElementById('section').value = '';
               document.getElementById('section').disabled = true;
-              loadAdvisories();
+              // Reload advisory for the same teacher
+              if (currentTeacher) {
+                loadAdvisories();
+              }
             } else {
               alert('❌ ' + result.message);
             }
