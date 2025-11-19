@@ -5,26 +5,41 @@
     <meta charset="utf-8" />
     <title>Generate OGS Template</title>
     <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
+      
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        margin: 0;
         padding: 20px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
+        box-sizing: border-box;
+        height: 100%;
+        overflow: hidden;
       }
 
       .container {
         background: white;
         border-radius: 12px;
-        padding: 30px;
+        padding: 22px 28px 18px 28px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
         margin: 0;
         position: relative;
         overflow: hidden;
         width: 100%;
+        max-width: 100%;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        z-index: 1;
       }
 
       .container::before {
@@ -39,7 +54,8 @@
 
       .header {
         text-align: center;
-        margin-bottom: 25px;
+        margin-bottom: 16px;
+        flex-shrink: 0;
       }
 
       .header h2 {
@@ -51,12 +67,48 @@
 
       .header p {
         color: #666;
-        font-size: 14px;
+        font-size: 15px;
         margin: 0;
+        margin-top: 4px;
+      }
+
+      .main-content {
+        display: flex;
+        gap: 20px;
+        flex: 1;
+        overflow: hidden;
+        min-height: 0;
+        align-items: stretch;
+        position: relative;
+      }
+
+      .form-section {
+        flex: 0 0 380px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        min-height: 0;
+        max-height: 100%;
+      }
+
+      .info-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .divider {
+        width: 1px;
+        background: #e1e5e9;
+        flex-shrink: 0;
       }
 
       .form-group {
-        margin-bottom: 18px;
+        margin-bottom: 14px;
+        flex-shrink: 0;
       }
 
       .form-label {
@@ -106,7 +158,9 @@
       .button-group {
         display: flex;
         gap: 12px;
-        margin-top: 25px;
+        margin-top: auto;
+        padding-top: 12px;
+        flex-shrink: 0;
       }
 
       .btn {
@@ -151,9 +205,28 @@
         border-left: 4px solid #2196f3;
         padding: 12px 16px;
         border-radius: 6px;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
         font-size: 13px;
         color: #1565c0;
+        flex-shrink: 0;
+      }
+
+      .subjects-info-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .subjects-display {
+        flex: 1;
+        overflow-y: auto;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 12px;
+        background: #f8f9fa;
+        min-height: 0;
       }
 
       .autocomplete-dropdown {
@@ -165,10 +238,10 @@
         border: 2px solid #e1e5e9;
         border-top: none;
         border-radius: 0 0 8px 8px;
-        max-height: 200px;
+        max-height: 300px;
         overflow-y: auto;
-        z-index: 1000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         margin-top: -2px;
       }
 
@@ -208,81 +281,91 @@
     <div class="container">
       <div class="header">
         <h2>Generate OGS Template</h2>
-        <p>Create Official Grade Sheet template</p>
+        <p>Select grade level and section to see assigned teachers. Subjects will be auto-detected.</p>
       </div>
 
-      <div class="info-box">
-        📋 Select grade level and section to see assigned teachers. Subjects will be auto-detected.
-      </div>
+      <div class="main-content">
+        <!-- Left Section: Form Fields -->
+        <div class="form-section">
+          <form id="ogsTemplateForm" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
+            <div class="form-group">
+              <label class="form-label" for="schoolYear">
+                School Year <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="schoolYear"
+                class="form-control"
+                placeholder="e.g., 2024-2025"
+                required
+              />
+            </div>
 
-      <form id="ogsTemplateForm">
-        <div class="form-group">
-          <label class="form-label" for="schoolYear">
-            School Year <span class="required">*</span>
-          </label>
-          <input
-            type="text"
-            id="schoolYear"
-            class="form-control"
-            placeholder="e.g., 2024-2025"
-            required
-          />
+            <div class="form-group">
+              <label class="form-label" for="gradeLevel">
+                Grade Level <span class="required">*</span>
+              </label>
+              <select id="gradeLevel" class="form-control" required>
+                <option value="">Select grade level...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="section">
+                Section <span class="required">*</span>
+              </label>
+              <select id="section" class="form-control" required disabled>
+                <option value="">Select grade level first...</option>
+              </select>
+            </div>
+
+            <div class="form-group form-group-autocomplete">
+              <label class="form-label" for="teacher">
+                Teacher <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="teacher"
+                class="form-control"
+                placeholder="Type to search teacher..."
+                autocomplete="off"
+                required
+                disabled
+              />
+              <div id="teacherDropdown" class="autocomplete-dropdown" style="display: none;"></div>
+            </div>
+
+            <div class="button-group">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="google.script.host.close()"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary" id="submitBtn">
+                Generate Template
+              </button>
+            </div>
+          </form>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="gradeLevel">
-            Grade Level <span class="required">*</span>
-          </label>
-          <select id="gradeLevel" class="form-control" required>
-            <option value="">Select grade level...</option>
-          </select>
-        </div>
+        <!-- Vertical Divider -->
+        <div class="divider" id="divider1" style="display: none;"></div>
 
-        <div class="form-group">
-          <label class="form-label" for="section">
-            Section <span class="required">*</span>
-          </label>
-          <select id="section" class="form-control" required disabled>
-            <option value="">Select grade level first...</option>
-          </select>
-        </div>
-
-        <div class="form-group form-group-autocomplete">
-          <label class="form-label" for="teacher">
-            Teacher <span class="required">*</span>
-          </label>
-          <input
-            type="text"
-            id="teacher"
-            class="form-control"
-            placeholder="Type to search teacher..."
-            autocomplete="off"
-            required
-            disabled
-          />
-          <div id="teacherDropdown" class="autocomplete-dropdown" style="display: none;"></div>
-        </div>
-
-        <div class="form-group" id="subjectsInfo" style="display: none;">
-          <label class="form-label">Assigned Subjects</label>
-          <div id="subjectsList" style="padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e1e5e9;">
-            <p style="margin: 0; color: #6c757d;">No subjects assigned</p>
+        <!-- Right Section: Subjects Info -->
+        <div class="info-section">
+          <div class="subjects-info-container" id="subjectsInfo" style="display: none;">
+            <label class="form-label" style="margin-bottom: 10px; flex-shrink: 0;">Assigned Subjects</label>
+            <div id="subjectsList" class="subjects-display">
+              <p style="margin: 0; color: #6c757d;">No subjects assigned</p>
+            </div>
+          </div>
+          <div class="subjects-info-container" id="subjectsPlaceholder" style="display: flex; align-items: center; justify-content: center;">
+            <p style="text-align: center; color: #6c757d; margin: 0;">Select grade level, section, and teacher to view subjects</p>
           </div>
         </div>
-
-        <div class="button-group">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            onclick="google.script.host.close()"
-          >
-            Cancel
-          </button>
-          <button type="submit" class="btn btn-primary" id="submitBtn">
-            Generate Template
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
 
     <script>
@@ -371,10 +454,14 @@
         const teacherInput = document.getElementById('teacher');
         const teacherDropdown = document.getElementById('teacherDropdown');
         const subjectsInfoDiv = document.getElementById('subjectsInfo');
+        const subjectsPlaceholder = document.getElementById('subjectsPlaceholder');
+        const divider = document.getElementById('divider1');
         
         // Clear subjects when grade level changes
         assignedSubjects = [];
-        subjectsInfoDiv.style.display = 'none';
+        if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'none';
+        if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'flex';
+        if (divider) divider.style.display = 'none';
         teacherInput.value = '';
         teacherDropdown.style.display = 'none';
         filteredTeachers = [];
@@ -440,10 +527,14 @@
         const teacherInput = document.getElementById('teacher');
         const teacherDropdown = document.getElementById('teacherDropdown');
         const subjectsInfoDiv = document.getElementById('subjectsInfo');
+        const subjectsPlaceholder = document.getElementById('subjectsPlaceholder');
+        const divider = document.getElementById('divider1');
         
         // Clear subjects when section changes
         assignedSubjects = [];
-        subjectsInfoDiv.style.display = 'none';
+        if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'none';
+        if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'flex';
+        if (divider) divider.style.display = 'none';
         teacherInput.value = '';
         teacherDropdown.style.display = 'none';
         highlightedIndex = -1;
@@ -569,43 +660,62 @@
         const section = document.getElementById('section').value;
         const subjectsListDiv = document.getElementById('subjectsList');
         const subjectsInfoDiv = document.getElementById('subjectsInfo');
+        const subjectsPlaceholder = document.getElementById('subjectsPlaceholder');
+        const divider = document.getElementById('divider1');
         
         if (!gradeLevel || !section || !teacher) {
           assignedSubjects = [];
-          subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d;">Select grade level, section, and teacher to view subjects</p>';
-          subjectsInfoDiv.style.display = 'none';
+          if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'none';
+          if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'flex';
+          if (divider) divider.style.display = 'none';
           return;
         }
         
         // Show loading state
+        if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'none';
+        if (subjectsInfoDiv) {
+          subjectsInfoDiv.style.display = 'flex';
+          subjectsInfoDiv.style.flexDirection = 'column';
+        }
+        if (divider) divider.style.display = 'block';
         subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d; font-style: italic;">Loading subjects...</p>';
-        subjectsInfoDiv.style.display = 'block';
         
         google.script.run
           .withSuccessHandler(function(subjects) {
             assignedSubjects = subjects || [];
             const subjectsListDiv = document.getElementById('subjectsList');
             const subjectsInfoDiv = document.getElementById('subjectsInfo');
+            const subjectsPlaceholder = document.getElementById('subjectsPlaceholder');
+            const divider = document.getElementById('divider1');
             
             if (assignedSubjects.length === 0) {
               subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d;">No subjects assigned to this teacher for the selected grade level and section.</p>';
-              subjectsInfoDiv.style.display = 'block';
+              if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'flex';
+              if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'none';
+              if (divider) divider.style.display = 'block';
               return;
             }
             
             // Display subjects automatically
-            let html = '<p style="margin: 0 0 10px 0; font-weight: 600;">Subjects that will be generated:</p><ul style="margin: 0; padding-left: 20px;">';
+            let html = '<p style="margin: 0 0 12px 0; font-weight: 600; color: #333;">Subjects that will be generated:</p><ul style="margin: 0; padding-left: 20px; color: #495057;">';
             assignedSubjects.forEach(function(subject) {
-              html += '<li>' + subject + '</li>';
+              html += '<li style="margin-bottom: 6px;">' + subject + '</li>';
             });
             html += '</ul>';
             subjectsListDiv.innerHTML = html;
-            subjectsInfoDiv.style.display = 'block';
+            if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'flex';
+            if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'none';
+            if (divider) divider.style.display = 'block';
           })
           .withFailureHandler(function(error) {
             assignedSubjects = [];
+            const subjectsInfoDiv = document.getElementById('subjectsInfo');
+            const subjectsPlaceholder = document.getElementById('subjectsPlaceholder');
+            const divider = document.getElementById('divider1');
             subjectsListDiv.innerHTML = '<p style="margin: 0; color: #e74c3c;">Error loading subjects: ' + error.toString() + '</p>';
-            subjectsInfoDiv.style.display = 'block';
+            if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'flex';
+            if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'none';
+            if (divider) divider.style.display = 'block';
           })
           .getAssignedSubjects(gradeLevel, section, teacher);
       }

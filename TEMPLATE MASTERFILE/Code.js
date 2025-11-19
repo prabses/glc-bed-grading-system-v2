@@ -29,7 +29,7 @@ function onOpen() {
  */
 function showOGSTemplateDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("OGSTemplateDialog")
-    .setWidth(500)
+    .setWidth(800)
     .setHeight(650)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
