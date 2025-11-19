@@ -37,7 +37,7 @@
         max-width: 100%;
         flex-shrink: 0;
         box-sizing: border-box;
-        height: 100%;
+        min-height: 100%;
         display: flex;
         flex-direction: column;
         z-index: 1;
@@ -93,6 +93,7 @@
         min-height: 0;
         align-items: flex-start;
         position: relative;
+        margin-bottom: 20px;
       }
 
       .search-section {
@@ -128,7 +129,7 @@
         flex-direction: column;
         min-width: 400px;
         max-width: 500px;
-        min-height: 400px;
+        min-height: 0;
       }
 
       .form-label {
@@ -166,8 +167,9 @@
       .button-group {
         display: flex;
         gap: 12px;
-        margin-top: auto;
-        padding-top: 20px;
+        margin-top: 20px;
+        padding-top: 0;
+        flex-shrink: 0;
       }
 
       .btn {
@@ -242,7 +244,7 @@
         flex: 1;
         overflow-y: auto;
         min-height: 300px;
-        max-height: 500px;
+        max-height: none;
       }
 
       .student-info.visible {
@@ -292,8 +294,8 @@
         display: none;
         flex: 1;
         overflow-y: auto;
-        min-height: 400px;
-        max-height: 550px;
+        min-height: 0;
+        max-height: none;
       }
 
       .update-section.visible {
