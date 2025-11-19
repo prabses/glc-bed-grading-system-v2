@@ -114,6 +114,18 @@ const CONFIG = {
     ENABLE_PROTECTIONS: false
   },
   
+  // EQ (Emotional Quotient) grading scale configuration
+  EQ_GRADING_SCALE: {
+    // Grade ranges and their corresponding EQ values
+    RANGES: [
+      { min: 70, max: 74.44, value: 'NI', label: 'Needs Improvement' },
+      { min: 74.45, max: 81.45, value: 'F', label: 'Fair' },
+      { min: 81.45, max: 88.44, value: 'G', label: 'Good' },
+      { min: 88.45, max: 94.44, value: 'VG', label: 'Very Good' },
+      { min: 94.45, max: 100, value: 'O', label: 'Outstanding' }
+    ]
+  },
+  
   // Alert messages for user operations
   MESSAGES: {
     // Success messages

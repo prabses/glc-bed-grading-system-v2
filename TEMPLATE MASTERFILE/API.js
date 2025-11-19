@@ -1041,6 +1041,44 @@ function _getActiveTraits() {
 }
 
 /**
+ * Helper function to generate EQ formula based on grade column
+ * @param {number} gradeCol - Column number (1-based) for the grade column
+ * @param {number} row - Row number (1-based) for the formula
+ * @return {string} EQ formula string
+ */
+function _generateEQFormula(gradeCol, row) {
+  const ranges = CONFIG.EQ_GRADING_SCALE.RANGES;
+  const colLetter = String.fromCharCode(64 + gradeCol); // Convert column number to letter (A=1, B=2, etc.)
+  const cellRef = `${colLetter}${row}`;
+  
+  // Build nested IF formula checking from highest to lowest range
+  // Formula: IF(grade="","",IF(grade>=94.45,"O",IF(grade>=88.45,"VG",IF(grade>=81.45,"G",IF(grade>=74.45,"F","NI")))))
+  let formula = `=IF(${cellRef}="",""`;
+  
+  // Sort ranges by max value descending (highest first)
+  const sortedRanges = [...ranges].sort((a, b) => b.max - a.max);
+  
+  // Build nested IF from highest to lowest
+  for (let i = 0; i < sortedRanges.length; i++) {
+    const range = sortedRanges[i];
+    if (i === sortedRanges.length - 1) {
+      // Last condition (lowest range) - this is the final else
+      formula += `,"${range.value}")`;
+    } else {
+      // Check if grade is >= min of this range
+      formula += `,IF(${cellRef}>=${range.min},"${range.value}"`;
+    }
+  }
+  
+  // Close all remaining IF statements
+  for (let i = 0; i < sortedRanges.length - 1; i++) {
+    formula += ')';
+  }
+  
+  return formula;
+}
+
+/**
  * Internal function to set up the Characters sheet structure
  * @param {Sheet} sheet - The target sheet
  * @param {string} schoolYear - The school year
@@ -1078,7 +1116,13 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   allData.push(padRow(['Section:', section]));
   allData.push(padRow(['Total Student:', students.length > 0 ? students.length : '']));
   
-  // Row 6: Column headers
+  // Row 6: EQ Legend
+  const legendText = CONFIG.EQ_GRADING_SCALE.RANGES.map(range => 
+    `${range.min}-${range.max}: ${range.value} (${range.label})`
+  ).join(' | ');
+  allData.push(padRow(['EQ Legend:', legendText]));
+  
+  // Row 7: Column headers
   const headerRow = [
     'Student No',
     'Student Name',
@@ -1110,8 +1154,13 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   // Total Student value should be left-aligned
   sheet.getRange(5, 2).setHorizontalAlignment('left');
   
-  // Row 6: Format column headers (matching subject sheet format)
-  sheet.getRange(6, 1, 1, numCols)
+  // Row 6: Format EQ Legend - matching format with rows 1-5
+  sheet.getRange(6, 1, 1, 1).setFontWeight('bold'); // "EQ Legend:" label (matching rows 1-5 column A)
+  sheet.getRange(6, 2, 1, 4).merge(); // Merge cells B6:E6 for legend text
+  sheet.getRange(6, 2, 1, 1).setBackground('#f3f3f3'); // Background matching info rows (column B)
+  
+  // Row 7: Format column headers (matching subject sheet format)
+  sheet.getRange(7, 1, 1, numCols)
     .setFontWeight('bold')
     .setBackground('#d9d9d9')
     .setHorizontalAlignment('center')
@@ -1125,13 +1174,13 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     sheet.setColumnWidth(c, 130); // Grade and EQ columns
   }
   
-  // Freeze rows at row 6 (matching subject sheet format)
-  sheet.setFrozenRows(6);
+  // Freeze rows at row 7 (matching subject sheet format)
+  sheet.setFrozenRows(7);
   
   // Add student data - each student gets one row per active trait
   const hasStudents = students && students.length > 0;
   const hasTraits = traits && traits.length > 0;
-  const startRow = 7;
+  const startRow = 8;
   
   if (hasStudents && hasTraits) {
     const studentValues = [];
@@ -1177,6 +1226,38 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setValues(studentValues);
     
+    // Add EQ formulas for all student rows
+    // Column mappings: D=1st Grade, E=1st EQ, F=2nd Grade, G=2nd EQ, H=3rd Grade, I=3rd EQ, J=4th Grade, K=4th EQ, L=Final Grading, M=Final EQ
+    const eqFormulas = [];
+    for (let r = 0; r < numStudentRows; r++) {
+      const rowNum = startRow + r;
+      const rowFormulas = [];
+      
+      // 1st EQ (Column E, index 5) based on 1st Grade (Column D, index 4)
+      rowFormulas[4] = _generateEQFormula(4, rowNum); // Column D (1-based index 4)
+      
+      // 2nd EQ (Column G, index 7) based on 2nd Grade (Column F, index 6)
+      rowFormulas[6] = _generateEQFormula(6, rowNum); // Column F (1-based index 6)
+      
+      // 3rd EQ (Column I, index 9) based on 3rd Grade (Column H, index 8)
+      rowFormulas[8] = _generateEQFormula(8, rowNum); // Column H (1-based index 8)
+      
+      // 4th EQ (Column K, index 11) based on 4th Grade (Column J, index 10)
+      rowFormulas[10] = _generateEQFormula(10, rowNum); // Column J (1-based index 10)
+      
+      // Final EQ (Column M, index 13) based on Final Grading (Column L, index 12)
+      rowFormulas[12] = _generateEQFormula(12, rowNum); // Column L (1-based index 12)
+      
+      eqFormulas.push(rowFormulas);
+    }
+    
+    // Set formulas for EQ columns (E, G, I, K, M) - columns 5, 7, 9, 11, 13 (1-based)
+    const eqCols = [5, 7, 9, 11, 13]; // 1st EQ, 2nd EQ, 3rd EQ, 4th EQ, Final EQ
+    eqCols.forEach((col, colIndex) => {
+      const formulas = eqFormulas.map(row => row[col - 1] || ''); // Convert to 0-based index
+      sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulas.map(f => [f]));
+    });
+    
     // Auto-resize TRAITS column (column 3) based on content
     sheet.autoResizeColumn(3);
     const currentWidth = sheet.getColumnWidth(3);
@@ -1194,6 +1275,37 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     }
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setValues(emptyValues);
+    
+    // Add EQ formulas for empty rows as well
+    const eqFormulas = [];
+    for (let r = 0; r < numStudentRows; r++) {
+      const rowNum = startRow + r;
+      const rowFormulas = [];
+      
+      // 1st EQ (Column E) based on 1st Grade (Column D)
+      rowFormulas[4] = _generateEQFormula(4, rowNum);
+      
+      // 2nd EQ (Column G) based on 2nd Grade (Column F)
+      rowFormulas[6] = _generateEQFormula(6, rowNum);
+      
+      // 3rd EQ (Column I) based on 3rd Grade (Column H)
+      rowFormulas[8] = _generateEQFormula(8, rowNum);
+      
+      // 4th EQ (Column K) based on 4th Grade (Column J)
+      rowFormulas[10] = _generateEQFormula(10, rowNum);
+      
+      // Final EQ (Column M) based on Final Grading (Column L)
+      rowFormulas[12] = _generateEQFormula(12, rowNum);
+      
+      eqFormulas.push(rowFormulas);
+    }
+    
+    // Set formulas for EQ columns (E, G, I, K, M) - columns 5, 7, 9, 11, 13 (1-based)
+    const eqCols = [5, 7, 9, 11, 13]; // 1st EQ, 2nd EQ, 3rd EQ, 4th EQ, Final EQ
+    eqCols.forEach((col) => {
+      const formulas = eqFormulas.map(row => row[col - 1] || ''); // Convert to 0-based index
+      sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulas.map(f => [f]));
+    });
     
     // Format borders for student data (matching subject sheet format)
     studentRange.setBorder(true, true, true, true, true, true);
