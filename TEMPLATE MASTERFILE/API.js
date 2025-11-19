@@ -565,16 +565,13 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     
     // Add gray background color to formula columns to indicate they are protected/untypable
     // Formula columns: F (6), J (10), N (14), R (18), S (19)
-    // Apply from startRow (student data) onwards, excluding frozen header rows (rows 9-10)
-    const endRow = startRow + numStudentRows - 1;
-    const grayRangeEnd = Math.max(endRow + 20, 50); // Extend beyond student data for future rows
+    // Apply only to rows with actual student data, excluding frozen header rows (rows 9-10)
     const grayColor = '#d9d9d9'; // Light gray background
-    const numRowsForGray = grayRangeEnd - startRow + 1; // Number of rows to color (from startRow to grayRangeEnd)
-    sheet.getRange(startRow, 6, numRowsForGray, 1).setBackground(grayColor);  // Column F: 1st Transmuted
-    sheet.getRange(startRow, 10, numRowsForGray, 1).setBackground(grayColor); // Column J: 2nd Transmuted
-    sheet.getRange(startRow, 14, numRowsForGray, 1).setBackground(grayColor); // Column N: 3rd Transmuted
-    sheet.getRange(startRow, 18, numRowsForGray, 1).setBackground(grayColor); // Column R: 4th Transmuted
-    sheet.getRange(startRow, 19, numRowsForGray, 1).setBackground(grayColor); // Column S: Final Grading
+    sheet.getRange(startRow, 6, numStudentRows, 1).setBackground(grayColor);  // Column F: 1st Transmuted
+    sheet.getRange(startRow, 10, numStudentRows, 1).setBackground(grayColor); // Column J: 2nd Transmuted
+    sheet.getRange(startRow, 14, numStudentRows, 1).setBackground(grayColor); // Column N: 3rd Transmuted
+    sheet.getRange(startRow, 18, numStudentRows, 1).setBackground(grayColor); // Column R: 4th Transmuted
+    sheet.getRange(startRow, 19, numStudentRows, 1).setBackground(grayColor); // Column S: Final Grading
     
     // PROTECTION: Required for sharing with others (teachers/staff)
     // Protected: Student info (A-B), Headers (9-10), Formulas (F, J, N, R, S)
@@ -1256,6 +1253,14 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     eqCols.forEach((col, colIndex) => {
       const formulas = eqFormulas.map(row => row[col - 1] || ''); // Convert to 0-based index
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulas.map(f => [f]));
+      sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('right');
+    });
+    
+    // Add gray background color to EQ formula columns (similar to subject sheets)
+    // Apply only to rows with actual student data, excluding frozen header rows (row 7)
+    const grayColor = '#d9d9d9'; // Light gray background
+    eqCols.forEach((col) => {
+      sheet.getRange(startRow, col, numStudentRows, 1).setBackground(grayColor);
     });
     
     // Auto-resize TRAITS column (column 3) based on content
@@ -1305,6 +1310,14 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     eqCols.forEach((col) => {
       const formulas = eqFormulas.map(row => row[col - 1] || ''); // Convert to 0-based index
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulas.map(f => [f]));
+      sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('right');
+    });
+    
+    // Add gray background color to EQ formula columns (similar to subject sheets)
+    // Apply only to rows with actual student data, excluding frozen header rows (row 7)
+    const grayColor = '#d9d9d9'; // Light gray background
+    eqCols.forEach((col) => {
+      sheet.getRange(startRow, col, numStudentRows, 1).setBackground(grayColor);
     });
     
     // Format borders for student data (matching subject sheet format)
