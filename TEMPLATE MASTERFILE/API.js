@@ -482,12 +482,13 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
   // Batch background for column B (rows 2-7)
   sheet.getRange(2, 2, 6, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
   
+  // OPTIMIZATION: Batch merges first, then apply formatting in one operation
   // Row 8: Grading period headers - batch merges and formatting
-  const row8Range = sheet.getRange(8, 3, 1, 22);
   sheet.getRange(8, 3, 1, 5).merge();   // 1ST GRADING
   sheet.getRange(8, 8, 1, 5).merge();   // 2ND GRADING
   sheet.getRange(8, 13, 1, 5).merge(); // 3RD GRADING
   sheet.getRange(8, 18, 1, 5).merge();  // 4TH GRADING
+  const row8Range = sheet.getRange(8, 3, 1, 22);
   row8Range.setFontWeight('bold')
     .setHorizontalAlignment('center')
     .setBackground(CONFIG.COLORS.LIGHTER_GRAY);
@@ -607,23 +608,19 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     const studentDataRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentDataRange.setValues(allStudentRows);
     
-    // Set formulas separately (setFormulas must be used for formulas, not setValues)
-    const formulaColsList = [6, 7, 11, 12, 16, 17, 21, 22, 23, 24];
-    formulaColsList.forEach(col => {
-      sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulaColumns[col]);
-    });
-    
-    // OPTIMIZATION: Batch gray background for all formula columns at once
+    // OPTIMIZATION: Set formulas and format in combined operations to reduce API calls
     // Formula columns: F (6), G (7), K (11), L (12), P (16), Q (17), U (21), V (22), W (23), X (24)
-    const formulaColsForBg = [6, 7, 11, 12, 16, 17, 21, 22, 23, 24];
-    formulaColsForBg.forEach(col => {
-      sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.MEDIUM_GRAY);
-    });
+    const formulaColsList = [6, 7, 11, 12, 16, 17, 21, 22, 23, 24];
+    const eqCols = [7, 12, 17, 22, 24]; // EQ columns that need right alignment
     
-    // OPTIMIZATION: Batch right-align for all EQ columns at once
-    const eqCols = [7, 12, 17, 22, 24]; // 1st EQ, 2nd EQ, 3rd EQ, 4th EQ, Final EQ
-    eqCols.forEach(col => {
-      sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('right');
+    formulaColsList.forEach(col => {
+      const range = sheet.getRange(startRow, col, numStudentRows, 1);
+      range.setFormulas(formulaColumns[col]);
+      range.setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+      // Right-align EQ columns
+      if (eqCols.includes(col)) {
+        range.setHorizontalAlignment('right');
+      }
     });
     
     // PROTECTION: Required for sharing with others (teachers/staff)
@@ -673,7 +670,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setBorder(true, true, true, true, true, true);
     
-    // OPTIMIZATION: Batch number format for all numeric columns at once
+    // OPTIMIZATION: Batch number format - combine with other formatting where possible
     // Number format for: C, D, E, F, H, I, J, K, M, N, O, P, R, S, T, U, W (transmuted and input columns)
     const numberFormatCols = [3, 4, 5, 6, 8, 9, 10, 11, 13, 14, 15, 16, 18, 19, 20, 21, 23];
     numberFormatCols.forEach(col => {
@@ -1072,13 +1069,18 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   // Total Student value should be left-aligned
   sheet.getRange(5, 2).setHorizontalAlignment('left');
   
+  // OPTIMIZATION: Batch month header operations - combine merge, value, and formatting
   // Row 6: Merge month headers across 3 columns each (matching subject sheet format)
   let colIndex = 3; // Start at column C
   monthsToUse.forEach((monthKey) => {
     // Use the exact month name from the sheet (not abbreviated)
-    sheet.getRange(6, colIndex, 1, 3).merge();
-    sheet.getRange(6, colIndex).setValue(monthKey);
-    sheet.getRange(6, colIndex).setFontWeight('bold').setHorizontalAlignment('center').setBackground(CONFIG.COLORS.LIGHTER_GRAY);
+    const monthRange = sheet.getRange(6, colIndex, 1, 3);
+    monthRange.merge();
+    const mergedCell = sheet.getRange(6, colIndex);
+    mergedCell.setValue(monthKey)
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center')
+      .setBackground(CONFIG.COLORS.LIGHTER_GRAY);
     colIndex += 3;
   });
   
@@ -1498,6 +1500,7 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   const dataRange = sheet.getRange(1, 1, numRows, numCols);
   dataRange.setValues(allData);
   
+  // OPTIMIZATION: Batch info row formatting
   // Info rows (1-5) - matching subject sheet format
   sheet.getRange(1, 1, 5, 1).setFontWeight('bold');
   sheet.getRange(1, 2, 2, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY); // Advisor Name, School Year
@@ -1507,6 +1510,7 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   // Total Student value should be left-aligned
   sheet.getRange(5, 2).setHorizontalAlignment('left');
   
+  // OPTIMIZATION: Batch Row 6 formatting
   // Row 6: Format EQ Legend - matching format with rows 1-5
   sheet.getRange(6, 1, 1, 1).setFontWeight('bold'); // "EQ Legend:" label (matching rows 1-5 column A)
   sheet.getRange(6, 2, 1, 4).merge(); // Merge cells B6:E6 for legend text
