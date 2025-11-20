@@ -292,13 +292,9 @@
               <label class="form-label" for="schoolYear">
                 School Year <span class="required">*</span>
               </label>
-              <input
-                type="text"
-                id="schoolYear"
-                class="form-control"
-                placeholder="e.g., 2024-2025"
-                required
-              />
+              <select id="schoolYear" class="form-control" required>
+                <option value="">Select school year...</option>
+              </select>
             </div>
 
             <div class="form-group">
@@ -386,6 +382,35 @@
 
       // Load all dropdown data at once for better performance
       function loadAllDropdowns() {
+        // Load school year sheets from STUDENTS DB
+        google.script.run
+          .withSuccessHandler(function(schoolYears) {
+            const schoolYearSelect = document.getElementById('schoolYear');
+            const schoolYearFragment = document.createDocumentFragment();
+            
+            const schoolYearDefault = document.createElement('option');
+            schoolYearDefault.value = '';
+            schoolYearDefault.textContent = 'Select school year...';
+            schoolYearFragment.appendChild(schoolYearDefault);
+            
+            schoolYears.forEach(function(schoolYear) {
+              const option = document.createElement('option');
+              option.value = schoolYear;
+              option.textContent = schoolYear;
+              schoolYearFragment.appendChild(option);
+            });
+            schoolYearSelect.innerHTML = '';
+            schoolYearSelect.appendChild(schoolYearFragment);
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error loading school years:', error);
+            // Fallback to text input behavior if school years can't be loaded
+            const schoolYearSelect = document.getElementById('schoolYear');
+            schoolYearSelect.innerHTML = '<option value="">Error loading school years</option>';
+          })
+          .getSchoolYearSheets();
+        
+        // Load other dropdown data
         google.script.run
           .withSuccessHandler(function(data) {
             // OPTIMIZATION: Use DocumentFragment for batch DOM operations (3x faster)
@@ -724,14 +749,14 @@
       document.getElementById("ogsTemplateForm").addEventListener("submit", function (e) {
         e.preventDefault();
 
-        const schoolYear = document.getElementById("schoolYear").value.trim();
+        const schoolYear = document.getElementById("schoolYear").value;
         const gradeLevel = document.getElementById("gradeLevel").value;
         const section = document.getElementById("section").value;
         const teacher = document.getElementById("teacher").value;
 
         // Validation
         if (!schoolYear) {
-          alert("Please enter the school year.");
+          alert("Please select a school year.");
           return;
         }
 
