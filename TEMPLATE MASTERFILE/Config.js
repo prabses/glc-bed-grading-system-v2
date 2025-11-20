@@ -92,10 +92,14 @@ const CONFIG = {
     ARCHIVED: 'Archived'
   },
   
-  // Background colors for status
+  // Color palette for templates and UI
   COLORS: {
-    ACTIVE: '#d9ead3',    // Green background
-    ARCHIVED: '#efefef'   // Gray background
+    // Template colors
+    LIGHT_GRAY: '#f3f3f3',   // Light gray for info rows
+    MEDIUM_GRAY: '#d9d9d9',  // Medium gray for headers and formula columns
+    LIGHTER_GRAY: '#e6e6e6', // Lighter gray for grading period headers
+    LIGHT_RED: '#ffcccc',    // Light red for validation errors
+    BLUE: '#667eea'          // Blue for sheet tabs
   },
   
   // Template configuration

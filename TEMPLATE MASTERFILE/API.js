@@ -348,7 +348,7 @@ function _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl
     sheet.getRange(1, 6).setValue('Created');
     sheet.getRange(1, 7).setValue('Modified');
     sheet.getRange(1, 8).setValue('Created By');
-    sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground('#d9d9d9');
+    sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.MEDIUM_GRAY);
   }
   
   const timestamp = new Date();
@@ -480,7 +480,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
   // Info rows (rows 2-7): Batch format column A (bold) and column B (background)
   sheet.getRange(2, 1, 6, 1).setFontWeight('bold');
   // Batch background for column B (rows 2-7)
-  sheet.getRange(2, 2, 6, 1).setBackground('#f3f3f3');
+  sheet.getRange(2, 2, 6, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
   
   // Row 8: Grading period headers - batch merges and formatting
   const row8Range = sheet.getRange(8, 3, 1, 22);
@@ -490,12 +490,12 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
   sheet.getRange(8, 18, 1, 5).merge();  // 4TH GRADING
   row8Range.setFontWeight('bold')
     .setHorizontalAlignment('center')
-    .setBackground('#e6e6e6');
+    .setBackground(CONFIG.COLORS.LIGHTER_GRAY);
   
   // Row 9: Column headers - single batch operation
   const headerRange = sheet.getRange(9, 1, 1, numCols);
   headerRange.setFontWeight('bold')
-    .setBackground('#d9d9d9')
+    .setBackground(CONFIG.COLORS.MEDIUM_GRAY)
     .setHorizontalAlignment('center')
     .setBorder(true, true, true, true, true, true);
   
@@ -613,22 +613,14 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulaColumns[col]);
     });
     
-    // Add gray background color to formula columns to indicate they are protected/untypable
+    // OPTIMIZATION: Batch gray background for all formula columns at once
     // Formula columns: F (6), G (7), K (11), L (12), P (16), Q (17), U (21), V (22), W (23), X (24)
-    // Apply only to rows with actual student data, excluding frozen header rows (rows 9-10)
-    const grayColor = '#d9d9d9'; // Light gray background
-    sheet.getRange(startRow, 6, numStudentRows, 1).setBackground(grayColor);  // Column F: 1st Transmuted
-    sheet.getRange(startRow, 7, numStudentRows, 1).setBackground(grayColor);  // Column G: 1st EQ
-    sheet.getRange(startRow, 11, numStudentRows, 1).setBackground(grayColor); // Column K: 2nd Transmuted
-    sheet.getRange(startRow, 12, numStudentRows, 1).setBackground(grayColor); // Column L: 2nd EQ
-    sheet.getRange(startRow, 16, numStudentRows, 1).setBackground(grayColor); // Column P: 3rd Transmuted
-    sheet.getRange(startRow, 17, numStudentRows, 1).setBackground(grayColor); // Column Q: 3rd EQ
-    sheet.getRange(startRow, 21, numStudentRows, 1).setBackground(grayColor); // Column U: 4th Transmuted
-    sheet.getRange(startRow, 22, numStudentRows, 1).setBackground(grayColor); // Column V: 4th EQ
-    sheet.getRange(startRow, 23, numStudentRows, 1).setBackground(grayColor); // Column W: Final Grading
-    sheet.getRange(startRow, 24, numStudentRows, 1).setBackground(grayColor); // Column X: Final EQ
+    const formulaColsForBg = [6, 7, 11, 12, 16, 17, 21, 22, 23, 24];
+    formulaColsForBg.forEach(col => {
+      sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+    });
     
-    // Right-align EQ columns (G, L, Q, V, X)
+    // OPTIMIZATION: Batch right-align for all EQ columns at once
     const eqCols = [7, 12, 17, 22, 24]; // 1st EQ, 2nd EQ, 3rd EQ, 4th EQ, Final EQ
     eqCols.forEach(col => {
       sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('right');
@@ -681,18 +673,19 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setBorder(true, true, true, true, true, true);
     
-    // Batch number format for grading columns (C-X, excluding A-B which are text, and EQ columns G, L, Q, V, X which are text)
+    // OPTIMIZATION: Batch number format for all numeric columns at once
     // Number format for: C, D, E, F, H, I, J, K, M, N, O, P, R, S, T, U, W (transmuted and input columns)
     const numberFormatCols = [3, 4, 5, 6, 8, 9, 10, 11, 13, 14, 15, 16, 18, 19, 20, 21, 23];
     numberFormatCols.forEach(col => {
       sheet.getRange(startRow, col, numStudentRows, 1).setNumberFormat('0.00');
     });
     
-    // Add conditional formatting for grade input validation (red background if invalid)
+    // OPTIMIZATION: Batch all conditional formatting rules at once (single setConditionalFormatRules call)
     // Input columns: C, D, E (1st), H, I, J (2nd), M, N, O (3rd), R, S, T (4th)
     const inputCols = [3, 4, 5, 8, 9, 10, 13, 14, 15, 18, 19, 20];
     const minGrade = CONFIG.TEMPLATE.MIN_GRADE;
     const maxGrade = CONFIG.TEMPLATE.MAX_GRADE;
+    const allRules = [];
     
     inputCols.forEach(col => {
       const inputRange = sheet.getRange(startRow, col, numStudentRows, 1);
@@ -701,21 +694,25 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
       const rule1 = SpreadsheetApp.newConditionalFormatRule()
         .setRanges([inputRange])
         .whenNumberLessThan(minGrade)
-        .setBackground('#ffcccc') // Light red
+        .setBackground(CONFIG.COLORS.LIGHT_RED)
         .build();
       
       // Rule 2: Red if value is greater than maximum grade
       const rule2 = SpreadsheetApp.newConditionalFormatRule()
         .setRanges([inputRange])
         .whenNumberGreaterThan(maxGrade)
-        .setBackground('#ffcccc') // Light red
+        .setBackground(CONFIG.COLORS.LIGHT_RED)
         .build();
       
-      // Apply both rules
-      const rules = sheet.getConditionalFormatRules();
-      rules.push(rule1, rule2);
-      sheet.setConditionalFormatRules(rules);
+      allRules.push(rule1, rule2);
     });
+    
+    // Apply all conditional formatting rules in a single batch operation
+    if (allRules.length > 0) {
+      const existingRules = sheet.getConditionalFormatRules();
+      existingRules.push.apply(existingRules, allRules);
+      sheet.setConditionalFormatRules(existingRules);
+    }
     
     if (hasStudents) {
       sheet.getRange(6, 2).setValue(students.length).setHorizontalAlignment('left');
@@ -1068,9 +1065,9 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   
   // Info rows (1-5) - matching subject sheet format
   sheet.getRange(1, 1, 5, 1).setFontWeight('bold');
-  sheet.getRange(1, 2, 2, 1).setBackground('#f3f3f3'); // Advisor Name, School Year
-  sheet.getRange(3, 2, 1, 1).setBackground('#f3f3f3'); // Level
-  sheet.getRange(4, 2, 2, 1).setBackground('#f3f3f3'); // Section, Total Student
+  sheet.getRange(1, 2, 2, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY); // Advisor Name, School Year
+  sheet.getRange(3, 2, 1, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY); // Level
+  sheet.getRange(4, 2, 2, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY); // Section, Total Student
   
   // Total Student value should be left-aligned
   sheet.getRange(5, 2).setHorizontalAlignment('left');
@@ -1081,14 +1078,14 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     // Use the exact month name from the sheet (not abbreviated)
     sheet.getRange(6, colIndex, 1, 3).merge();
     sheet.getRange(6, colIndex).setValue(monthKey);
-    sheet.getRange(6, colIndex).setFontWeight('bold').setHorizontalAlignment('center').setBackground('#e6e6e6');
+    sheet.getRange(6, colIndex).setFontWeight('bold').setHorizontalAlignment('center').setBackground(CONFIG.COLORS.LIGHTER_GRAY);
     colIndex += 3;
   });
   
   // Row 7: Format column headers (matching subject sheet format)
   sheet.getRange(7, 1, 1, numCols)
     .setFontWeight('bold')
-    .setBackground('#d9d9d9')
+    .setBackground(CONFIG.COLORS.MEDIUM_GRAY)
     .setHorizontalAlignment('center')
     .setBorder(true, true, true, true, true, true);
   
@@ -1170,13 +1167,12 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     
     // Apply gray background to Days ABSENT formula columns (efficient batch operation)
     if (absentFormulaCols.length > 0) {
-      const grayColor = '#d9d9d9';
       absentFormulaCols.forEach(col => {
-        sheet.getRange(startRow, col, numStudentRows, 1).setBackground(grayColor);
+        sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.MEDIUM_GRAY);
       });
     }
     
-    // Add conditional formatting for Days PRESENT validation (red background if invalid)
+    // OPTIMIZATION: Batch all conditional formatting rules at once
     // Days PRESENT should not exceed School DAYS and should not be less than 0
     colIndex = 3; // Reset to start at column C
     const daysPresentCols = []; // Track Days PRESENT columns for validation
@@ -1187,7 +1183,7 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       colIndex += 3; // Move to next month
     });
     
-    // Apply conditional formatting rules for each Days PRESENT column
+    const allRules = [];
     daysPresentCols.forEach(({ presentCol, schoolDaysCol }) => {
       const presentRange = sheet.getRange(startRow, presentCol, numStudentRows, 1);
       const schoolDaysColLetter = String.fromCharCode(64 + schoolDaysCol);
@@ -1197,24 +1193,26 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       const rule1 = SpreadsheetApp.newConditionalFormatRule()
         .setRanges([presentRange])
         .whenNumberLessThan(0)
-        .setBackground('#ffcccc') // Light red
+        .setBackground(CONFIG.COLORS.LIGHT_RED)
         .build();
       
       // Rule 2: Red if Days PRESENT exceeds School DAYS (using formula)
-      // Formula compares current cell (Days PRESENT) to School DAYS in same row
-      // Uses startRow as the base row - Google Sheets will automatically adjust for each row in the range
       const rule2Formula = `=AND(${presentColLetter}${startRow}<>"",${schoolDaysColLetter}${startRow}<>"",${presentColLetter}${startRow}>${schoolDaysColLetter}${startRow})`;
       const rule2 = SpreadsheetApp.newConditionalFormatRule()
         .setRanges([presentRange])
         .whenFormulaSatisfied(rule2Formula)
-        .setBackground('#ffcccc') // Light red
+        .setBackground(CONFIG.COLORS.LIGHT_RED)
         .build();
       
-      // Apply both rules
-      const rules = sheet.getConditionalFormatRules();
-      rules.push(rule1, rule2);
-      sheet.setConditionalFormatRules(rules);
+      allRules.push(rule1, rule2);
     });
+    
+    // Apply all conditional formatting rules in a single batch operation
+    if (allRules.length > 0) {
+      const existingRules = sheet.getConditionalFormatRules();
+      existingRules.push.apply(existingRules, allRules);
+      sheet.setConditionalFormatRules(existingRules);
+    }
   } else {
     // No students - create empty rows
     const emptyValues = [];
@@ -1253,13 +1251,12 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     
     // Apply gray background to Days ABSENT formula columns (efficient batch operation)
     if (absentFormulaCols.length > 0) {
-      const grayColor = '#d9d9d9';
       absentFormulaCols.forEach(col => {
-        sheet.getRange(startRow, col, numStudentRows, 1).setBackground(grayColor);
+        sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.MEDIUM_GRAY);
       });
     }
     
-    // Add conditional formatting for Days PRESENT validation (red background if invalid)
+    // OPTIMIZATION: Batch all conditional formatting rules at once
     // Days PRESENT should not exceed School DAYS and should not be less than 0
     colIndex = 3; // Reset to start at column C
     const daysPresentCols = []; // Track Days PRESENT columns for validation
@@ -1270,7 +1267,7 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       colIndex += 3; // Move to next month
     });
     
-    // Apply conditional formatting rules for each Days PRESENT column
+    const allRules = [];
     daysPresentCols.forEach(({ presentCol, schoolDaysCol }) => {
       const presentRange = sheet.getRange(startRow, presentCol, numStudentRows, 1);
       const schoolDaysColLetter = String.fromCharCode(64 + schoolDaysCol);
@@ -1280,24 +1277,26 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       const rule1 = SpreadsheetApp.newConditionalFormatRule()
         .setRanges([presentRange])
         .whenNumberLessThan(0)
-        .setBackground('#ffcccc') // Light red
+        .setBackground(CONFIG.COLORS.LIGHT_RED)
         .build();
       
       // Rule 2: Red if Days PRESENT exceeds School DAYS (using formula)
-      // Formula compares current cell (Days PRESENT) to School DAYS in same row
-      // Uses startRow as the base row - Google Sheets will automatically adjust for each row in the range
       const rule2Formula = `=AND(${presentColLetter}${startRow}<>"",${schoolDaysColLetter}${startRow}<>"",${presentColLetter}${startRow}>${schoolDaysColLetter}${startRow})`;
       const rule2 = SpreadsheetApp.newConditionalFormatRule()
         .setRanges([presentRange])
         .whenFormulaSatisfied(rule2Formula)
-        .setBackground('#ffcccc') // Light red
+        .setBackground(CONFIG.COLORS.LIGHT_RED)
         .build();
       
-      // Apply both rules
-      const rules = sheet.getConditionalFormatRules();
-      rules.push(rule1, rule2);
-      sheet.setConditionalFormatRules(rules);
+      allRules.push(rule1, rule2);
     });
+    
+    // Apply all conditional formatting rules in a single batch operation
+    if (allRules.length > 0) {
+      const existingRules = sheet.getConditionalFormatRules();
+      existingRules.push.apply(existingRules, allRules);
+      sheet.setConditionalFormatRules(existingRules);
+    }
   }
   
   // Format borders for student data (matching subject sheet format)
@@ -1501,9 +1500,9 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   
   // Info rows (1-5) - matching subject sheet format
   sheet.getRange(1, 1, 5, 1).setFontWeight('bold');
-  sheet.getRange(1, 2, 2, 1).setBackground('#f3f3f3'); // Advisor Name, School Year
-  sheet.getRange(3, 2, 1, 1).setBackground('#f3f3f3'); // Level
-  sheet.getRange(4, 2, 2, 1).setBackground('#f3f3f3'); // Section, Total Student
+  sheet.getRange(1, 2, 2, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY); // Advisor Name, School Year
+  sheet.getRange(3, 2, 1, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY); // Level
+  sheet.getRange(4, 2, 2, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY); // Section, Total Student
   
   // Total Student value should be left-aligned
   sheet.getRange(5, 2).setHorizontalAlignment('left');
@@ -1511,12 +1510,12 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   // Row 6: Format EQ Legend - matching format with rows 1-5
   sheet.getRange(6, 1, 1, 1).setFontWeight('bold'); // "EQ Legend:" label (matching rows 1-5 column A)
   sheet.getRange(6, 2, 1, 4).merge(); // Merge cells B6:E6 for legend text
-  sheet.getRange(6, 2, 1, 1).setBackground('#f3f3f3'); // Background matching info rows (column B)
+  sheet.getRange(6, 2, 1, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY); // Background matching info rows (column B)
   
   // Row 7: Format column headers (matching subject sheet format)
   sheet.getRange(7, 1, 1, numCols)
     .setFontWeight('bold')
-    .setBackground('#d9d9d9')
+    .setBackground(CONFIG.COLORS.MEDIUM_GRAY)
     .setHorizontalAlignment('center')
     .setBorder(true, true, true, true, true, true);
   
@@ -1605,19 +1604,18 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       eqFormulas.push(rowFormulas);
     }
     
-    // Set formulas for EQ columns (E, G, I, K, M) - columns 5, 7, 9, 11, 13 (1-based)
+    // OPTIMIZATION: Set formulas for all EQ columns first, then batch formatting
     const eqCols = [5, 7, 9, 11, 13]; // 1st EQ, 2nd EQ, 3rd EQ, 4th EQ, Final EQ
-    eqCols.forEach((col, colIndex) => {
+    eqCols.forEach((col) => {
       const formulas = eqFormulas.map(row => row[col - 1] || ''); // Convert to 0-based index
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulas.map(f => [f]));
-      sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('right');
     });
     
-    // Add gray background color to EQ formula columns (similar to subject sheets)
-    // Apply only to rows with actual student data, excluding frozen header rows (row 7)
-    const grayColor = '#d9d9d9'; // Light gray background
+    // OPTIMIZATION: Batch formatting operations for EQ columns
     eqCols.forEach((col) => {
-      sheet.getRange(startRow, col, numStudentRows, 1).setBackground(grayColor);
+      const range = sheet.getRange(startRow, col, numStudentRows, 1);
+      range.setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+      range.setHorizontalAlignment('right');
     });
     
     // Auto-resize TRAITS column (column 3) based on content
@@ -1662,29 +1660,29 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       eqFormulas.push(rowFormulas);
     }
     
-    // Set formulas for EQ columns (E, G, I, K, M) - columns 5, 7, 9, 11, 13 (1-based)
+    // OPTIMIZATION: Set formulas for all EQ columns first, then batch formatting
     const eqCols = [5, 7, 9, 11, 13]; // 1st EQ, 2nd EQ, 3rd EQ, 4th EQ, Final EQ
     eqCols.forEach((col) => {
       const formulas = eqFormulas.map(row => row[col - 1] || ''); // Convert to 0-based index
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulas.map(f => [f]));
-      sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('right');
     });
     
-    // Add gray background color to EQ formula columns (similar to subject sheets)
-    // Apply only to rows with actual student data, excluding frozen header rows (row 7)
-    const grayColor = '#d9d9d9'; // Light gray background
+    // OPTIMIZATION: Batch formatting operations for EQ columns
     eqCols.forEach((col) => {
-      sheet.getRange(startRow, col, numStudentRows, 1).setBackground(grayColor);
+      const range = sheet.getRange(startRow, col, numStudentRows, 1);
+      range.setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+      range.setHorizontalAlignment('right');
     });
     
     // Format borders for student data (matching subject sheet format)
     studentRange.setBorder(true, true, true, true, true, true);
     
-    // Add conditional formatting for grade input validation (red background if invalid)
+    // OPTIMIZATION: Batch all conditional formatting rules at once
     // Grade input columns: D (4), F (6), H (8), J (10), L (12)
     const gradeInputCols = [4, 6, 8, 10, 12];
     const minGrade = CONFIG.TEMPLATE.MIN_GRADE;
     const maxGrade = CONFIG.TEMPLATE.MAX_GRADE;
+    const allRules = [];
     
     gradeInputCols.forEach(col => {
       const inputRange = sheet.getRange(startRow, col, numStudentRows, 1);
@@ -1693,21 +1691,25 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       const rule1 = SpreadsheetApp.newConditionalFormatRule()
         .setRanges([inputRange])
         .whenNumberLessThan(minGrade)
-        .setBackground('#ffcccc') // Light red
+        .setBackground(CONFIG.COLORS.LIGHT_RED)
         .build();
       
       // Rule 2: Red if value is greater than maximum grade
       const rule2 = SpreadsheetApp.newConditionalFormatRule()
         .setRanges([inputRange])
         .whenNumberGreaterThan(maxGrade)
-        .setBackground('#ffcccc') // Light red
+        .setBackground(CONFIG.COLORS.LIGHT_RED)
         .build();
       
-      // Apply both rules
-      const rules = sheet.getConditionalFormatRules();
-      rules.push(rule1, rule2);
-      sheet.setConditionalFormatRules(rules);
+      allRules.push(rule1, rule2);
     });
+    
+    // Apply all conditional formatting rules in a single batch operation
+    if (allRules.length > 0) {
+      const existingRules = sheet.getConditionalFormatRules();
+      existingRules.push.apply(existingRules, allRules);
+      sheet.setConditionalFormatRules(existingRules);
+    }
   }
   
   // PROTECTION: Required for sharing with others (teachers/staff)
@@ -2009,7 +2011,7 @@ function _setupQRSheet(sheet, schoolYear, gradeLevel, section, teacher, students
     sheet.getRange(13, col).setValue(headerText)
       .setFontWeight('bold')
       .setHorizontalAlignment('center')
-      .setBackground('#d9d9d9');
+      .setBackground(CONFIG.COLORS.MEDIUM_GRAY);
   });
   
   // Subject rows - format first column (subject names)
@@ -2038,14 +2040,14 @@ function _setupQRSheet(sheet, schoolYear, gradeLevel, section, teacher, students
     sheet.getRange(monthHeaderRowNum, monthStartCol + index, 1, 1)
       .setFontWeight('bold')
       .setHorizontalAlignment('center')
-      .setBackground('#d9d9d9');
+      .setBackground(CONFIG.COLORS.MEDIUM_GRAY);
   });
   // TOTAL column (after all months)
   if (monthsToUse.length > 0) {
     sheet.getRange(monthHeaderRowNum, monthStartCol + monthsToUse.length, 1, 1)
       .setFontWeight('bold')
       .setHorizontalAlignment('center')
-      .setBackground('#d9d9d9');
+      .setBackground(CONFIG.COLORS.MEDIUM_GRAY);
   }
   
   // Days of School, Days Present, Days Absent rows
@@ -2224,12 +2226,12 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
       const attendanceSheet = templateSpreadsheet.insertSheet('Attendance');
       _setupAttendanceSheet(attendanceSheet, schoolYear, gradeLevel, section, teacher, students);
       // Add color to Attendance sheet tab to distinguish from subject sheets
-      attendanceSheet.setTabColor('#667eea'); // Blue color
+      attendanceSheet.setTabColor(CONFIG.COLORS.BLUE);
       
       const charactersSheet = templateSpreadsheet.insertSheet('Character');
       _setupCharactersSheet(charactersSheet, schoolYear, gradeLevel, section, teacher, students);
       // Add color to Character sheet tab to distinguish from subject sheets
-      charactersSheet.setTabColor('#667eea'); // Blue color
+      charactersSheet.setTabColor(CONFIG.COLORS.BLUE);
       
       // QR sheet - commented out for now
       // const qrSheet = templateSpreadsheet.insertSheet('QR');
@@ -2297,7 +2299,7 @@ function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
       sheet.getRange(1, 6).setValue('Created');
       sheet.getRange(1, 7).setValue('Modified');
       sheet.getRange(1, 8).setValue('Created By');
-      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground('#d9d9d9');
+      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.MEDIUM_GRAY);
     }
     
     const timestamp = new Date();
@@ -2394,7 +2396,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
       sheet.getRange(1, 6).setValue('Created');
       sheet.getRange(1, 7).setValue('Modified');
       sheet.getRange(1, 8).setValue('Created By');
-      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground('#d9d9d9');
+      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.MEDIUM_GRAY);
     }
     
     const timestamp = new Date();
@@ -2827,7 +2829,7 @@ function _addAdvisory(teacher, gradeLevel, section, userEmail) {
       sheet.getRange(1, 5).setValue('Created');
       sheet.getRange(1, 6).setValue('Modified');
       sheet.getRange(1, 7).setValue('Created By');
-      sheet.getRange(1, 1, 1, 7).setFontWeight('bold').setBackground('#d9d9d9');
+      sheet.getRange(1, 1, 1, 7).setFontWeight('bold').setBackground(CONFIG.COLORS.MEDIUM_GRAY);
     }
     
     const timestamp = new Date();
