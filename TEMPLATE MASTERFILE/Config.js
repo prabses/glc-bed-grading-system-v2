@@ -102,6 +102,8 @@ const CONFIG = {
   TEMPLATE: {
     NUM_STUDENT_ROWS: 30,           // Number of student rows to pre-create
     PASSING_GRADE: 75,               // Minimum passing grade
+    MIN_GRADE: 44,                   // Minimum valid grade input
+    MAX_GRADE: 100,                  // Maximum valid grade input
     STUDENT_COLUMNS: [               // Standard student information columns
       'Student Number',
       'Last Name',

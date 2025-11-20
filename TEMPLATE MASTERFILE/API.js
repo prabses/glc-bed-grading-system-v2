@@ -686,6 +686,35 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
       sheet.getRange(startRow, col, numStudentRows, 1).setNumberFormat('0.00');
     });
     
+    // Add conditional formatting for grade input validation (red background if invalid)
+    // Input columns: C, D, E (1st), H, I, J (2nd), M, N, O (3rd), R, S, T (4th)
+    const inputCols = [3, 4, 5, 8, 9, 10, 13, 14, 15, 18, 19, 20];
+    const minGrade = CONFIG.TEMPLATE.MIN_GRADE;
+    const maxGrade = CONFIG.TEMPLATE.MAX_GRADE;
+    
+    inputCols.forEach(col => {
+      const inputRange = sheet.getRange(startRow, col, numStudentRows, 1);
+      
+      // Rule 1: Red if value is less than minimum grade
+      const rule1 = SpreadsheetApp.newConditionalFormatRule()
+        .setRanges([inputRange])
+        .whenNumberLessThan(minGrade)
+        .setBackground('#ffcccc') // Light red
+        .build();
+      
+      // Rule 2: Red if value is greater than maximum grade
+      const rule2 = SpreadsheetApp.newConditionalFormatRule()
+        .setRanges([inputRange])
+        .whenNumberGreaterThan(maxGrade)
+        .setBackground('#ffcccc') // Light red
+        .build();
+      
+      // Apply both rules
+      const rules = sheet.getConditionalFormatRules();
+      rules.push(rule1, rule2);
+      sheet.setConditionalFormatRules(rules);
+    });
+    
     if (hasStudents) {
       sheet.getRange(6, 2).setValue(students.length).setHorizontalAlignment('left');
     }
@@ -1053,19 +1082,86 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setValues(studentValues);
     
-    // Populate School DAYS for each month from monthlyDays data
+    // Populate School DAYS for each month from monthlyDays data and add Days ABSENT formulas
     colIndex = 3; // Start at column C
+    const absentFormulaCols = []; // Track Days ABSENT columns for gray background
     monthsToUse.forEach((monthKey) => {
       // Get school days directly from monthlyDays using the exact key
       const schoolDays = monthlyDays[monthKey];
       
+      // Column structure per month: School DAYS (colIndex), Days PRESENT (colIndex+1), Days ABSENT (colIndex+2)
+      const schoolDaysCol = colIndex;
+      const daysPresentCol = colIndex + 1;
+      const daysAbsentCol = colIndex + 2;
+      
       if (schoolDays) {
         // Fill School DAYS column for all student rows
-        const schoolDaysRange = sheet.getRange(startRow, colIndex, numStudentRows, 1);
+        const schoolDaysRange = sheet.getRange(startRow, schoolDaysCol, numStudentRows, 1);
         const schoolDaysValues = Array(numStudentRows).fill([schoolDays]);
         schoolDaysRange.setValues(schoolDaysValues);
       }
-      colIndex += 3; // Move to next month (skip PRESENT and ABSENT columns)
+      
+      // Add Days ABSENT formulas: School DAYS - Days PRESENT
+      const schoolDaysColLetter = String.fromCharCode(64 + schoolDaysCol); // Convert to column letter
+      const daysPresentColLetter = String.fromCharCode(64 + daysPresentCol);
+      const absentFormulas = [];
+      for (let r = 0; r < numStudentRows; r++) {
+        const rowNum = startRow + r;
+        const formula = `=IF(OR(${schoolDaysColLetter}${rowNum}="",${daysPresentColLetter}${rowNum}=""),"",${schoolDaysColLetter}${rowNum}-${daysPresentColLetter}${rowNum})`;
+        absentFormulas.push([formula]);
+      }
+      sheet.getRange(startRow, daysAbsentCol, numStudentRows, 1).setFormulas(absentFormulas);
+      absentFormulaCols.push(daysAbsentCol);
+      
+      colIndex += 3; // Move to next month
+    });
+    
+    // Apply gray background to Days ABSENT formula columns (efficient batch operation)
+    if (absentFormulaCols.length > 0) {
+      const grayColor = '#d9d9d9';
+      absentFormulaCols.forEach(col => {
+        sheet.getRange(startRow, col, numStudentRows, 1).setBackground(grayColor);
+      });
+    }
+    
+    // Add conditional formatting for Days PRESENT validation (red background if invalid)
+    // Days PRESENT should not exceed School DAYS and should not be less than 0
+    colIndex = 3; // Reset to start at column C
+    const daysPresentCols = []; // Track Days PRESENT columns for validation
+    monthsToUse.forEach(() => {
+      const schoolDaysCol = colIndex;
+      const daysPresentCol = colIndex + 1;
+      daysPresentCols.push({ presentCol: daysPresentCol, schoolDaysCol: schoolDaysCol });
+      colIndex += 3; // Move to next month
+    });
+    
+    // Apply conditional formatting rules for each Days PRESENT column
+    daysPresentCols.forEach(({ presentCol, schoolDaysCol }) => {
+      const presentRange = sheet.getRange(startRow, presentCol, numStudentRows, 1);
+      const schoolDaysColLetter = String.fromCharCode(64 + schoolDaysCol);
+      const presentColLetter = String.fromCharCode(64 + presentCol);
+      
+      // Rule 1: Red if Days PRESENT is less than 0
+      const rule1 = SpreadsheetApp.newConditionalFormatRule()
+        .setRanges([presentRange])
+        .whenNumberLessThan(0)
+        .setBackground('#ffcccc') // Light red
+        .build();
+      
+      // Rule 2: Red if Days PRESENT exceeds School DAYS (using formula)
+      // Formula compares current cell (Days PRESENT) to School DAYS in same row
+      // Uses startRow as the base row - Google Sheets will automatically adjust for each row in the range
+      const rule2Formula = `=AND(${presentColLetter}${startRow}<>"",${schoolDaysColLetter}${startRow}<>"",${presentColLetter}${startRow}>${schoolDaysColLetter}${startRow})`;
+      const rule2 = SpreadsheetApp.newConditionalFormatRule()
+        .setRanges([presentRange])
+        .whenFormulaSatisfied(rule2Formula)
+        .setBackground('#ffcccc') // Light red
+        .build();
+      
+      // Apply both rules
+      const rules = sheet.getConditionalFormatRules();
+      rules.push(rule1, rule2);
+      sheet.setConditionalFormatRules(rules);
     });
   } else {
     // No students - create empty rows
@@ -1079,6 +1175,77 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     }
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setValues(emptyValues);
+    
+    // Add Days ABSENT formulas for empty rows as well
+    colIndex = 3; // Start at column C
+    const absentFormulaCols = []; // Track Days ABSENT columns for gray background
+    monthsToUse.forEach(() => {
+      const schoolDaysCol = colIndex;
+      const daysPresentCol = colIndex + 1;
+      const daysAbsentCol = colIndex + 2;
+      
+      // Add Days ABSENT formulas: School DAYS - Days PRESENT
+      const schoolDaysColLetter = String.fromCharCode(64 + schoolDaysCol);
+      const daysPresentColLetter = String.fromCharCode(64 + daysPresentCol);
+      const absentFormulas = [];
+      for (let r = 0; r < numStudentRows; r++) {
+        const rowNum = startRow + r;
+        const formula = `=IF(OR(${schoolDaysColLetter}${rowNum}="",${daysPresentColLetter}${rowNum}=""),"",${schoolDaysColLetter}${rowNum}-${daysPresentColLetter}${rowNum})`;
+        absentFormulas.push([formula]);
+      }
+      sheet.getRange(startRow, daysAbsentCol, numStudentRows, 1).setFormulas(absentFormulas);
+      absentFormulaCols.push(daysAbsentCol);
+      
+      colIndex += 3; // Move to next month
+    });
+    
+    // Apply gray background to Days ABSENT formula columns (efficient batch operation)
+    if (absentFormulaCols.length > 0) {
+      const grayColor = '#d9d9d9';
+      absentFormulaCols.forEach(col => {
+        sheet.getRange(startRow, col, numStudentRows, 1).setBackground(grayColor);
+      });
+    }
+    
+    // Add conditional formatting for Days PRESENT validation (red background if invalid)
+    // Days PRESENT should not exceed School DAYS and should not be less than 0
+    colIndex = 3; // Reset to start at column C
+    const daysPresentCols = []; // Track Days PRESENT columns for validation
+    monthsToUse.forEach(() => {
+      const schoolDaysCol = colIndex;
+      const daysPresentCol = colIndex + 1;
+      daysPresentCols.push({ presentCol: daysPresentCol, schoolDaysCol: schoolDaysCol });
+      colIndex += 3; // Move to next month
+    });
+    
+    // Apply conditional formatting rules for each Days PRESENT column
+    daysPresentCols.forEach(({ presentCol, schoolDaysCol }) => {
+      const presentRange = sheet.getRange(startRow, presentCol, numStudentRows, 1);
+      const schoolDaysColLetter = String.fromCharCode(64 + schoolDaysCol);
+      const presentColLetter = String.fromCharCode(64 + presentCol);
+      
+      // Rule 1: Red if Days PRESENT is less than 0
+      const rule1 = SpreadsheetApp.newConditionalFormatRule()
+        .setRanges([presentRange])
+        .whenNumberLessThan(0)
+        .setBackground('#ffcccc') // Light red
+        .build();
+      
+      // Rule 2: Red if Days PRESENT exceeds School DAYS (using formula)
+      // Formula compares current cell (Days PRESENT) to School DAYS in same row
+      // Uses startRow as the base row - Google Sheets will automatically adjust for each row in the range
+      const rule2Formula = `=AND(${presentColLetter}${startRow}<>"",${schoolDaysColLetter}${startRow}<>"",${presentColLetter}${startRow}>${schoolDaysColLetter}${startRow})`;
+      const rule2 = SpreadsheetApp.newConditionalFormatRule()
+        .setRanges([presentRange])
+        .whenFormulaSatisfied(rule2Formula)
+        .setBackground('#ffcccc') // Light red
+        .build();
+      
+      // Apply both rules
+      const rules = sheet.getConditionalFormatRules();
+      rules.push(rule1, rule2);
+      sheet.setConditionalFormatRules(rules);
+    });
   }
   
   // Format borders for student data (matching subject sheet format)
@@ -1460,6 +1627,35 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     
     // Format borders for student data (matching subject sheet format)
     studentRange.setBorder(true, true, true, true, true, true);
+    
+    // Add conditional formatting for grade input validation (red background if invalid)
+    // Grade input columns: D (4), F (6), H (8), J (10), L (12)
+    const gradeInputCols = [4, 6, 8, 10, 12];
+    const minGrade = CONFIG.TEMPLATE.MIN_GRADE;
+    const maxGrade = CONFIG.TEMPLATE.MAX_GRADE;
+    
+    gradeInputCols.forEach(col => {
+      const inputRange = sheet.getRange(startRow, col, numStudentRows, 1);
+      
+      // Rule 1: Red if value is less than minimum grade
+      const rule1 = SpreadsheetApp.newConditionalFormatRule()
+        .setRanges([inputRange])
+        .whenNumberLessThan(minGrade)
+        .setBackground('#ffcccc') // Light red
+        .build();
+      
+      // Rule 2: Red if value is greater than maximum grade
+      const rule2 = SpreadsheetApp.newConditionalFormatRule()
+        .setRanges([inputRange])
+        .whenNumberGreaterThan(maxGrade)
+        .setBackground('#ffcccc') // Light red
+        .build();
+      
+      // Apply both rules
+      const rules = sheet.getConditionalFormatRules();
+      rules.push(rule1, rule2);
+      sheet.setConditionalFormatRules(rules);
+    });
   }
   
   // PROTECTION: Required for sharing with others (teachers/staff)
