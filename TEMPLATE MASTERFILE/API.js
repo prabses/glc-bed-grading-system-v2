@@ -113,6 +113,8 @@ function doPost(e) {
         return response(200, _deleteAdvisoriesBatch(
           typeof payload.advisories === 'string' ? JSON.parse(payload.advisories) : payload.advisories
         ));
+      case "getSchoolYears":
+        return response(200, _getSchoolYears());
       default:
         return response(400, "Bad Request: Invalid action.");
     }
@@ -866,6 +868,56 @@ function _getStudentsFromDB(schoolYear, gradeLevel, section) {
 }
 
 /**
+ * Internal function to get list of school years (sheet names) from STUDENTS DB
+ * Returns sheets that match the YYYY-YYYY format (e.g., "2024-2025")
+ * @return {Array} Array of school year sheet names
+ */
+function _getSchoolYears() {
+  try {
+    // Get the current spreadsheet's folder
+    const currentSpreadsheet = getSpreadsheet();
+    const currentFile = DriveApp.getFileById(currentSpreadsheet.getId());
+    const parentFolders = currentFile.getParents();
+    
+    if (!parentFolders.hasNext()) {
+      console.warn('Unable to find parent folder. Returning empty school years list.');
+      return [];
+    }
+    
+    const parentFolder = parentFolders.next();
+    
+    // Search for STUDENTS_DB spreadsheet in the same folder
+    const studentsDbFiles = parentFolder.getFilesByName(CONFIG.STUDENTS_DB_NAME);
+    
+    if (!studentsDbFiles.hasNext()) {
+      console.warn(`STUDENTS_DB spreadsheet not found in folder. Looking for: "${CONFIG.STUDENTS_DB_NAME}". Returning empty school years list.`);
+      return [];
+    }
+    
+    const studentsDbFile = studentsDbFiles.next();
+    const studentsSpreadsheet = SpreadsheetApp.openById(studentsDbFile.getId());
+    const sheets = studentsSpreadsheet.getSheets();
+    const schoolYears = [];
+    
+    // Regular expression to match YYYY-YYYY format (4 digits, hyphen, 4 digits)
+    const yearPattern = /^\d{4}-\d{4}$/;
+    
+    for (let i = 0; i < sheets.length; i++) {
+      const sheetName = sheets[i].getName();
+      // Only include sheets that match the YYYY-YYYY format
+      if (yearPattern.test(sheetName)) {
+        schoolYears.push(sheetName);
+      }
+    }
+    
+    return schoolYears;
+  } catch (error) {
+    console.error('Error getting school years:', error);
+    return [];
+  }
+}
+
+/**
  * Helper function to check if teacher is an advisor for the given class
  * @param {string} teacher - The teacher name
  * @param {string} gradeLevel - The grade level
@@ -1166,7 +1218,7 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   } else {
     // No students - create empty rows
     const emptyValues = [];
-    for (let i = 0; i < numStudentRows; i++) {
+      for (let i = 0; i < numStudentRows; i++) {
       const row = ['', '']; // Empty student number and name
       monthsToUse.forEach(() => {
         row.push('', '', ''); // Empty attendance data

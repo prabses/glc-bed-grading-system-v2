@@ -594,51 +594,9 @@ function deleteAdvisoriesBatch(advisories) {
 }
 
 /**
- * Gets the list of school year sheets from STUDENTS DB spreadsheet
- * Returns sheets that follow the YYYY-YYYY format (e.g., "2024-2025")
- * @return {Array} Array of sheet names matching the school year format
+ * Client-callable function to get school years from STUDENTS DB via API
+ * @return {Array} Array of school year sheet names (e.g., ["2024-2025", "2023-2024"])
  */
-function getSchoolYearSheets() {
-  try {
-    // Get the current spreadsheet's folder
-    const currentSpreadsheet = getSpreadsheet();
-    const currentFile = DriveApp.getFileById(currentSpreadsheet.getId());
-    const parentFolders = currentFile.getParents();
-    
-    if (!parentFolders.hasNext()) {
-      console.warn('Unable to find parent folder. Returning empty school year list.');
-      return [];
-    }
-    
-    const parentFolder = parentFolders.next();
-    
-    // Search for STUDENTS_DB spreadsheet in the same folder
-    const studentsDbFiles = parentFolder.getFilesByName(CONFIG.STUDENTS_DB_NAME);
-    
-    if (!studentsDbFiles.hasNext()) {
-      console.warn(`STUDENTS_DB spreadsheet not found in folder. Looking for: "${CONFIG.STUDENTS_DB_NAME}". Returning empty school year list.`);
-      return [];
-    }
-    
-    const studentsDbFile = studentsDbFiles.next();
-    const studentsSpreadsheet = SpreadsheetApp.openById(studentsDbFile.getId());
-    const sheets = studentsSpreadsheet.getSheets();
-    const sheetNames = [];
-    
-    // Regular expression to match YYYY-YYYY format (4 digits, hyphen, 4 digits)
-    const yearPattern = /^\d{4}-\d{4}$/;
-    
-    for (let i = 0; i < sheets.length; i++) {
-      const sheetName = sheets[i].getName();
-      // Only include sheets that match the YYYY-YYYY format
-      if (yearPattern.test(sheetName)) {
-        sheetNames.push(sheetName);
-      }
-    }
-    
-    return sheetNames;
-  } catch (error) {
-    console.error('Error getting school year sheets from STUDENTS DB:', error);
-    return [];
-  }
+function getSchoolYears() {
+  return callApi("getSchoolYears", {});
 }
