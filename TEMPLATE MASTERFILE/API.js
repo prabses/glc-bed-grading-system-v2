@@ -2224,6 +2224,32 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
       createdSheets.push(subject);
     }
     
+    // Check if MAPEH sheet should be created (all four subjects must be present)
+    // Normalize subjects for comparison (trim whitespace and convert to lowercase)
+    const normalizedSubjects = subjects.map(s => s.trim().toLowerCase());
+    
+    // Check for each required subject (case-insensitive, trimmed)
+    const hasMusic = normalizedSubjects.includes('music');
+    const hasArts = normalizedSubjects.includes('art');
+    const hasPE = normalizedSubjects.some(s => s === 'pe' || s === 'physical education');
+    const hasHealth = normalizedSubjects.includes('health');
+    
+    // Create MAPEH sheet only if all four subjects are present
+    if (hasMusic && hasArts && hasPE && hasHealth) {
+      // Get weights for MAPEH - try MAPEH first, then fallback to DEFAULT
+      const mapehWeights = _getGradingWeights('MAPEH') || _getGradingWeights('DEFAULT');
+      
+      // Determine the Health sheet position so MAPEH can be inserted right after it
+      const healthSubjectName = subjects.find(subject => subject.trim().toLowerCase() === 'health');
+      const healthSheet = healthSubjectName ? templateSpreadsheet.getSheetByName(healthSubjectName) : null;
+      const healthIndex = healthSheet ? healthSheet.getIndex() : templateSpreadsheet.getSheets().length;
+      const insertIndex = Math.min(healthIndex + 1, templateSpreadsheet.getSheets().length + 1);
+      
+      const mapehSheet = templateSpreadsheet.insertSheet('MAPEH', insertIndex);
+      _setupOGSTemplate(mapehSheet, schoolYear, gradeLevel, section, 'MAPEH', teacher, mapehWeights, students);
+      createdSheets.push('MAPEH');
+    }
+    
     // Check if teacher is advisor for this class - if yes, add Attendance and Character sheets
     const isAdvisor = _isTeacherAdvisor(teacher, gradeLevel, section);
     if (isAdvisor) {
