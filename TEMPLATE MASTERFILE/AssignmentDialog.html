@@ -521,6 +521,7 @@
             
             // Populate grade levels
             const gradeSelect = document.getElementById('gradeLevel');
+            gradeSelect.innerHTML = '<option value="">Select grade level...</option>';
             const gradeFragment = document.createDocumentFragment();
             gradeLevels.forEach(function(grade) {
               const option = document.createElement('option');

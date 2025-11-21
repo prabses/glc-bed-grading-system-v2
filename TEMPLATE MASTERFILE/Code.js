@@ -259,16 +259,9 @@ function getGradeLevels() {
       return [];
     }
     
-    const lastRow = sheet.getLastRow();
-    if (lastRow <= CONFIG.HEADER_ROWS) {
-      return []; // No data rows
-    }
-    
-    // OPTIMIZATION 1: Only read column B (Grade Level - stores just numbers)
-    const maxRows = Math.min(lastRow, CONFIG.HEADER_ROWS + 1000);
     const startRow = CONFIG.HEADER_ROWS + 1;
-    const numRows = maxRows - CONFIG.HEADER_ROWS;
-    const data = sheet.getRange(startRow, 2, numRows, 1).getValues();
+    const maxRows = 1000;
+    const data = sheet.getRange(startRow, 2, maxRows, 1).getValues();
     
     // OPTIMIZATION 2: Use Set for O(1) duplicate detection
     const gradeLevelSet = new Set();
@@ -282,10 +275,12 @@ function getGradeLevels() {
       // Normalize to just the number
       const normalized = normalizeGradeLevel(rawGradeLevel);
       
-      // Format with "Grade " prefix for display and check for duplicates
-      if (normalized && !gradeLevelSet.has(normalized)) {
-        gradeLevelSet.add(normalized);
-        gradeLevels.push(formatGradeLevel(normalized)); // Return "Grade 1", "Grade 2", etc.
+      if (!normalized || normalized === '') continue;
+      
+      const normalizedStr = String(normalized);
+      if (!gradeLevelSet.has(normalizedStr)) {
+        gradeLevelSet.add(normalizedStr);
+        gradeLevels.push(formatGradeLevel(normalizedStr));
       }
     }
     

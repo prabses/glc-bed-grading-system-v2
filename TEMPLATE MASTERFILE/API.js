@@ -630,6 +630,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     // Configure via CONFIG.TEMPLATE.ENABLE_PROTECTIONS in Config.js
     if (CONFIG.TEMPLATE.ENABLE_PROTECTIONS) {
       const creatorEmail = Session.getActiveUser().getEmail();
+      const endRow = startRow + numStudentRows - 1;
       const protectToRow = Math.max(endRow + 20, 50);
       
       const setProtectionWithOnlyCreator = (protection, creatorEmail) => {
