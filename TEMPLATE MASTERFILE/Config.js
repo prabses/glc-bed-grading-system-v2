@@ -7,7 +7,7 @@ const CONFIG = {
   // Web App URL - Update this after deploying the script as a web app
   // To deploy: Deploy > New deployment > Select type: Web app > Execute as: Me > Who has access: Anyone
   // Then copy the Web App URL (the one ending with /exec) and paste it below
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxS2Gi9OUCOoJcN_lA89f7NuLWk5GjwbeyYBRHbt2dn3b-KdQ20mCzk12U6ve3A7wW1/exec", // Replace with your /exec URL after deployment
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbzaNA9GXlzlO_NoydV9JZ9F93UXj03FZzK7sQdnNbOc4vdThsRc8UBV6jlY1EeaIMIB/exec", // Replace with your /exec URL after deployment
   
   // API Key for securing the API - This is a unique identifier
   // Keep this secret and don't share it publicly
@@ -20,7 +20,7 @@ const CONFIG = {
   },
   
   // STUDENTS DB Spreadsheet Name - Located in the same folder as Template Masterfile
-  STUDENTS_DB_NAME: "STUDENTS DB",
+  STUDENTS_DB_NAME: "STUDENTS DB - GRADE 1-3",
   
   // Sheet names
   SHEET_NAMES: {
@@ -117,7 +117,11 @@ const CONFIG = {
     // Protection settings
     // Set to false to disable sheet protections (much faster generation, ~5-15 seconds vs ~90-100 seconds)
     // Set to true to enable protections (required for sharing with others - protects student info, headers, and formulas)
-    ENABLE_PROTECTIONS: false
+    ENABLE_PROTECTIONS: true,
+    // Email addresses of people who will have edit access to protected ranges and the file
+    // Can be a single email string or an array of email strings
+    // Leave empty array [] to skip protection setup if no emails are available
+    PROTECTION_EDITOR_EMAILS: ['system.center@goldenlink.ph']
   },
   
   // Transmutation table for converting weighted averages to transmuted grades

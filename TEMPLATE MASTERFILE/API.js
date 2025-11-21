@@ -388,7 +388,7 @@ function _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl
  * @param {Object} weights - Grading weights object
  * @param {Array} students - Array of student objects (optional)
  */
-function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teacher, weights, students = []) {
+function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teacher, weights, students = [], userEmail = null) {
   // Clear the sheet first
   sheet.clear();
   
@@ -629,19 +629,39 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     // Note: Protection operations are slow (~2-5 seconds each), resulting in ~90-100 second generation time
     // Configure via CONFIG.TEMPLATE.ENABLE_PROTECTIONS in Config.js
     if (CONFIG.TEMPLATE.ENABLE_PROTECTIONS) {
-      const creatorEmail = Session.getActiveUser().getEmail();
+      const protectionEditorEmails = Array.isArray(CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS) 
+        ? CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS 
+        : (CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS ? [CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS] : []);
+      
+      const emailsToUse = protectionEditorEmails.length > 0 
+        ? protectionEditorEmails 
+        : (userEmail ? [userEmail] : [Session.getActiveUser().getEmail()]);
+      
+      const validEmails = emailsToUse.filter(email => email && email.trim() !== '');
+      
+      if (validEmails.length === 0) {
+        console.log('Note: Skipping protection - no valid emails available');
+        return;
+      }
+      
       const endRow = startRow + numStudentRows - 1;
       const protectToRow = Math.max(endRow + 20, 50);
       
-      const setProtectionWithOnlyCreator = (protection, creatorEmail) => {
+      const setProtectionWithEditors = (protection, emails) => {
         try {
-          // Remove all existing editors (including script owner) to ensure only creator can edit
+          if (!emails || emails.length === 0) {
+            console.log('Note: Skipping protection editor - no emails provided');
+            return;
+          }
           const currentEditors = protection.getEditors();
           if (currentEditors.length > 0) {
             protection.removeEditors(currentEditors);
           }
-          // Add only the creator as editor
-          protection.addEditor(creatorEmail);
+          emails.forEach(email => {
+            if (email && email.trim() !== '') {
+              protection.addEditor(email.trim());
+            }
+          });
         } catch (e) {
           console.log('Note: Could not set protection editors:', e.message);
         }
@@ -649,11 +669,11 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
       
       const colABRange = sheet.getRange(1, 1, protectToRow, 2);
       const protection1 = colABRange.protect().setWarningOnly(false);
-      setProtectionWithOnlyCreator(protection1, creatorEmail);
+      setProtectionWithEditors(protection1, validEmails);
       
       const headerRowsRange = sheet.getRange(8, 1, 2, numCols);
       const protection2 = headerRowsRange.protect().setWarningOnly(false);
-      setProtectionWithOnlyCreator(protection2, creatorEmail);
+      setProtectionWithEditors(protection2, validEmails);
       
       const formulaCols = [6, 7, 11, 12, 16, 17, 21, 22, 23, 24];
       const formulaProtections = [];
@@ -663,7 +683,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
         formulaProtections.push(prot);
       });
       formulaProtections.forEach(protection => {
-        setProtectionWithOnlyCreator(protection, creatorEmail);
+        setProtectionWithEditors(protection, validEmails);
       });
     }
     
@@ -1723,21 +1743,43 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   // Note: Protection operations are slow (~2-5 seconds each)
   // Configure via CONFIG.TEMPLATE.ENABLE_PROTECTIONS in Config.js
   if (CONFIG.TEMPLATE.ENABLE_PROTECTIONS) {
-    const creatorEmail = Session.getActiveUser().getEmail();
+    // Get protection editor emails from config (can be array or single string)
+    const protectionEditorEmails = Array.isArray(CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS) 
+      ? CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS 
+      : (CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS ? [CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS] : []);
+    
+    // Fallback to Session.getActiveUser() if no emails in config
+    const emailsToUse = protectionEditorEmails.length > 0 
+      ? protectionEditorEmails 
+      : [Session.getActiveUser().getEmail()];
+    
+    // Filter out empty or invalid emails
+    const validEmails = emailsToUse.filter(email => email && email.trim() !== '');
+    
+    if (validEmails.length === 0) {
+      console.log('Note: Skipping protection - no valid emails available');
+      return;
+    }
     const numStudentRows = CONFIG.TEMPLATE.NUM_STUDENT_ROWS * (hasTraits ? traits.length : 1);
     const startRow = 8;
     const endRow = startRow + numStudentRows - 1;
     const protectToRow = Math.max(endRow + 20, 50);
     
-    const setProtectionWithOnlyCreator = (protection, creatorEmail) => {
+    const setProtectionWithEditors = (protection, emails) => {
       try {
-        // Remove all existing editors (including script owner) to ensure only creator can edit
+        if (!emails || emails.length === 0) {
+          console.log('Note: Skipping protection editor - no emails provided');
+          return;
+        }
         const currentEditors = protection.getEditors();
         if (currentEditors.length > 0) {
           protection.removeEditors(currentEditors);
         }
-        // Add only the creator as editor
-        protection.addEditor(creatorEmail);
+        emails.forEach(email => {
+          if (email && email.trim() !== '') {
+            protection.addEditor(email.trim());
+          }
+        });
       } catch (e) {
         console.log('Note: Could not set protection editors:', e.message);
       }
@@ -1746,12 +1788,12 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     // Protect student info columns (A-B)
     const colABRange = sheet.getRange(1, 1, protectToRow, 2);
     const protection1 = colABRange.protect().setWarningOnly(false);
-    setProtectionWithOnlyCreator(protection1, creatorEmail);
+    setProtectionWithEditors(protection1, validEmails);
     
     // Protect header row (row 7)
     const headerRowRange = sheet.getRange(7, 1, 1, numCols);
     const protection2 = headerRowRange.protect().setWarningOnly(false);
-    setProtectionWithOnlyCreator(protection2, creatorEmail);
+    setProtectionWithEditors(protection2, validEmails);
     
     // Protect EQ formula columns (E, G, I, K, M) - columns 5, 7, 9, 11, 13
     const eqFormulaCols = [5, 7, 9, 11, 13];
@@ -1762,7 +1804,7 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       eqFormulaProtections.push(prot);
     });
     eqFormulaProtections.forEach(protection => {
-      setProtectionWithOnlyCreator(protection, creatorEmail);
+      setProtectionWithEditors(protection, validEmails);
     });
   }
 }
@@ -2174,17 +2216,25 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     // Create new Google Sheet file
     const templateSpreadsheet = SpreadsheetApp.create(templateFileName);
     const templateFile = DriveApp.getFileById(templateSpreadsheet.getId());
-    
-    // OPTIMIZATION: Streamlined file permissions setup
-    // Set file permissions: Creator and teacher have edit access
-    const creatorEmail = Session.getActiveUser().getEmail();
+    const protectionEditorEmails = Array.isArray(CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS) 
+      ? CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS 
+      : (CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS ? [CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS] : []);
     
     // Get teacher email from TEACHERS_REF sheet
     const teacherEmail = _getTeacherEmail(teacher);
     
-    // OPTIMIZATION: Only modify permissions if teacher email exists
-    // Creator is automatically added when file is created, so we only need to add teacher
-    if (teacherEmail && teacherEmail !== creatorEmail) {
+    protectionEditorEmails.forEach(email => {
+      if (email && email.trim() !== '') {
+        try {
+          templateFile.addEditor(email.trim());
+        } catch (e) {
+          console.log('Note: Could not add protection editor email as editor:', e.message);
+        }
+      }
+    });
+    
+    // Add teacher email as editor (if available and not already in protection editor emails)
+    if (teacherEmail && teacherEmail.trim() !== '' && !protectionEditorEmails.includes(teacherEmail.trim())) {
       try {
         templateFile.addEditor(teacherEmail);
       } catch (e) {
@@ -2214,14 +2264,14 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     defaultSheet.setName(firstSubject);
     
     // Set up the first OGS template sheet with student data
-    _setupOGSTemplate(defaultSheet, schoolYear, gradeLevel, section, firstSubject, teacher, subjectWeights[firstSubject], students);
+    _setupOGSTemplate(defaultSheet, schoolYear, gradeLevel, section, firstSubject, teacher, subjectWeights[firstSubject], students, userEmail);
     
     // Create sheets for remaining subjects with same student data
     const createdSheets = [firstSubject];
     for (let i = 1; i < subjects.length; i++) {
       const subject = subjects[i];
       const newSheet = templateSpreadsheet.insertSheet(subject);
-      _setupOGSTemplate(newSheet, schoolYear, gradeLevel, section, subject, teacher, subjectWeights[subject], students);
+      _setupOGSTemplate(newSheet, schoolYear, gradeLevel, section, subject, teacher, subjectWeights[subject], students, userEmail);
       createdSheets.push(subject);
     }
     
@@ -2247,7 +2297,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
       const insertIndex = Math.min(healthIndex + 1, templateSpreadsheet.getSheets().length + 1);
       
       const mapehSheet = templateSpreadsheet.insertSheet('MAPEH', insertIndex);
-      _setupOGSTemplate(mapehSheet, schoolYear, gradeLevel, section, 'MAPEH', teacher, mapehWeights, students);
+      _setupOGSTemplate(mapehSheet, schoolYear, gradeLevel, section, 'MAPEH', teacher, mapehWeights, students, userEmail);
       createdSheets.push('MAPEH');
     }
     
