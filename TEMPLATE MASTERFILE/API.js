@@ -679,24 +679,40 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
         }
       };
       
-      const colABRange = sheet.getRange(1, 1, protectToRow, 2);
-      const protection1 = colABRange.protect().setWarningOnly(false);
-      setProtectionWithEditors(protection1, validEmails);
+      // Get protected ranges from config
+      const protectedRanges = CONFIG.TEMPLATE.PROTECTED_RANGES.SUBJECT_SHEETS;
       
-      const headerRowsRange = sheet.getRange(8, 1, 2, numCols);
-      const protection2 = headerRowsRange.protect().setWarningOnly(false);
-      setProtectionWithEditors(protection2, validEmails);
+      // Protect student info columns (from config)
+      if (protectedRanges.STUDENT_INFO_COLUMNS && protectedRanges.STUDENT_INFO_COLUMNS.length >= 2) {
+        const startCol = protectedRanges.STUDENT_INFO_COLUMNS[0];
+        const numCols = protectedRanges.STUDENT_INFO_COLUMNS[1] - protectedRanges.STUDENT_INFO_COLUMNS[0] + 1;
+        const colABRange = sheet.getRange(1, startCol, protectToRow, numCols);
+        const protection1 = colABRange.protect().setWarningOnly(false);
+        setProtectionWithEditors(protection1, validEmails);
+      }
       
-      const formulaCols = [6, 7, 11, 12, 16, 17, 21, 22, 23, 24];
-      const formulaProtections = [];
-      formulaCols.forEach((col) => {
-        const formulaRange = sheet.getRange(1, col, protectToRow, 1);
-        const prot = formulaRange.protect().setWarningOnly(false);
-        formulaProtections.push(prot);
-      });
-      formulaProtections.forEach(protection => {
-        setProtectionWithEditors(protection, validEmails);
-      });
+      // Protect header rows (from config)
+      if (protectedRanges.HEADER_ROWS && protectedRanges.HEADER_ROWS.length > 0) {
+        const startRow = Math.min(...protectedRanges.HEADER_ROWS);
+        const numRows = Math.max(...protectedRanges.HEADER_ROWS) - startRow + 1;
+        const headerRowsRange = sheet.getRange(startRow, 1, numRows, numCols);
+        const protection2 = headerRowsRange.protect().setWarningOnly(false);
+        setProtectionWithEditors(protection2, validEmails);
+      }
+      
+      // Protect formula columns (from config)
+      if (protectedRanges.FORMULA_COLUMNS && protectedRanges.FORMULA_COLUMNS.length > 0) {
+        const formulaCols = protectedRanges.FORMULA_COLUMNS;
+        const formulaProtections = [];
+        formulaCols.forEach((col) => {
+          const formulaRange = sheet.getRange(1, col, protectToRow, 1);
+          const prot = formulaRange.protect().setWarningOnly(false);
+          formulaProtections.push(prot);
+        });
+        formulaProtections.forEach(protection => {
+          setProtectionWithEditors(protection, validEmails);
+        });
+      }
     }
     
     // OPTIMIZATION: Batch formatting operations
@@ -1337,6 +1353,104 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   // Format borders for student data (matching subject sheet format)
   const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
   studentRange.setBorder(true, true, true, true, true, true);
+  
+  // PROTECTION: Required for sharing with others (teachers/staff)
+  // Protected: Student info (A-B), Headers (rows 6-7), Days ABSENT formulas
+  // Editable by others: School DAYS and Days PRESENT input columns
+  // Note: Protection operations are slow (~2-5 seconds each)
+  // Configure via CONFIG.TEMPLATE.ENABLE_PROTECTIONS in Config.js
+  if (CONFIG.TEMPLATE.ENABLE_PROTECTIONS) {
+    // Get protection editor emails from config (can be array or single string)
+    const protectionEditorEmails = Array.isArray(CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS) 
+      ? CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS 
+      : (CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS ? [CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS] : []);
+    
+    // Fallback to Session.getActiveUser() if no emails in config
+    const emailsToUse = protectionEditorEmails.length > 0 
+      ? protectionEditorEmails 
+      : [Session.getActiveUser().getEmail()];
+    
+    // Filter out empty or invalid emails
+    const validEmails = emailsToUse.filter(email => email && email.trim() !== '');
+    
+    // Skip protection if no valid emails
+    if (validEmails.length === 0) {
+      console.log('Note: Skipping protection - no valid emails available');
+      return;
+    }
+    
+    const endRow = startRow + numStudentRows - 1;
+    const protectToRow = Math.max(endRow + 20, 50);
+    
+    const setProtectionWithEditors = (protection, emails) => {
+      try {
+        if (!emails || emails.length === 0) {
+          console.log('Note: Skipping protection editor - no emails provided');
+          return;
+        }
+        // Remove all existing editors
+        const currentEditors = protection.getEditors();
+        if (currentEditors.length > 0) {
+          protection.removeEditors(currentEditors);
+        }
+        // Add all protection editor emails
+        emails.forEach(email => {
+          if (email && email.trim() !== '') {
+            protection.addEditor(email.trim());
+          }
+        });
+      } catch (e) {
+        console.log('Note: Could not set protection editors:', e.message);
+      }
+    };
+    
+    // Get protected ranges from config
+    const protectedRanges = CONFIG.TEMPLATE.PROTECTED_RANGES.ATTENDANCE_SHEET;
+    
+    // Protect student info columns (from config)
+    if (protectedRanges.STUDENT_INFO_COLUMNS && protectedRanges.STUDENT_INFO_COLUMNS.length >= 2) {
+      const startCol = protectedRanges.STUDENT_INFO_COLUMNS[0];
+      const numColsInfo = protectedRanges.STUDENT_INFO_COLUMNS[1] - protectedRanges.STUDENT_INFO_COLUMNS[0] + 1;
+      const colABRange = sheet.getRange(1, startCol, protectToRow, numColsInfo);
+      const protection1 = colABRange.protect().setWarningOnly(false);
+      setProtectionWithEditors(protection1, validEmails);
+    }
+    
+    // Protect header rows (from config)
+    if (protectedRanges.HEADER_ROWS && protectedRanges.HEADER_ROWS.length > 0) {
+      const startRowHeader = Math.min(...protectedRanges.HEADER_ROWS);
+      const numRowsHeader = Math.max(...protectedRanges.HEADER_ROWS) - startRowHeader + 1;
+      const headerRowsRange = sheet.getRange(startRowHeader, 1, numRowsHeader, numCols);
+      const protection2 = headerRowsRange.protect().setWarningOnly(false);
+      setProtectionWithEditors(protection2, validEmails);
+    }
+    
+    // Protect columns based on pattern (School DAYS and Days ABSENT)
+    if (protectedRanges.PROTECTED_COLUMN_PATTERN) {
+      const pattern = protectedRanges.PROTECTED_COLUMN_PATTERN;
+      const protectedCols = [];
+      for (let i = 0; i < monthsToUse.length; i++) {
+        const baseCol = pattern.START_COL + (i * pattern.STEP);
+        pattern.COLUMNS.forEach(relativePos => {
+          const col = baseCol + relativePos;
+          if (!protectedCols.includes(col)) {
+            protectedCols.push(col);
+          }
+        });
+      }
+      
+      // Protect all calculated columns
+      const columnProtections = [];
+      protectedCols.forEach((col) => {
+        const colRange = sheet.getRange(1, col, protectToRow, 1);
+        const prot = colRange.protect().setWarningOnly(false);
+        columnProtections.push(prot);
+      });
+      columnProtections.forEach(protection => {
+        setProtectionWithEditors(protection, validEmails);
+      });
+    }
+  }
 }
 
 /**
@@ -1797,27 +1911,38 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       }
     };
     
-    // Protect student info columns (A-B)
-    const colABRange = sheet.getRange(1, 1, protectToRow, 2);
-    const protection1 = colABRange.protect().setWarningOnly(false);
-    setProtectionWithEditors(protection1, validEmails);
+    // Get protected ranges from config
+    const protectedRanges = CONFIG.TEMPLATE.PROTECTED_RANGES.CHARACTER_SHEET;
     
-    // Protect header row (row 7)
-    const headerRowRange = sheet.getRange(7, 1, 1, numCols);
-    const protection2 = headerRowRange.protect().setWarningOnly(false);
-    setProtectionWithEditors(protection2, validEmails);
+    // Protect student info columns (from config)
+    if (protectedRanges.STUDENT_INFO_COLUMNS && protectedRanges.STUDENT_INFO_COLUMNS.length >= 2) {
+      const startCol = protectedRanges.STUDENT_INFO_COLUMNS[0];
+      const numCols = protectedRanges.STUDENT_INFO_COLUMNS[1] - protectedRanges.STUDENT_INFO_COLUMNS[0] + 1;
+      const colABRange = sheet.getRange(1, startCol, protectToRow, numCols);
+      const protection1 = colABRange.protect().setWarningOnly(false);
+      setProtectionWithEditors(protection1, validEmails);
+    }
     
-    // Protect EQ formula columns (E, G, I, K, M) - columns 5, 7, 9, 11, 13
-    const eqFormulaCols = [5, 7, 9, 11, 13];
-    const eqFormulaProtections = [];
-    eqFormulaCols.forEach((col) => {
-      const formulaRange = sheet.getRange(1, col, protectToRow, 1);
-      const prot = formulaRange.protect().setWarningOnly(false);
-      eqFormulaProtections.push(prot);
-    });
-    eqFormulaProtections.forEach(protection => {
-      setProtectionWithEditors(protection, validEmails);
-    });
+    // Protect header row (from config)
+    if (protectedRanges.HEADER_ROW) {
+      const headerRowRange = sheet.getRange(protectedRanges.HEADER_ROW, 1, 1, numCols);
+      const protection2 = headerRowRange.protect().setWarningOnly(false);
+      setProtectionWithEditors(protection2, validEmails);
+    }
+    
+    // Protect EQ formula columns (from config)
+    if (protectedRanges.FORMULA_COLUMNS && protectedRanges.FORMULA_COLUMNS.length > 0) {
+      const eqFormulaCols = protectedRanges.FORMULA_COLUMNS;
+      const eqFormulaProtections = [];
+      eqFormulaCols.forEach((col) => {
+        const formulaRange = sheet.getRange(1, col, protectToRow, 1);
+        const prot = formulaRange.protect().setWarningOnly(false);
+        eqFormulaProtections.push(prot);
+      });
+      eqFormulaProtections.forEach(protection => {
+        setProtectionWithEditors(protection, validEmails);
+      });
+    }
   }
 }
 

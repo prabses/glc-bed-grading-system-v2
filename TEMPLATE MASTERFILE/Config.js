@@ -121,7 +121,33 @@ const CONFIG = {
     // Email addresses of people who will have edit access to protected ranges and the file
     // Can be a single email string or an array of email strings
     // Leave empty array [] to skip protection setup if no emails are available
-    PROTECTION_EDITOR_EMAILS: ['system.center@goldenlink.ph']
+    PROTECTION_EDITOR_EMAILS: ['system.center@goldenlink.ph'],
+    // Protected ranges configuration for OGS template sheets
+    // Column numbers are 1-based (1 = Column A, 2 = Column B, etc.)
+    PROTECTED_RANGES: {
+      // Subject sheets protection ranges
+      SUBJECT_SHEETS: {
+        STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
+        HEADER_ROWS: [8, 9],  // Rows 8-9 (grading period headers and column headers)
+        FORMULA_COLUMNS: [6, 7, 11, 12, 16, 17, 21, 22, 23, 24]  // Columns F, G, K, L, P, Q, U, V, W, X
+      },
+      // Character sheet protection ranges
+      CHARACTER_SHEET: {
+        STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
+        HEADER_ROW: 7,  // Row 7 (column headers)
+        FORMULA_COLUMNS: [3, 5, 7, 9, 11, 13]  // Columns C, E, G, I, K, M
+      },
+      // Attendance sheet protection ranges
+      ATTENDANCE_SHEET: {
+        STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
+        HEADER_ROWS: [6, 7],  // Rows 6-7 (month headers and column headers)
+        PROTECTED_COLUMN_PATTERN: {
+          START_COL: 3,  // Starting column (Column C)
+          STEP: 3,       // Step size (each month takes 3 columns)
+          COLUMNS: [0, 2]  // Relative positions within each month group: 0 = School DAYS, 2 = Days ABSENT
+        }
+      }
+    }
   },
   
   // Transmutation table for converting weighted averages to transmuted grades
