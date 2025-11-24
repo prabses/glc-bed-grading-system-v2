@@ -1031,6 +1031,347 @@ function _getMonthlySchoolDays(schoolYear) {
 }
 
 /**
+ * Internal function to set up the MAPEH sheet structure
+ * @param {Sheet} sheet - The target sheet
+ * @param {Spreadsheet} templateSpreadsheet - The template spreadsheet (to reference other subject sheets)
+ * @param {string} schoolYear - The school year
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @param {string} teacher - The teacher/advisor name
+ * @param {Array} students - Array of student objects
+ * @param {string} userEmail - Email of the user creating the template
+ */
+function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, section, teacher, students = [], userEmail = null) {
+  // Clear the sheet first
+  sheet.clear();
+  
+  // Find the Music, Arts, PE, and Health sheets
+  const musicSheet = templateSpreadsheet.getSheetByName('Music');
+  const artsSheet = templateSpreadsheet.getSheetByName('Arts') || templateSpreadsheet.getSheetByName('Art');
+  const peSheet = templateSpreadsheet.getSheetByName('PE') || templateSpreadsheet.getSheetByName('Physical Education');
+  const healthSheet = templateSpreadsheet.getSheetByName('Health');
+  
+  if (!musicSheet || !artsSheet || !peSheet || !healthSheet) {
+    console.warn('MAPEH sheet: One or more required subject sheets not found');
+    return;
+  }
+  
+  // Get actual sheet names for formula references
+  const musicSheetName = musicSheet.getName();
+  const artsSheetName = artsSheet.getName();
+  const peSheetName = peSheet.getName();
+  const healthSheetName = healthSheet.getName();
+  
+  // Build all data in memory first for batch operations
+  const numCols = 32; // Student No, Student Name, 4 grading periods × 7 cols each (Music, Arts, PE, Health, AVE, GLC, GLC EQ), Final Grading, Final EQ
+  const allData = [];
+  
+  // Helper function to pad row to numCols
+  const padRow = (row) => {
+    const padded = [...row];
+    while (padded.length < numCols) {
+      padded.push('');
+    }
+    return padded.slice(0, numCols);
+  };
+  
+  // Row 1: Title
+  allData.push(padRow(['OFFICIAL GRADE SHEET']));
+  
+  // Row 2-7: Info rows (matching Excel format exactly)
+  allData.push(padRow(['Teacher Name:', teacher]));
+  allData.push(padRow(['School Year:', schoolYear]));
+  const formattedGradeLevel = _formatGradeLevel(gradeLevel);
+  allData.push(padRow(['Level:', formattedGradeLevel]));
+  allData.push(padRow(['Section:', section]));
+  allData.push(padRow(['Total Student:', '']));
+  allData.push(padRow(['Subject:', 'MAPEH']));
+  
+  // Row 8: Grading period headers row
+  const gradingHeadersRow = padRow([
+    '', 
+    '', 
+    '1ST GRADING', '', '', '', '', '', '', '',  // Columns C-L (7 columns for 1ST GRADING)
+    '2ND GRADING', '', '', '', '', '', '', '', '',  // Columns M-U (7 columns for 2ND GRADING)
+    '3RD GRADING', '', '', '', '', '', '', '', '',  // Columns V-AD (7 columns for 3RD GRADING)
+    '4TH GRADING', '', '', '', '', '', '', '', '',  // Columns AE-AM (7 columns for 4TH GRADING)
+    '', ''  // Columns AN-AO (Final Grading and Final EQ headers are in row 9)
+  ]);
+  allData.push(gradingHeadersRow);
+  
+  // Row 9: Column headers
+  const headerRow = [
+    'Student No',
+    'Student Name',
+    // 1ST GRADING
+    'Music', 'Arts', 'PE', 'Health', 'AVE', 'GLC', 'GLC EQ',
+    // 2ND GRADING
+    'Music', 'Arts', 'PE', 'Health', 'AVE', 'GLC', 'GLC EQ',
+    // 3RD GRADING
+    'Music', 'Arts', 'PE', 'Health', 'AVE', 'GLC', 'GLC EQ',
+    // 4TH GRADING
+    'Music', 'Arts', 'PE', 'Health', 'AVE', 'GLC', 'GLC EQ',
+    // Final
+    'Final Grading',
+    'Final EQ'
+  ];
+  allData.push(padRow(headerRow));
+  
+  // Write all data at once
+  const numRows = allData.length;
+  const dataRange = sheet.getRange(1, 1, numRows, numCols);
+  dataRange.setValues(allData);
+  
+  // OPTIMIZATION: Batch formatting operations
+  // Title row (row 1)
+  const titleRange = sheet.getRange(1, 1, 1, numCols);
+  titleRange.merge()
+    .setFontSize(18)
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
+  
+  // Info rows (rows 2-7): Batch format column A (bold) and column B (background)
+  sheet.getRange(2, 1, 6, 1).setFontWeight('bold');
+  sheet.getRange(2, 2, 6, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
+  
+  // Row 8: Grading period headers - batch merges and formatting
+  sheet.getRange(8, 3, 1, 7).merge();   // 1ST GRADING
+  sheet.getRange(8, 10, 1, 7).merge(); // 2ND GRADING
+  sheet.getRange(8, 17, 1, 7).merge(); // 3RD GRADING
+  sheet.getRange(8, 24, 1, 7).merge(); // 4TH GRADING
+  
+  // Format grading period headers
+  const gradingHeaderRanges = [
+    sheet.getRange(8, 3, 1, 7),
+    sheet.getRange(8, 10, 1, 7),
+    sheet.getRange(8, 17, 1, 7),
+    sheet.getRange(8, 24, 1, 7)
+  ];
+  gradingHeaderRanges.forEach(range => {
+    range.setBackground(CONFIG.COLORS.LIGHTER_GRAY)
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center');
+  });
+  
+  // Row 9: Column headers - format
+  sheet.getRange(9, 1, 1, numCols).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.MEDIUM_GRAY)
+    .setHorizontalAlignment('center');
+  
+  // Freeze rows 1-9
+  sheet.setFrozenRows(9);
+  
+  // Set column widths
+  sheet.setColumnWidth(1, 100); // Student No
+  sheet.setColumnWidth(2, 200); // Student Name
+  for (let col = 3; col <= numCols; col++) {
+    sheet.setColumnWidth(col, 80);
+  }
+  
+  // Get number of student rows
+  const hasStudents = students && students.length > 0;
+  const numStudentRows = hasStudents ? Math.max(students.length, CONFIG.TEMPLATE.NUM_STUDENT_ROWS) : CONFIG.TEMPLATE.NUM_STUDENT_ROWS;
+  const startRow = 10;
+  
+  // Prepare student data and formulas
+  const studentValues = [];
+  const formulaColumns = {
+    3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [],  // 1ST GRADING: Music, Arts, PE, Health, AVE, GLC, GLC EQ
+    10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [],  // 2ND GRADING
+    17: [], 18: [], 19: [], 20: [], 21: [], 22: [], 23: [],  // 3RD GRADING
+    24: [], 25: [], 26: [], 27: [], 28: [], 29: [], 30: [],  // 4TH GRADING
+    31: [], 32: []  // Final Grading, Final EQ
+  };
+  
+  // Transmuted column positions in subject sheets (1-based, but we'll use column letters)
+  // Column F (6) = 1st Transmuted, K (11) = 2nd Transmuted, P (16) = 3rd Transmuted, U (21) = 4th Transmuted
+  const transmutedCols = [6, 11, 16, 21]; // Columns F, K, P, U
+  
+      for (let i = 0; i < numStudentRows; i++) {
+        const row = startRow + i;
+    let studentNumber = '';
+    let studentName = '';
+    
+    if (hasStudents && i < students.length) {
+      const student = students[i];
+      studentNumber = student.studentNumber || '';
+      const lastName = student.lastName || '';
+      const firstName = student.firstName || '';
+      const middleName = student.middleName || '';
+      studentName = `${lastName}${firstName ? ', ' + firstName : ''}${middleName ? ' ' + middleName : ''}`.trim();
+    }
+    
+    studentValues.push([studentNumber, studentName]);
+    
+    // For each grading period (1st, 2nd, 3rd, 4th)
+    for (let period = 0; period < 4; period++) {
+      const baseCol = 3 + (period * 7); // Starting column for this period (3, 10, 17, 24)
+      const transmutedCol = transmutedCols[period]; // Column in subject sheets (6, 11, 16, 21)
+      const transmutedColLetter = String.fromCharCode(64 + transmutedCol); // F, K, P, U
+      
+      // Music, Arts, PE, Health formulas: Reference transmuted columns from respective subject sheets
+      const musicFormula = `=IF('${musicSheetName}'!${transmutedColLetter}${row}="","",'${musicSheetName}'!${transmutedColLetter}${row})`;
+      const artsFormula = `=IF('${artsSheetName}'!${transmutedColLetter}${row}="","",'${artsSheetName}'!${transmutedColLetter}${row})`;
+      const peFormula = `=IF('${peSheetName}'!${transmutedColLetter}${row}="","",'${peSheetName}'!${transmutedColLetter}${row})`;
+      const healthFormula = `=IF('${healthSheetName}'!${transmutedColLetter}${row}="","",'${healthSheetName}'!${transmutedColLetter}${row})`;
+      
+      // AVE formula: Average of Music, Arts, PE, Health
+      const musicColLetter = String.fromCharCode(64 + baseCol);
+      const artsColLetter = String.fromCharCode(64 + baseCol + 1);
+      const peColLetter = String.fromCharCode(64 + baseCol + 2);
+      const healthColLetter = String.fromCharCode(64 + baseCol + 3);
+      const aveFormula = `=IF(AND(${musicColLetter}${row}<>"",${artsColLetter}${row}<>"",${peColLetter}${row}<>"",${healthColLetter}${row}<>""),ROUND(AVERAGE(${musicColLetter}${row},${artsColLetter}${row},${peColLetter}${row},${healthColLetter}${row}),2),"")`;
+      
+      // GLC formula: Transmuted value of AVE
+      const aveColLetter = String.fromCharCode(64 + baseCol + 4);
+      const glcFormula = _generateTransmutationFormula(aveColLetter + row);
+      
+      // GLC EQ formula: EQ based on GLC transmuted value
+      const glcColLetter = String.fromCharCode(64 + baseCol + 5);
+      const glcEQFormula = _generateEQFromTransmutation(baseCol + 5, row);
+      
+      formulaColumns[baseCol].push([musicFormula]);      // Music
+      formulaColumns[baseCol + 1].push([artsFormula]);   // Arts
+      formulaColumns[baseCol + 2].push([peFormula]);     // PE
+      formulaColumns[baseCol + 3].push([healthFormula]); // Health
+      formulaColumns[baseCol + 4].push([aveFormula]);    // AVE
+      formulaColumns[baseCol + 5].push([glcFormula]);     // GLC
+      formulaColumns[baseCol + 6].push([glcEQFormula]);   // GLC EQ
+    }
+    
+    // Final Grading: Average of the 4 AVE columns (columns 7, 14, 21, 28) - no transmutation needed
+    const ave1ColLetter = String.fromCharCode(64 + 7);  // Column G (1st AVE)
+    const ave2ColLetter = String.fromCharCode(64 + 14); // Column N (2nd AVE)
+    const ave3ColLetter = String.fromCharCode(64 + 21); // Column U (3rd AVE)
+    const ave4ColLetter = String.fromCharCode(64 + 28); // Column AB (4th AVE)
+    const finalGradingFormula = `=IF(AND(${ave1ColLetter}${row}<>"",${ave2ColLetter}${row}<>"",${ave3ColLetter}${row}<>"",${ave4ColLetter}${row}<>""),ROUND(AVERAGE(${ave1ColLetter}${row},${ave2ColLetter}${row},${ave3ColLetter}${row},${ave4ColLetter}${row}),2),"")`;
+    
+    // Final EQ: Based on Final Grading (non-transmuted) using EQ_GRADING_SCALE_NON_TRANSMUTED
+    // Column 31 = Final Grading (average), Column 32 = Final EQ
+    const finalEQFormula = _generateEQFromNonTransmutedGrade(31, row);
+    
+    formulaColumns[31].push([finalGradingFormula]);
+    formulaColumns[32].push([finalEQFormula]);
+  }
+  
+  // Write student data
+  if (studentValues.length > 0) {
+    sheet.getRange(startRow, 1, numStudentRows, 2).setValues(studentValues);
+  }
+  
+  // OPTIMIZATION: Batch set all formulas at once
+  const formulaColsList = Object.keys(formulaColumns).map(Number).sort((a, b) => a - b);
+  formulaColsList.forEach(col => {
+    if (formulaColumns[col].length > 0) {
+      sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulaColumns[col]);
+    }
+  });
+  
+  // Apply gray background to all formula columns (excluding headers)
+  const allFormulaCols = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32];
+  allFormulaCols.forEach(col => {
+    sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
+  });
+  
+  // Right align EQ columns (GLC EQ and Final EQ)
+  const eqCols = [9, 16, 23, 30, 32]; // 1st GLC EQ, 2nd GLC EQ, 3rd GLC EQ, 4th GLC EQ, Final EQ
+  eqCols.forEach(col => {
+    sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('right');
+  });
+  
+  // Number format for numeric columns (Music, Arts, PE, Health, AVE, GLC, Final Grading)
+  const numberFormatCols = [3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 31];
+  numberFormatCols.forEach(col => {
+    sheet.getRange(startRow, col, numStudentRows, 1).setNumberFormat('0.00');
+  });
+  
+  // Apply borders
+  const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
+  studentRange.setBorder(true, true, true, true, true, true);
+  
+  // Set total student count
+  if (hasStudents) {
+    sheet.getRange(6, 2).setValue(students.length).setHorizontalAlignment('left');
+  }
+  
+  // PROTECTION: All columns are formulas, so all should be protected
+  if (CONFIG.TEMPLATE.ENABLE_PROTECTIONS) {
+    const protectionEditorEmails = Array.isArray(CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS) 
+      ? CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS 
+      : (CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS ? [CONFIG.TEMPLATE.PROTECTION_EDITOR_EMAILS] : []);
+    
+    const emailsToUse = protectionEditorEmails.length > 0 
+      ? protectionEditorEmails 
+      : (userEmail ? [userEmail] : [Session.getActiveUser().getEmail()]);
+    
+    const validEmails = emailsToUse.filter(email => email && email.trim() !== '');
+    
+    if (validEmails.length === 0) {
+      console.log('Note: Skipping protection - no valid emails available');
+      return;
+    }
+    
+    const endRow = startRow + numStudentRows - 1;
+    const protectToRow = Math.max(endRow + 20, 50);
+    
+    const setProtectionWithEditors = (protection, emails) => {
+      try {
+        if (!emails || emails.length === 0) {
+          console.log('Note: Skipping protection editor - no emails provided');
+          return;
+        }
+        const currentEditors = protection.getEditors();
+        if (currentEditors.length > 0) {
+          protection.removeEditors(currentEditors);
+        }
+        emails.forEach(email => {
+          if (email && email.trim() !== '') {
+            protection.addEditor(email.trim());
+          }
+        });
+      } catch (e) {
+        console.log('Note: Could not set protection editors:', e.message);
+      }
+    };
+    
+    // Get protected ranges from config
+    const protectedRanges = CONFIG.TEMPLATE.PROTECTED_RANGES.MAPEH_SHEET;
+    
+    // Protect student info columns (from config)
+    if (protectedRanges.STUDENT_INFO_COLUMNS && protectedRanges.STUDENT_INFO_COLUMNS.length >= 2) {
+      const startCol = protectedRanges.STUDENT_INFO_COLUMNS[0];
+      const numColsInfo = protectedRanges.STUDENT_INFO_COLUMNS[1] - protectedRanges.STUDENT_INFO_COLUMNS[0] + 1;
+      const colABRange = sheet.getRange(1, startCol, protectToRow, numColsInfo);
+      const protection1 = colABRange.protect().setWarningOnly(false);
+      setProtectionWithEditors(protection1, validEmails);
+    }
+    
+    // Protect header rows (from config)
+    if (protectedRanges.HEADER_ROWS && protectedRanges.HEADER_ROWS.length > 0) {
+      const startRowHeader = Math.min(...protectedRanges.HEADER_ROWS);
+      const numRowsHeader = Math.max(...protectedRanges.HEADER_ROWS) - startRowHeader + 1;
+      const headerRowsRange = sheet.getRange(startRowHeader, 1, numRowsHeader, numCols);
+      const protection2 = headerRowsRange.protect().setWarningOnly(false);
+      setProtectionWithEditors(protection2, validEmails);
+    }
+    
+    // Protect formula columns (from config)
+    if (protectedRanges.FORMULA_COLUMNS && Array.isArray(protectedRanges.FORMULA_COLUMNS) && protectedRanges.FORMULA_COLUMNS.length > 0) {
+      const formulaProtections = [];
+      protectedRanges.FORMULA_COLUMNS.forEach((col) => {
+        const formulaRange = sheet.getRange(1, col, protectToRow, 1);
+        const prot = formulaRange.protect().setWarningOnly(false);
+        formulaProtections.push(prot);
+      });
+      formulaProtections.forEach(protection => {
+        setProtectionWithEditors(protection, validEmails);
+      });
+    }
+    
+  }
+}
+
+/**
  * Internal function to set up the Attendance sheet structure
  * @param {Sheet} sheet - The target sheet
  * @param {string} schoolYear - The school year
@@ -1573,6 +1914,46 @@ function _generateEQFromTransmutation(transmutedCol, row) {
       // Check if transmuted grade equals this transmutation value
       const eqValue = entry.eq || '';
       formula += `,IF(${cellRef}=${entry.transmutation},${eqValue ? `"${eqValue}"` : '""'}`;
+    }
+  }
+  
+  // Close all remaining IF statements
+  for (let i = 0; i < sortedTable.length - 1; i++) {
+    formula += ')';
+  }
+  
+  return formula;
+}
+
+/**
+ * Internal function to generate EQ formula from non-transmuted grade (for MAPEH Final EQ)
+ * @param {number} gradeCol - Column number (1-based) containing the grade
+ * @param {number} row - Row number
+ * @return {string} EQ formula string
+ */
+function _generateEQFromNonTransmutedGrade(gradeCol, row) {
+  const table = CONFIG.EQ_GRADING_SCALE_NON_TRANSMUTED.RANGES;
+  const colLetter = String.fromCharCode(64 + gradeCol); // Convert column number to letter
+  const cellRef = `${colLetter}${row}`;
+  
+  // Build nested IF formula checking grade against ranges
+  // Formula structure: IF(grade="","",IF(AND(grade>=70,grade<=74.44),"B",IF(AND(grade>=74.45,grade<=81.44),"D",...)))
+  let formula = `=IF(${cellRef}="",""`;
+  
+  // Sort table by min value descending (highest first)
+  const sortedTable = [...table].sort((a, b) => b.min - a.min);
+  
+  // Build nested IF from highest to lowest range
+  for (let i = 0; i < sortedTable.length; i++) {
+    const entry = sortedTable[i];
+    if (i === sortedTable.length - 1) {
+      // Last condition (lowest range) - this is the final else
+      const eqValue = entry.value || '';
+      formula += `,${eqValue ? `"${eqValue}"` : '""'})`;
+    } else {
+      // Check if grade is within this range (min <= grade <= max)
+      const eqValue = entry.value || '';
+      formula += `,IF(AND(${cellRef}>=${entry.min},${cellRef}<=${entry.max}),${eqValue ? `"${eqValue}"` : '""'}`;
     }
   }
   
@@ -2451,7 +2832,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
       const insertIndex = Math.min(healthIndex + 1, templateSpreadsheet.getSheets().length + 1);
       
       const mapehSheet = templateSpreadsheet.insertSheet('MAPEH', insertIndex);
-      _setupOGSTemplate(mapehSheet, schoolYear, gradeLevel, section, 'MAPEH', teacher, mapehWeights, students, userEmail);
+      _setupMAPEHSheet(mapehSheet, templateSpreadsheet, schoolYear, gradeLevel, section, teacher, students, userEmail);
       createdSheets.push('MAPEH');
     }
     

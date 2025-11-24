@@ -146,6 +146,12 @@ const CONFIG = {
           STEP: 3,       // Step size (each month takes 3 columns)
           COLUMNS: [0, 2]  // Relative positions within each month group: 0 = School DAYS, 2 = Days ABSENT
         }
+      },
+      // MAPEH sheet protection ranges
+      MAPEH_SHEET: {
+        STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
+        HEADER_ROWS: [8, 9],  // Rows 8-9 (grading period headers and column headers)
+        FORMULA_COLUMNS: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
       }
     }
   },
@@ -213,13 +219,24 @@ const CONFIG = {
   
   // EQ (Emotional Quotient) grading scale configuration
   EQ_GRADING_SCALE: {
-    // Grade ranges and their corresponding EQ values
+    // Grade ranges and their corresponding EQ values (for transmuted grades - used in Character sheet)
     RANGES: [
       { min: 70, max: 74.44, value: 'NI', label: 'Needs Improvement' },
       { min: 74.45, max: 81.45, value: 'F', label: 'Fair' },
       { min: 81.45, max: 88.44, value: 'G', label: 'Good' },
       { min: 88.45, max: 94.44, value: 'VG', label: 'Very Good' },
       { min: 94.45, max: 100, value: 'O', label: 'Outstanding' }
+    ]
+  },
+  
+  // EQ grading scale for non-transmuted grades (used in MAPEH Final EQ)
+  EQ_GRADING_SCALE_NON_TRANSMUTED: {
+    RANGES: [
+      { min: 70, max: 74.44, value: 'B', label: 'Below' },
+      { min: 74.45, max: 81.44, value: 'D', label: 'Developing' },
+      { min: 81.45, max: 88.44, value: 'AP', label: 'Approaching Proficient' },
+      { min: 88.45, max: 94.44, value: 'P', label: 'Proficient' },
+      { min: 94.45, max: 100, value: 'A', label: 'Advanced' }
     ]
   },
   
