@@ -720,9 +720,13 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     studentRange.setBorder(true, true, true, true, true, true);
     
     // OPTIMIZATION: Batch number format - combine with other formatting where possible
-    // Number format for: C, D, E, F, H, I, J, K, M, N, O, P, R, S, T, U, W (transmuted and input columns)
-    const numberFormatCols = [3, 4, 5, 6, 8, 9, 10, 11, 13, 14, 15, 16, 18, 19, 20, 21, 23];
-    numberFormatCols.forEach(col => {
+    const gradeInputCols = [3, 4, 5, 8, 9, 10, 13, 14, 15, 18, 19, 20]; // C, D, E, H, I, J, M, N, O, R, S, T
+    gradeInputCols.forEach(col => {
+      sheet.getRange(startRow, col, numStudentRows, 1).setNumberFormat('0.##');
+    });
+    
+    const transmutedCols = [6, 11, 16, 21, 23]; // F, K, P, U, W
+    transmutedCols.forEach(col => {
       sheet.getRange(startRow, col, numStudentRows, 1).setNumberFormat('0.00');
     });
     
