@@ -296,22 +296,34 @@ function _getGradingWeights(subjectName) {
   // Helper function to check if active (handles both checkboxes and checkmarks)
   const isActive = (value) => value === true || value === '✓' || value === 'TRUE';
   
-  // Priority 1: Exact subject match
-  let match = dataRows.find(row => 
-    row[CONFIG.GRADING_COLUMNS.SUBJECT_NAME] === subjectName && 
-    isActive(row[CONFIG.GRADING_COLUMNS.ACTIVE])
-  );
+  // Normalize subject name for comparison (trim whitespace, but keep case for exact match)
+  const normalizedSubjectName = String(subjectName || '').trim();
+  
+  // Priority 1: Exact subject match (trimmed, case-sensitive)
+  let match = dataRows.find(row => {
+    const rowSubjectName = String(row[CONFIG.GRADING_COLUMNS.SUBJECT_NAME] || '').trim();
+    return rowSubjectName === normalizedSubjectName && 
+           isActive(row[CONFIG.GRADING_COLUMNS.ACTIVE]);
+  });
   
   // Priority 2: DEFAULT (fallback)
   if (!match) {
-    match = dataRows.find(row => 
-      row[CONFIG.GRADING_COLUMNS.SUBJECT_NAME] === 'DEFAULT' && 
-      isActive(row[CONFIG.GRADING_COLUMNS.ACTIVE])
-    );
+    match = dataRows.find(row => {
+      const rowSubjectName = String(row[CONFIG.GRADING_COLUMNS.SUBJECT_NAME] || '').trim();
+      return rowSubjectName === 'DEFAULT' && 
+             isActive(row[CONFIG.GRADING_COLUMNS.ACTIVE]);
+    });
   }
   
   if (!match) {
-    throw new Error('No grading weights found. Please ensure GRADING_REF has a DEFAULT row.');
+    // Debug: Log available subjects for troubleshooting
+    const availableSubjects = dataRows
+      .filter(row => isActive(row[CONFIG.GRADING_COLUMNS.ACTIVE]))
+      .map(row => String(row[CONFIG.GRADING_COLUMNS.SUBJECT_NAME] || '').trim())
+      .filter(name => name !== '');
+    console.log('Available active subjects in GRADING_REF:', availableSubjects);
+    console.log('Looking for subject:', normalizedSubjectName);
+    throw new Error('No grading weights found. Please ensure GRADING_REF has a DEFAULT row or a matching subject row with Active checked.');
   }
   
   return {
@@ -2223,24 +2235,34 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     // Get teacher email from TEACHERS_REF sheet
     const teacherEmail = _getTeacherEmail(teacher);
     
+    // Collect all emails to add (avoid duplicates)
+    const emailsToAdd = new Set();
+    
+    // Add protection editor emails from config
     protectionEditorEmails.forEach(email => {
       if (email && email.trim() !== '') {
-        try {
-          templateFile.addEditor(email.trim());
-        } catch (e) {
-          console.log('Note: Could not add protection editor email as editor:', e.message);
-        }
+        emailsToAdd.add(email.trim());
       }
     });
     
-    // Add teacher email as editor (if available and not already in protection editor emails)
-    if (teacherEmail && teacherEmail.trim() !== '' && !protectionEditorEmails.includes(teacherEmail.trim())) {
-      try {
-        templateFile.addEditor(teacherEmail);
-      } catch (e) {
-        console.log('Note: Could not add teacher as editor:', e.message);
-      }
+    // Add creator's email (the person who generated the template)
+    if (userEmail && userEmail.trim() !== '') {
+      emailsToAdd.add(userEmail.trim());
     }
+    
+    // Add teacher email
+    if (teacherEmail && teacherEmail.trim() !== '') {
+      emailsToAdd.add(teacherEmail.trim());
+    }
+    
+    // Add all unique emails as editors
+    emailsToAdd.forEach(email => {
+      try {
+        templateFile.addEditor(email);
+      } catch (e) {
+        console.log('Note: Could not add email as editor:', e.message);
+      }
+    });
     
     // NOTE: Protected ranges (student data, formulas, headers) are locked to only creator
     // Teacher can edit unprotected grading input columns (C, D, E, G, H, I, K, L, M, O, P, Q)
@@ -2287,8 +2309,11 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     
     // Create MAPEH sheet only if all four subjects are present
     if (hasMusic && hasArts && hasPE && hasHealth) {
-      // Get weights for MAPEH - try MAPEH first, then fallback to DEFAULT
-      const mapehWeights = _getGradingWeights('MAPEH') || _getGradingWeights('DEFAULT');
+      const mapehWeights = {
+        writtenWork: 25,
+        performanceTask: 25,
+        assessment: 50
+      };
       
       // Determine the Health sheet position so MAPEH can be inserted right after it
       const healthSubjectName = subjects.find(subject => subject.trim().toLowerCase() === 'health');
