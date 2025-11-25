@@ -599,8 +599,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
       
       // Final Grading: Average of all transmuted grades
       formulaColumns[23].push([`=IF(AND(F${row}<>"",K${row}<>"",P${row}<>"",U${row}<>""),ROUND((F${row}+K${row}+P${row}+U${row})/4,2),"")`]);
-      // Final EQ: Based on final grading (transmuted)
-      formulaColumns[24].push([_generateEQFromTransmutation(23, row)]);
+      formulaColumns[24].push([_generateEQFromNonTransmutedGrade(23, row)]);
     }
     
     // OPTIMIZATION: Combine student data and empty cells into single batch write
@@ -755,6 +754,21 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
         .build();
       
       allRules.push(rule1, rule2);
+    });
+    
+    // Add conditional formatting for transmuted grades and final grade: Red if less than 75
+    const transmutedGradeCols = [6, 11, 16, 21]; // Columns F, K, P, U (1st, 2nd, 3rd, 4th Transmuted)
+    const finalGradingCol = 23; // Column W (Final Grading)
+    const passingGrade = 75;
+    
+    [...transmutedGradeCols, finalGradingCol].forEach(col => {
+      const range = sheet.getRange(startRow, col, numStudentRows, 1);
+      const rule = SpreadsheetApp.newConditionalFormatRule()
+        .setRanges([range])
+        .whenNumberLessThan(passingGrade)
+        .setBackground(CONFIG.COLORS.LIGHT_RED)
+        .build();
+      allRules.push(rule);
     });
     
     // Apply all conditional formatting rules in a single batch operation
@@ -1288,6 +1302,29 @@ function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, se
   // Apply borders
   const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
   studentRange.setBorder(true, true, true, true, true, true);
+  
+  // Add conditional formatting for GLC and Final Grading: Red if less than 75
+  const glcCols = [8, 15, 22, 29]; // Columns I, P, W, AC (1st, 2nd, 3rd, 4th GLC)
+  const finalGradingCol = 31; // Column AE (Final Grading)
+  const passingGrade = 75;
+  const allRules = [];
+  
+  [...glcCols, finalGradingCol].forEach(col => {
+    const range = sheet.getRange(startRow, col, numStudentRows, 1);
+    const rule = SpreadsheetApp.newConditionalFormatRule()
+      .setRanges([range])
+      .whenNumberLessThan(passingGrade)
+      .setBackground(CONFIG.COLORS.LIGHT_RED)
+      .build();
+    allRules.push(rule);
+  });
+  
+  // Apply conditional formatting rules
+  if (allRules.length > 0) {
+    const existingRules = sheet.getConditionalFormatRules();
+    existingRules.push.apply(existingRules, allRules);
+    sheet.setConditionalFormatRules(existingRules);
+  }
   
   // Set total student count
   if (hasStudents) {
