@@ -16,6 +16,10 @@ function onOpen() {
     .addItem("Import Student Data", "showImportDialog")
     .addItem("Update Student Information", "showUpdateDialog")
     .addToUi();
+
+  ui.createMenu("W.I.")
+    .addItem("Open Working Instruction", "showWorkingInstructions")
+    .addToUi();
 }
 
 /**
@@ -197,6 +201,40 @@ function updateStudentInfo(studentNumber, academicYearSheet, fieldToUpdate, newV
     remarks,
     userEmail
   });
+}
+
+/**
+ * Shows the working instructions dialog with HTML interface
+ * Opens in a modal dialog with 16:9 aspect ratio
+ */
+function showWorkingInstructions() {
+  // Get the HTML file name from config
+  const htmlFileName = CONFIG.WORKING_INSTRUCTIONS_HTML;
+  
+  if (!htmlFileName) {
+    SpreadsheetApp.getUi().alert(
+      'Configuration Error',
+      'Working Instructions HTML file name is not configured in Config.js',
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+    return;
+  }
+  
+  try {
+    // 16:9 aspect ratio - using 1600x900 pixels
+    const htmlOutput = HtmlService.createHtmlOutputFromFile(htmlFileName)
+      .setWidth(1600)
+      .setHeight(900)
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+
+    SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Working Instructions");
+  } catch (error) {
+    SpreadsheetApp.getUi().alert(
+      'Error',
+      'Could not open Working Instructions. Please check that the HTML file "' + htmlFileName + '" exists.\n\nError: ' + error.message,
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+  }
 }
 
 /**
