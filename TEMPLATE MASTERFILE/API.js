@@ -1252,8 +1252,8 @@ function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, se
   };
   
   // Transmuted column positions in subject sheets (1-based, but we'll use column letters)
-  // Column F (6) = 1st Transmuted, K (11) = 2nd Transmuted, P (16) = 3rd Transmuted, U (21) = 4th Transmuted
-  const transmutedCols = [6, 11, 16, 21]; // Columns F, K, P, U
+  // Column G (7) = 1st Transmuted, M (13) = 2nd Transmuted, S (19) = 3rd Transmuted, Y (25) = 4th Transmuted
+  const transmutedCols = [7, 13, 19, 25]; // Columns G, M, S, Y
   
       for (let i = 0; i < numStudentRows; i++) {
         const row = startRow + i;
@@ -1274,8 +1274,8 @@ function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, se
     // For each grading period (1st, 2nd, 3rd, 4th)
     for (let period = 0; period < 4; period++) {
       const baseCol = 3 + (period * 7); // Starting column for this period (3, 10, 17, 24)
-      const transmutedCol = transmutedCols[period]; // Column in subject sheets (6, 11, 16, 21)
-      const transmutedColLetter = _columnNumberToLetter(transmutedCol); // F, K, P, U
+      const transmutedCol = transmutedCols[period]; // Column in subject sheets (7, 13, 19, 25)
+      const transmutedColLetter = _columnNumberToLetter(transmutedCol); // G, M, S, Y
       
       // Music, Arts, PE, Health formulas: Reference transmuted columns from respective subject sheets
       const musicFormula = `=IF('${musicSheetName}'!${transmutedColLetter}${row}="","",'${musicSheetName}'!${transmutedColLetter}${row})`;
