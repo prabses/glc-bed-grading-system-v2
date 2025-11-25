@@ -1294,9 +1294,8 @@ function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, se
       const aveColLetter = _columnNumberToLetter(baseCol + 4);
       const glcFormula = _generateTransmutationFormula(aveColLetter + row);
       
-      // GLC EQ formula: EQ based on GLC transmuted value
-      const glcColLetter = _columnNumberToLetter(baseCol + 5);
-      const glcEQFormula = _generateEQFromTransmutation(baseCol + 5, row);
+      // GLC EQ formula: EQ based on AVE (non-transmuted) value
+      const glcEQFormula = _generateEQFromNonTransmutedGrade(baseCol + 4, row);
       
       formulaColumns[baseCol].push([musicFormula]);      // Music
       formulaColumns[baseCol + 1].push([artsFormula]);   // Arts
