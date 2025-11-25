@@ -729,14 +729,37 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
       }
       
       // Protect formula columns (from config)
+      // OPTIMIZATION: Combine consecutive formula columns into single protection ranges to reduce API calls
       if (protectedRanges.FORMULA_COLUMNS && protectedRanges.FORMULA_COLUMNS.length > 0) {
-        const formulaCols = protectedRanges.FORMULA_COLUMNS;
+        const formulaCols = [...protectedRanges.FORMULA_COLUMNS].sort((a, b) => a - b);
         const formulaProtections = [];
-        formulaCols.forEach((col) => {
-          const formulaRange = sheet.getRange(1, col, protectToRow, 1);
-          const prot = formulaRange.protect().setWarningOnly(false);
-          formulaProtections.push(prot);
-        });
+        
+        // Group consecutive columns together
+        let startCol = formulaCols[0];
+        let endCol = formulaCols[0];
+        
+        for (let i = 1; i < formulaCols.length; i++) {
+          if (formulaCols[i] === endCol + 1) {
+            // Consecutive column - extend the range
+            endCol = formulaCols[i];
+          } else {
+            // Non-consecutive - protect the current range and start a new one
+            const numCols = endCol - startCol + 1;
+            const formulaRange = sheet.getRange(1, startCol, protectToRow, numCols);
+            const prot = formulaRange.protect().setWarningOnly(false);
+            formulaProtections.push(prot);
+            startCol = formulaCols[i];
+            endCol = formulaCols[i];
+          }
+        }
+        
+        // Protect the last range
+        const numCols = endCol - startCol + 1;
+        const formulaRange = sheet.getRange(1, startCol, protectToRow, numCols);
+        const prot = formulaRange.protect().setWarningOnly(false);
+        formulaProtections.push(prot);
+        
+        // Set editors for all protections
         formulaProtections.forEach(protection => {
           setProtectionWithEditors(protection, validEmails);
         });
@@ -1424,13 +1447,37 @@ function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, se
     }
     
     // Protect formula columns (from config)
+    // OPTIMIZATION: Combine consecutive formula columns into single protection ranges to reduce API calls
     if (protectedRanges.FORMULA_COLUMNS && Array.isArray(protectedRanges.FORMULA_COLUMNS) && protectedRanges.FORMULA_COLUMNS.length > 0) {
+      const formulaCols = [...protectedRanges.FORMULA_COLUMNS].sort((a, b) => a - b);
       const formulaProtections = [];
-      protectedRanges.FORMULA_COLUMNS.forEach((col) => {
-        const formulaRange = sheet.getRange(1, col, protectToRow, 1);
-        const prot = formulaRange.protect().setWarningOnly(false);
-        formulaProtections.push(prot);
-      });
+      
+      // Group consecutive columns together
+      let startCol = formulaCols[0];
+      let endCol = formulaCols[0];
+      
+      for (let i = 1; i < formulaCols.length; i++) {
+        if (formulaCols[i] === endCol + 1) {
+          // Consecutive column - extend the range
+          endCol = formulaCols[i];
+        } else {
+          // Non-consecutive - protect the current range and start a new one
+          const numCols = endCol - startCol + 1;
+          const formulaRange = sheet.getRange(1, startCol, protectToRow, numCols);
+          const prot = formulaRange.protect().setWarningOnly(false);
+          formulaProtections.push(prot);
+          startCol = formulaCols[i];
+          endCol = formulaCols[i];
+        }
+      }
+      
+      // Protect the last range
+      const numCols = endCol - startCol + 1;
+      const formulaRange = sheet.getRange(1, startCol, protectToRow, numCols);
+      const prot = formulaRange.protect().setWarningOnly(false);
+      formulaProtections.push(prot);
+      
+      // Set editors for all protections
       formulaProtections.forEach(protection => {
         setProtectionWithEditors(protection, validEmails);
       });
@@ -2384,14 +2431,37 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     }
     
     // Protect EQ formula columns (from config)
+    // OPTIMIZATION: Combine consecutive formula columns into single protection ranges to reduce API calls
     if (protectedRanges.FORMULA_COLUMNS && protectedRanges.FORMULA_COLUMNS.length > 0) {
-      const eqFormulaCols = protectedRanges.FORMULA_COLUMNS;
+      const eqFormulaCols = [...protectedRanges.FORMULA_COLUMNS].sort((a, b) => a - b);
       const eqFormulaProtections = [];
-      eqFormulaCols.forEach((col) => {
-        const formulaRange = sheet.getRange(1, col, protectToRow, 1);
-        const prot = formulaRange.protect().setWarningOnly(false);
-        eqFormulaProtections.push(prot);
-      });
+      
+      // Group consecutive columns together
+      let startCol = eqFormulaCols[0];
+      let endCol = eqFormulaCols[0];
+      
+      for (let i = 1; i < eqFormulaCols.length; i++) {
+        if (eqFormulaCols[i] === endCol + 1) {
+          // Consecutive column - extend the range
+          endCol = eqFormulaCols[i];
+        } else {
+          // Non-consecutive - protect the current range and start a new one
+          const numCols = endCol - startCol + 1;
+          const formulaRange = sheet.getRange(1, startCol, protectToRow, numCols);
+          const prot = formulaRange.protect().setWarningOnly(false);
+          eqFormulaProtections.push(prot);
+          startCol = eqFormulaCols[i];
+          endCol = eqFormulaCols[i];
+        }
+      }
+      
+      // Protect the last range
+      const numCols = endCol - startCol + 1;
+      const formulaRange = sheet.getRange(1, startCol, protectToRow, numCols);
+      const prot = formulaRange.protect().setWarningOnly(false);
+      eqFormulaProtections.push(prot);
+      
+      // Set editors for all protections
       eqFormulaProtections.forEach(protection => {
         setProtectionWithEditors(protection, validEmails);
       });
