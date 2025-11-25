@@ -1,0 +1,717 @@
+<!DOCTYPE html><html><head>
+      <title>Working_Instructions</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///c:\Users\Terenz\.cursor\extensions\shd101wyy.markdown-preview-enhanced-0.8.20-universal\crossnote\dependencies\katex\katex.min.css">
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script></head><body for="html-export">
+    
+    
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="template-masterfile---working-instructions">Template Masterfile - Working Instructions </h1>
+<h2 id="table-of-contents">Table of Contents </h2>
+<ol>
+<li><a href="#system-overview">System Overview</a></li>
+<li><a href="#generate-ogs-template-instructions">Generate OGS Template Instructions</a></li>
+<li><a href="#manage-subjects-instructions">Manage Subjects Instructions</a></li>
+<li><a href="#manage-advisory-classes-instructions">Manage Advisory Classes Instructions</a></li>
+<li><a href="#data-management-instructions">Data Management Instructions</a></li>
+<li><a href="#troubleshooting-guide">Troubleshooting Guide</a></li>
+</ol>
+<hr>
+<h2 id="system-overview">System Overview </h2>
+<p>The Template Masterfile is a Google Apps Script application that manages Official Grade Sheet (OGS) template generation for educational institutions. The system provides three main interfaces:</p>
+<ul>
+<li><strong>Generate OGS Template Form</strong>: For creating Official Grade Sheet templates with multiple subjects</li>
+<li><strong>Manage Subjects Form</strong>: For assigning teachers to grade levels, sections, and subjects</li>
+<li><strong>Manage Advisory Classes Form</strong>: For assigning teachers to advisory classes (grade level and section)</li>
+</ul>
+<p>All forms are accessible through custom menus in the Google Sheets interface and feature secure API architecture for data operations.</p>
+<hr>
+<h2 id="generate-ogs-template-instructions">Generate OGS Template Instructions </h2>
+<h3 id="accessing-the-generate-ogs-template-form">Accessing the Generate OGS Template Form </h3>
+<ol>
+<li>Open the main Google Sheets document containing the Template Masterfile</li>
+<li>Click on the <strong>"Export OGS"</strong> menu in the top menu bar</li>
+<li>Select <strong>"Export OGS"</strong> from the dropdown menu</li>
+<li>The Generate OGS Template Form will open in a modal dialog window</li>
+</ol>
+<h3 id="understanding-the-generate-ogs-template-form-interface">Understanding the Generate OGS Template Form Interface </h3>
+<p>The form contains the following fields:</p>
+<ul>
+<li><strong>School Year Input</strong>: Text field for entering the school year (e.g., "2024-2025")</li>
+<li><strong>Grade Level Dropdown</strong>: Select the grade level (e.g., "Grade 1", "Grade 2")</li>
+<li><strong>Section Dropdown</strong>: Select the section (populated based on grade level selection)</li>
+<li><strong>Teacher Input</strong>: Autocomplete field for selecting teacher (filtered by grade/section)</li>
+<li><strong>Assigned Subjects Display</strong>: Shows subjects that will be included in the template</li>
+<li><strong>Action Buttons</strong>: Cancel and Generate Template buttons</li>
+</ul>
+<h3 id="generating-an-ogs-template">Generating an OGS Template </h3>
+<ol>
+<li>
+<p><strong>Enter School Year</strong></p>
+<ul>
+<li>Type the school year in the <strong>School Year</strong> field</li>
+<li>Format: "YYYY-YYYY" (e.g., "2024-2025")</li>
+<li>This field is required</li>
+</ul>
+</li>
+<li>
+<p><strong>Select Grade Level</strong></p>
+<ul>
+<li>Click on the <strong>Grade Level</strong> dropdown</li>
+<li>Select the appropriate grade level (e.g., "Grade 1", "Grade 7", "Grade 11")</li>
+<li>The Section dropdown will become enabled after selection</li>
+<li>The Teacher field will be disabled until section is selected</li>
+</ul>
+</li>
+<li>
+<p><strong>Select Section</strong></p>
+<ul>
+<li>After selecting a grade level, the <strong>Section</strong> dropdown will populate</li>
+<li>Select the section for the class (e.g., "A", "B", "C")</li>
+<li>The Teacher field will become enabled after section selection</li>
+<li>Sections are filtered based on the selected grade level</li>
+</ul>
+</li>
+<li>
+<p><strong>Select Teacher</strong></p>
+<ul>
+<li>Type the teacher's name in the <strong>Teacher</strong> field</li>
+<li>As you type, matching teachers assigned to the selected grade/section will appear</li>
+<li>Click on a suggestion or use arrow keys to navigate and Enter to select</li>
+<li>Only teachers assigned to the selected grade level and section will appear</li>
+</ul>
+</li>
+<li>
+<p><strong>Review Assigned Subjects</strong></p>
+<ul>
+<li>After selecting a teacher, the <strong>Assigned Subjects</strong> section will appear</li>
+<li>This shows all subjects assigned to the selected teacher for the grade/section</li>
+<li>Subjects are automatically detected from the SUBJECTS sheet</li>
+<li>Verify that all expected subjects are listed</li>
+</ul>
+</li>
+<li>
+<p><strong>Generate the Template</strong></p>
+<ul>
+<li>Click the <strong>"Generate Template"</strong> button</li>
+<li>The button will show "Generating..." during the process</li>
+<li>Wait for the success confirmation message</li>
+<li>The template file will be created in Google Drive</li>
+<li>A link to the template will be provided in the success message</li>
+</ul>
+</li>
+<li>
+<p><strong>After Successful Generation</strong></p>
+<ul>
+<li>The template file will contain one sheet per subject</li>
+<li>Each sheet includes:
+<ul>
+<li>Student information columns (Student Number, Last Name, First Name, Middle Name)</li>
+<li>Four grading periods (1ST, 2ND, 3RD, 4TH GRADING)</li>
+<li>Grading components per period (Written Work, Performance Task, Assessment)</li>
+<li>Transmuted grades for each period</li>
+<li>Final grading column</li>
+</ul>
+</li>
+<li>The template is saved to Google Drive</li>
+<li>A record is added to the MASTER_DATA sheet with a link to the template</li>
+</ul>
+</li>
+</ol>
+<h3 id="generate-ogs-template-form-error-handling">Generate OGS Template Form Error Handling </h3>
+<ol>
+<li>
+<p><strong>Missing Required Fields</strong></p>
+<ul>
+<li>If any required field is empty, an alert will prompt you to fill it</li>
+<li>Ensure School Year, Grade Level, Section, and Teacher are all selected</li>
+</ul>
+</li>
+<li>
+<p><strong>No Subjects Assigned</strong></p>
+<ul>
+<li>If no subjects are assigned to the selected teacher/grade/section, an error will appear</li>
+<li>You must assign subjects first using the "Manage Subjects" form</li>
+<li>See the Manage Subjects Instructions section for details</li>
+</ul>
+</li>
+<li>
+<p><strong>Template Already Exists</strong></p>
+<ul>
+<li>If a template file already exists for the same combination, an error will show</li>
+<li>The error message will include a link to the existing file</li>
+<li>Delete the existing file if you want to regenerate it</li>
+</ul>
+</li>
+<li>
+<p><strong>Teacher Not Found</strong></p>
+<ul>
+<li>If no teachers are assigned to the selected grade/section, the teacher field will be disabled</li>
+<li>Assign teachers to subjects first using the "Manage Subjects" form</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="manage-subjects-instructions">Manage Subjects Instructions </h2>
+<h3 id="accessing-the-manage-subjects-form">Accessing the Manage Subjects Form </h3>
+<ol>
+<li>Open the main Google Sheets document containing the Template Masterfile</li>
+<li>Click on the <strong>"Menu"</strong> in the top menu bar</li>
+<li>Select <strong>"Manage Subjects"</strong> from the dropdown menu</li>
+<li>The Manage Subjects Form will open in a modal dialog window</li>
+</ol>
+<h3 id="understanding-the-manage-subjects-form-interface">Understanding the Manage Subjects Form Interface </h3>
+<p>The form contains the following sections:</p>
+<h4 id="form-fields-section-add-subjects">Form Fields Section (Add Subjects) </h4>
+<ul>
+<li><strong>Grade Level Dropdown</strong>: Select the grade level</li>
+<li><strong>Section Dropdown</strong>: Select the section (populated based on grade level)</li>
+<li><strong>Teacher Input</strong>: Autocomplete field for selecting teacher</li>
+<li><strong>Subjects Checkboxes</strong>: List of all active subjects from SUBJECTS_REF sheet</li>
+<li><strong>Action Buttons</strong>: Add Subject and Close buttons</li>
+</ul>
+<h4 id="subjects-list-section-viewdelete-existing">Subjects List Section (View/Delete Existing) </h4>
+<ul>
+<li><strong>Select All Checkbox</strong>: Select or deselect all subjects in the list</li>
+<li><strong>Selected Count Display</strong>: Shows how many subjects are selected</li>
+<li><strong>Delete Selected Button</strong>: Removes selected subject assignments</li>
+<li><strong>Subjects List</strong>: Shows current subject assignments for the selected grade/section</li>
+</ul>
+<h3 id="adding-subject-assignments">Adding Subject Assignments </h3>
+<ol>
+<li>
+<p><strong>Select Grade Level</strong></p>
+<ul>
+<li>Click on the <strong>Grade Level</strong> dropdown</li>
+<li>Select the appropriate grade level</li>
+<li>The Section dropdown will become enabled</li>
+</ul>
+</li>
+<li>
+<p><strong>Select Section</strong></p>
+<ul>
+<li>After selecting a grade level, the <strong>Section</strong> dropdown will populate</li>
+<li>Select the section for the class</li>
+<li>The subjects list below will update to show existing assignments</li>
+</ul>
+</li>
+<li>
+<p><strong>Select Teacher</strong></p>
+<ul>
+<li>Type the teacher's name in the <strong>Teacher</strong> field</li>
+<li>As you type, matching active teachers will appear in a dropdown</li>
+<li>Click on a suggestion or use arrow keys to navigate and Enter to select</li>
+<li>Only active teachers from TEACHERS_REF will appear</li>
+</ul>
+</li>
+<li>
+<p><strong>Select Subjects</strong></p>
+<ul>
+<li>Check the boxes next to the subjects you want to assign</li>
+<li>You can select multiple subjects at once</li>
+<li>All active subjects from SUBJECTS_REF are shown</li>
+<li>Selected subjects will be assigned to the teacher for the grade/section</li>
+</ul>
+</li>
+<li>
+<p><strong>Add the Assignment</strong></p>
+<ul>
+<li>Click the <strong>"Add Subject"</strong> button</li>
+<li>The button will show "Adding..." during the process</li>
+<li>If multiple subjects are selected, it will show "Adding X assignment(s)..."</li>
+<li>Wait for the success confirmation message</li>
+</ul>
+</li>
+<li>
+<p><strong>After Successful Addition</strong></p>
+<ul>
+<li>The subjects will be assigned to the teacher</li>
+<li>The subjects list will refresh to show the new assignments</li>
+<li>The form will reset for adding more assignments</li>
+</ul>
+</li>
+</ol>
+<h3 id="viewing-existing-subject-assignments">Viewing Existing Subject Assignments </h3>
+<ol>
+<li>
+<p><strong>Select Grade Level and Section</strong></p>
+<ul>
+<li>Select the grade level and section you want to view</li>
+<li>The subjects list will automatically update to show existing assignments</li>
+<li>Each assignment shows: Teacher name and Subject name</li>
+</ul>
+</li>
+<li>
+<p><strong>Understanding the List</strong></p>
+<ul>
+<li>Only active assignments are shown</li>
+<li>Each row represents one teacher-subject assignment</li>
+<li>The list updates automatically when you change grade level or section</li>
+</ul>
+</li>
+</ol>
+<h3 id="deleting-subject-assignments">Deleting Subject Assignments </h3>
+<ol>
+<li>
+<p><strong>Select Assignments to Delete</strong></p>
+<ul>
+<li>Check the boxes next to the assignments you want to remove</li>
+<li>You can select multiple assignments at once</li>
+<li>Use "Select All" to select all visible assignments</li>
+<li>The selected count will update as you select/deselect</li>
+</ul>
+</li>
+<li>
+<p><strong>Delete Selected Assignments</strong></p>
+<ul>
+<li>Click the <strong>"Delete Selected"</strong> button</li>
+<li>A confirmation dialog will appear</li>
+<li>Confirm the deletion</li>
+<li>The button will show "Deleting X..." during the process</li>
+<li>Wait for the success confirmation message</li>
+</ul>
+</li>
+<li>
+<p><strong>After Successful Deletion</strong></p>
+<ul>
+<li>The selected assignments will be removed (marked as Archived)</li>
+<li>The subjects list will refresh to show remaining assignments</li>
+<li>The assignments are archived, not permanently deleted</li>
+</ul>
+</li>
+</ol>
+<h3 id="manage-subjects-form-error-handling">Manage Subjects Form Error Handling </h3>
+<ol>
+<li>
+<p><strong>Missing Required Fields</strong></p>
+<ul>
+<li>If any required field is empty, an alert will prompt you to fill it</li>
+<li>Ensure Grade Level, Section, Teacher, and at least one Subject are selected</li>
+</ul>
+</li>
+<li>
+<p><strong>Subject Already Assigned</strong></p>
+<ul>
+<li>If a subject is already assigned to a different teacher for the same grade/section, an error will appear</li>
+<li>You must deactivate the existing assignment first</li>
+<li>The error message will show which assignments conflict</li>
+</ul>
+</li>
+<li>
+<p><strong>No Subjects Selected</strong></p>
+<ul>
+<li>If you try to add assignments without selecting any subjects, an alert will appear</li>
+<li>Select at least one subject checkbox before clicking "Add Subject"</li>
+</ul>
+</li>
+<li>
+<p><strong>No Assignments to Delete</strong></p>
+<ul>
+<li>If you try to delete without selecting any assignments, an alert will appear</li>
+<li>Select at least one assignment checkbox before clicking "Delete Selected"</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="manage-advisory-classes-instructions">Manage Advisory Classes Instructions </h2>
+<h3 id="accessing-the-manage-advisory-classes-form">Accessing the Manage Advisory Classes Form </h3>
+<ol>
+<li>Open the main Google Sheets document containing the Template Masterfile</li>
+<li>Click on the <strong>"Menu"</strong> in the top menu bar</li>
+<li>Select <strong>"Manage Advisory Classes"</strong> from the dropdown menu</li>
+<li>The Manage Advisory Classes Form will open in a modal dialog window</li>
+</ol>
+<h3 id="understanding-the-manage-advisory-classes-form-interface">Understanding the Manage Advisory Classes Form Interface </h3>
+<p>The form contains the following sections:</p>
+<h4 id="form-fields-section-add-advisory">Form Fields Section (Add Advisory) </h4>
+<ul>
+<li><strong>Teacher Input</strong>: Autocomplete field for selecting teacher</li>
+<li><strong>Grade Level Dropdown</strong>: Select the grade level</li>
+<li><strong>Section Dropdown</strong>: Select the section (populated based on grade level)</li>
+<li><strong>Action Buttons</strong>: Add Advisory and Close buttons</li>
+</ul>
+<h4 id="advisories-list-section-viewdelete-existing">Advisories List Section (View/Delete Existing) </h4>
+<ul>
+<li><strong>Select All Checkbox</strong>: Select or deselect all advisories in the list</li>
+<li><strong>Selected Count Display</strong>: Shows how many advisories are selected</li>
+<li><strong>Delete Selected Button</strong>: Removes selected advisory assignments</li>
+<li><strong>Advisories List</strong>: Shows current advisory assignments for the selected teacher</li>
+</ul>
+<h3 id="adding-advisory-assignments">Adding Advisory Assignments </h3>
+<ol>
+<li>
+<p><strong>Select Teacher</strong></p>
+<ul>
+<li>Type the teacher's name in the <strong>Teacher</strong> field</li>
+<li>As you type, matching active teachers will appear in a dropdown</li>
+<li>Click on a suggestion or use arrow keys to navigate and Enter to select</li>
+<li>Only active teachers from TEACHERS_REF will appear</li>
+</ul>
+</li>
+<li>
+<p><strong>Select Grade Level</strong></p>
+<ul>
+<li>Click on the <strong>Grade Level</strong> dropdown</li>
+<li>Select the appropriate grade level</li>
+<li>The Section dropdown will become enabled</li>
+</ul>
+</li>
+<li>
+<p><strong>Select Section</strong></p>
+<ul>
+<li>After selecting a grade level, the <strong>Section</strong> dropdown will populate</li>
+<li>Select the section for the advisory class</li>
+<li>The advisories list will update to show existing assignments for the teacher</li>
+</ul>
+</li>
+<li>
+<p><strong>Add the Advisory</strong></p>
+<ul>
+<li>Click the <strong>"Add Advisory"</strong> button</li>
+<li>The button will show "Adding..." during the process</li>
+<li>Wait for the success confirmation message</li>
+</ul>
+</li>
+<li>
+<p><strong>After Successful Addition</strong></p>
+<ul>
+<li>The advisory will be assigned to the teacher</li>
+<li>The advisories list will refresh to show the new assignment</li>
+<li>The form will reset for adding more advisories</li>
+</ul>
+</li>
+</ol>
+<h3 id="viewing-existing-advisory-assignments">Viewing Existing Advisory Assignments </h3>
+<ol>
+<li>
+<p><strong>Select Teacher</strong></p>
+<ul>
+<li>Type or select a teacher in the <strong>Teacher</strong> field</li>
+<li>The advisories list will automatically update to show existing assignments</li>
+<li>Each assignment shows: Grade Level and Section (e.g., "Grade 1A")</li>
+</ul>
+</li>
+<li>
+<p><strong>Understanding the List</strong></p>
+<ul>
+<li>Only active advisories are shown</li>
+<li>Each row represents one teacher-grade-section advisory assignment</li>
+<li>The list updates automatically when you change the teacher</li>
+</ul>
+</li>
+</ol>
+<h3 id="deleting-advisory-assignments">Deleting Advisory Assignments </h3>
+<ol>
+<li>
+<p><strong>Select Advisories to Delete</strong></p>
+<ul>
+<li>Check the boxes next to the advisories you want to remove</li>
+<li>You can select multiple advisories at once</li>
+<li>Use "Select All" to select all visible advisories</li>
+<li>The selected count will update as you select/deselect</li>
+</ul>
+</li>
+<li>
+<p><strong>Delete Selected Advisories</strong></p>
+<ul>
+<li>Click the <strong>"Delete Selected"</strong> button</li>
+<li>A confirmation dialog will appear</li>
+<li>Confirm the deletion</li>
+<li>The button will show "Deleting..." during the process</li>
+<li>Wait for the success confirmation message</li>
+</ul>
+</li>
+<li>
+<p><strong>After Successful Deletion</strong></p>
+<ul>
+<li>The selected advisories will be removed (marked as Archived)</li>
+<li>The advisories list will refresh to show remaining assignments</li>
+<li>The advisories are archived, not permanently deleted</li>
+</ul>
+</li>
+</ol>
+<h3 id="manage-advisory-classes-form-error-handling">Manage Advisory Classes Form Error Handling </h3>
+<ol>
+<li>
+<p><strong>Missing Required Fields</strong></p>
+<ul>
+<li>If any required field is empty, an alert will prompt you to fill it</li>
+<li>Ensure Teacher, Grade Level, and Section are all selected</li>
+</ul>
+</li>
+<li>
+<p><strong>Advisory Already Assigned</strong></p>
+<ul>
+<li>If a grade/section already has an active advisory with a different teacher, an error will appear</li>
+<li>You must deactivate the existing advisory first</li>
+<li>The error message will show which advisory conflicts</li>
+</ul>
+</li>
+<li>
+<p><strong>No Advisories to Delete</strong></p>
+<ul>
+<li>If you try to delete without selecting any advisories, an alert will appear</li>
+<li>Select at least one advisory checkbox before clicking "Delete Selected"</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="data-management-instructions">Data Management Instructions </h2>
+<h3 id="reference-sheets">Reference Sheets </h3>
+<p>The system uses several reference sheets that you can edit directly:</p>
+<ol>
+<li>
+<p><strong>SUBJECTS_REF Sheet</strong></p>
+<ul>
+<li>Contains the list of all available subjects</li>
+<li>Add new subjects by adding a new row with the subject name</li>
+<li>Mark subjects as active/inactive using the Active column (✓ for active)</li>
+<li>Only active subjects appear in the Manage Subjects form</li>
+</ul>
+</li>
+<li>
+<p><strong>TEACHERS_REF Sheet</strong></p>
+<ul>
+<li>Contains the list of all teachers</li>
+<li>Add new teachers by adding a new row with the teacher name</li>
+<li>Mark teachers as active/inactive using the Active column (✓ for active)</li>
+<li>Only active teachers appear in the forms</li>
+</ul>
+</li>
+<li>
+<p><strong>SECTIONS_REF Sheet</strong></p>
+<ul>
+<li>Contains grade levels and sections</li>
+<li>Add new sections by adding a new row with grade level and section</li>
+<li>The Level column (Elementary/JHS/SHS) is automatically determined</li>
+<li>Sections are filtered by grade level in the forms</li>
+</ul>
+</li>
+<li>
+<p><strong>GRADING_REF Sheet</strong></p>
+<ul>
+<li>Contains grading weight configurations for subjects</li>
+<li>Each row defines weights for Written Work, Performance Task, and Assessment</li>
+<li>Subject-specific weights override the DEFAULT row</li>
+<li>Only active rows are used</li>
+<li>The DEFAULT row serves as a fallback for subjects without specific weights</li>
+</ul>
+</li>
+</ol>
+<h3 id="protected-sheets">Protected Sheets </h3>
+<p>The following sheets are managed automatically by the system and should not be edited directly:</p>
+<ol>
+<li>
+<p><strong>MASTER_DATA Sheet</strong></p>
+<ul>
+<li>Contains records of all generated OGS templates</li>
+<li>Each row represents one template file</li>
+<li>Includes: School Year, Grade Level, Section, Teacher, Template Link, Created, Modified, Created By</li>
+<li>Templates are linked via hyperlinks in the Template Link column</li>
+</ul>
+</li>
+<li>
+<p><strong>SUBJECTS Sheet</strong></p>
+<ul>
+<li>Contains all subject assignments (teacher-grade-section-subject)</li>
+<li>Managed through the Manage Subjects form</li>
+<li>Includes status (Active/Archived) and audit fields</li>
+</ul>
+</li>
+<li>
+<p><strong>ADVISORY Sheet</strong></p>
+<ul>
+<li>Contains all advisory assignments (teacher-grade-section)</li>
+<li>Managed through the Manage Advisory Classes form</li>
+<li>Includes status (Active/Archived) and audit fields</li>
+</ul>
+</li>
+</ol>
+<h3 id="template-file-structure">Template File Structure </h3>
+<ol>
+<li>
+<p><strong>File Organization</strong></p>
+<ul>
+<li>Templates are saved to Google Drive</li>
+<li>File names follow a specific format based on the template details</li>
+<li>Each template file contains multiple sheets (one per subject)</li>
+</ul>
+</li>
+<li>
+<p><strong>Sheet Structure per Subject</strong></p>
+<ul>
+<li>Each subject sheet includes:
+<ul>
+<li>Header information (Teacher, School Year, Level, Section, Subject)</li>
+<li>Student information columns</li>
+<li>Four grading periods with three components each</li>
+<li>Transmuted grades and final grading</li>
+</ul>
+</li>
+<li>Formulas are automatically set up for grade calculations</li>
+</ul>
+</li>
+<li>
+<p><strong>Student Data Integration</strong></p>
+<ul>
+<li>Templates can pull student data from the STUDENTS DB spreadsheet</li>
+<li>Student information is automatically populated if available</li>
+<li>Student rows are pre-created for easy data entry</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="troubleshooting-guide">Troubleshooting Guide </h2>
+<h3 id="form-loading-problems">Form Loading Problems </h3>
+<p><strong>Issue</strong>: Forms don't open or show errors<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Check your internet connection</li>
+<li>Refresh the browser page</li>
+<li>Close and reopen the form from the Google Sheets menu</li>
+<li>Ensure you have proper permissions to access the spreadsheet</li>
+<li>Check that the script is properly deployed as a web app</li>
+</ol>
+<h3 id="template-generation-failures">Template Generation Failures </h3>
+<p><strong>Issue</strong>: OGS template doesn't generate or shows errors<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Verify that subjects are assigned to the teacher for the selected grade/section</li>
+<li>Check that the teacher exists in TEACHERS_REF and is marked as active</li>
+<li>Ensure GRADING_REF has a DEFAULT row with active status</li>
+<li>Verify all required fields are filled (School Year, Grade Level, Section, Teacher)</li>
+<li>Check script execution logs for detailed error messages</li>
+<li>Ensure you have Google Drive permissions to create files</li>
+</ol>
+<h3 id="subject-assignment-errors">Subject Assignment Errors </h3>
+<p><strong>Issue</strong>: Cannot assign subjects or shows conflict errors<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Verify the subject exists in SUBJECTS_REF and is marked as active</li>
+<li>Check if the subject is already assigned to a different teacher for the same grade/section</li>
+<li>Deactivate the existing assignment first if you want to reassign it</li>
+<li>Ensure the teacher exists in TEACHERS_REF and is marked as active</li>
+<li>Verify grade level and section are correctly selected</li>
+</ol>
+<h3 id="advisory-assignment-errors">Advisory Assignment Errors </h3>
+<p><strong>Issue</strong>: Cannot assign advisory or shows conflict errors<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Check if the grade/section already has an active advisory with a different teacher</li>
+<li>Deactivate the existing advisory first if you want to reassign it</li>
+<li>Ensure the teacher exists in TEACHERS_REF and is marked as active</li>
+<li>Verify grade level and section are correctly selected</li>
+</ol>
+<h3 id="dropdown-not-populating">Dropdown Not Populating </h3>
+<p><strong>Issue</strong>: Dropdowns are empty or don't show expected options<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Check that reference sheets (SUBJECTS_REF, TEACHERS_REF, SECTIONS_REF) have data</li>
+<li>Verify items are marked as active (✓ in Active column)</li>
+<li>Ensure reference sheets follow the correct structure (2 header rows)</li>
+<li>Refresh the form to reload data</li>
+<li>Check that sheet names match exactly (case-sensitive)</li>
+</ol>
+<h3 id="teacher-autocomplete-not-working">Teacher Autocomplete Not Working </h3>
+<p><strong>Issue</strong>: Teacher suggestions don't appear or are incorrect<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Verify teachers exist in TEACHERS_REF and are marked as active</li>
+<li>Check that you've selected grade level and section first (for OGS template form)</li>
+<li>Ensure you're typing the teacher name correctly</li>
+<li>Try refreshing the form</li>
+<li>Check that the teacher is assigned to subjects for the selected grade/section (OGS form)</li>
+</ol>
+<h3 id="template-file-not-found">Template File Not Found </h3>
+<p><strong>Issue</strong>: Cannot locate generated template file<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Check the MASTER_DATA sheet for the template link</li>
+<li>Click on the "Open Template" hyperlink in the Template Link column</li>
+<li>Verify you have access to the Google Drive folder where templates are saved</li>
+<li>Check script execution logs for the file location</li>
+<li>Search Google Drive for files with the expected naming pattern</li>
+</ol>
+<h3 id="grading-weights-not-applied">Grading Weights Not Applied </h3>
+<p><strong>Issue</strong>: Template uses wrong grading weights<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Check GRADING_REF sheet for the subject-specific weights</li>
+<li>Verify the subject name matches exactly (case-sensitive)</li>
+<li>Ensure the row is marked as active (✓ in Active column)</li>
+<li>Check that a DEFAULT row exists as a fallback</li>
+<li>Verify weights add up to 100% (Written Work + Performance Task + Assessment)</li>
+</ol>
+<h3 id="permission-errors">Permission Errors </h3>
+<p><strong>Issue</strong>: "Access denied" or permission-related error messages<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Verify you're logged into the correct Google account</li>
+<li>Check with your administrator about access permissions</li>
+<li>Ensure you have edit access to the spreadsheet</li>
+<li>Verify you have Google Drive permissions to create files</li>
+<li>Check that the script is deployed with proper permissions</li>
+<li>Try logging out and back into Google</li>
+</ol>
+<h3 id="data-not-saving">Data Not Saving </h3>
+<p><strong>Issue</strong>: Changes don't persist after form submission<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Check that the Web App URL is properly configured in Config.js</li>
+<li>Verify the API key is correct</li>
+<li>Ensure the script is deployed as a web app</li>
+<li>Check script execution logs for errors</li>
+<li>Verify you have write permissions to the spreadsheet</li>
+<li>Try refreshing the form and submitting again</li>
+</ol>
+<h3 id="reference-sheet-structure-issues">Reference Sheet Structure Issues </h3>
+<p><strong>Issue</strong>: Forms don't recognize data in reference sheets<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Verify reference sheets have exactly 2 header rows</li>
+<li>Check that the Active column is the last column</li>
+<li>Ensure data starts from row 3 (after 2 header rows)</li>
+<li>Verify column names match expected format</li>
+<li>Check for extra spaces or formatting issues in data</li>
+</ol>
+<h3 id="batch-operations-slow">Batch Operations Slow </h3>
+<p><strong>Issue</strong>: Adding or deleting multiple items is slow<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>The system uses batch operations for better performance</li>
+<li>Wait for the operation to complete (shows progress in button text)</li>
+<li>Avoid clicking multiple times</li>
+<li>Check your internet connection speed</li>
+<li>Try smaller batches if dealing with very large numbers of items</li>
+</ol>
+<p><em>This working instruction document covers the complete functionality of the Template Masterfile system. For additional support or system modifications, contact your systems developer.</em></p>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>

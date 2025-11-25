@@ -278,6 +278,9 @@ const CONFIG = {
       SUBJECTS_CONFLICT: 'Cannot assign subject(s) to a different teacher:\n\n{conflicts}\n\nPlease deactivate the existing assignment(s) first.',
       ADVISORY_ALREADY_ASSIGNED: '{gradeSection} already has an active advisory with {teacher}. Cannot assign another teacher to the same class. Please deactivate the existing advisory first.'
     }
-  }
+  },
+  
+  // Working Instructions HTML file name (without .html extension)
+  WORKING_INSTRUCTIONS_HTML: "Working_Instructions"
 };
 
