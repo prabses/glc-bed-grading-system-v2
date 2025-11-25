@@ -129,7 +129,7 @@ const CONFIG = {
       SUBJECT_SHEETS: {
         STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
         HEADER_ROWS: [8, 9],  // Rows 8-9 (grading period headers and column headers)
-        FORMULA_COLUMNS: [6, 7, 11, 12, 16, 17, 21, 22, 23, 24]  // Columns F, G, K, L, P, Q, U, V, W, X
+        FORMULA_COLUMNS: [6, 7, 8, 12, 13, 14, 18, 19, 20, 24, 25, 26, 27, 28]  // Columns F, G, H, L, M, N, R, S, T, X, Y, Z, AA, AB
       },
       // Character sheet protection ranges
       CHARACTER_SHEET: {

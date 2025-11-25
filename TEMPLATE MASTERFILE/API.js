@@ -278,6 +278,23 @@ function _getLevelForGrade(gradeLevel) {
 }
 
 /**
+ * Helper function to convert column number (1-based) to column letter(s)
+ * Handles columns beyond Z (AA, AB, AC, etc.)
+ * @param {number} colNum - Column number (1-based, where 1 = A, 27 = AA, etc.)
+ * @return {string} Column letter(s) (e.g., "A", "Z", "AA", "AB")
+ */
+function _columnNumberToLetter(colNum) {
+  let result = '';
+  let num = colNum;
+  while (num > 0) {
+    const remainder = (num - 1) % 26;
+    result = String.fromCharCode(65 + remainder) + result;
+    num = Math.floor((num - 1) / 26);
+  }
+  return result;
+}
+
+/**
  * Internal function to get grading weights for a subject
  * @param {string} subjectName - The subject name
  * @return {Object} Object with writtenWork, performanceTask, and assessment weights
@@ -405,7 +422,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
   sheet.clear();
   
   // Build all data in memory first for batch operations
-  const numCols = 24; // Fixed number of columns: A-X (Student No, Student Name, 4 grading periods × 5 cols each, Final Grading, Final EQ)
+  const numCols = 28; // Fixed number of columns: A-AB (Student No, Student Name, 4 grading periods × 6 cols each, Final Grading, Final EQ)
   const allData = [];
   
   // Helper function to pad row to numCols
@@ -434,11 +451,11 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
   const gradingHeadersRow = padRow([
     '', 
     '', 
-    '1ST GRADING', '', '', '', '',  // Columns C-G (5 columns for 1ST GRADING - will be merged)
-    '2ND GRADING', '', '', '', '',  // Columns H-L (5 columns for 2ND GRADING - will be merged)
-    '3RD GRADING', '', '', '', '',  // Columns M-Q (5 columns for 3RD GRADING - will be merged)
-    '4TH GRADING', '', '', '', '',  // Columns R-V (5 columns for 4TH GRADING - will be merged)
-    '', ''                            // Columns W-X (Final Grading and Final EQ headers are in row 10)
+    '1ST GRADING', '', '', '', '', '',  // Columns C-H (6 columns for 1ST GRADING - will be merged)
+    '2ND GRADING', '', '', '', '', '',  // Columns I-N (6 columns for 2ND GRADING - will be merged)
+    '3RD GRADING', '', '', '', '', '',  // Columns O-T (6 columns for 3RD GRADING - will be merged)
+    '4TH GRADING', '', '', '', '', '',  // Columns U-Z (6 columns for 4TH GRADING - will be merged)
+    '', ''                            // Columns AA-AB (Final Grading and Final EQ headers are in row 10)
   ]);
   allData.push(gradingHeadersRow);
   
@@ -450,24 +467,28 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     'TS1-Written',
     'TS1-Performance',
     'TS1-Assessment',
+    '1st Initial',
     '1st Transmuted',
     '1st EQ',
     // 2ND GRADING
     'TS2-Written',
     'TS2-Performance',
     'TS2-Assessment',
+    '2nd Initial',
     '2nd Transmuted',
     '2nd EQ',
     // 3RD GRADING
     'TS3-Written',
     'TS3-Performance',
     'TS3-Assessment',
+    '3rd Initial',
     '3rd Transmuted',
     '3rd EQ',
     // 4TH GRADING
     'TS4-Written',
     'TS4-Performance',
     'TS4-Assessment',
+    '4th Initial',
     '4th Transmuted',
     '4th EQ',
     // Final
@@ -496,11 +517,11 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
   
   // OPTIMIZATION: Batch merges first, then apply formatting in one operation
   // Row 8: Grading period headers - batch merges and formatting
-  sheet.getRange(8, 3, 1, 5).merge();   // 1ST GRADING
-  sheet.getRange(8, 8, 1, 5).merge();   // 2ND GRADING
-  sheet.getRange(8, 13, 1, 5).merge(); // 3RD GRADING
-  sheet.getRange(8, 18, 1, 5).merge();  // 4TH GRADING
-  const row8Range = sheet.getRange(8, 3, 1, 22);
+  sheet.getRange(8, 3, 1, 6).merge();   // 1ST GRADING
+  sheet.getRange(8, 9, 1, 6).merge();   // 2ND GRADING
+  sheet.getRange(8, 15, 1, 6).merge(); // 3RD GRADING
+  sheet.getRange(8, 21, 1, 6).merge();  // 4TH GRADING
+  const row8Range = sheet.getRange(8, 3, 1, 26);
   row8Range.setFontWeight('bold')
     .setHorizontalAlignment('center')
     .setBackground(CONFIG.COLORS.LIGHTER_GRAY);
@@ -515,8 +536,8 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
   // OPTIMIZATION: Set column widths (Google Apps Script requires individual calls, but we optimize the loop)
   sheet.setColumnWidth(1, 120);  // Student No
   sheet.setColumnWidth(2, 250);  // Student Name
-  // Set remaining columns (3-24) to 130 in optimized loop
-  for (let c = 3; c <= 24; c++) {
+  // Set remaining columns (3-28) to 130 in optimized loop
+  for (let c = 3; c <= 28; c++) {
     sheet.setColumnWidth(c, 130);
   }
   
@@ -533,16 +554,20 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     
     const studentValues = [];
     const formulaColumns = {
-      6: [],  // Column F: 1st Transmuted
-      7: [],  // Column G: 1st EQ
-      11: [], // Column K: 2nd Transmuted
-      12: [], // Column L: 2nd EQ
-      16: [], // Column P: 3rd Transmuted
-      17: [], // Column Q: 3rd EQ
-      21: [], // Column U: 4th Transmuted
-      22: [], // Column V: 4th EQ
-      23: [], // Column W: Final Grading
-      24: []  // Column X: Final EQ
+      6: [],  // Column F: 1st Initial
+      7: [],  // Column G: 1st Transmuted
+      8: [],  // Column H: 1st EQ
+      12: [], // Column L: 2nd Initial
+      13: [], // Column M: 2nd Transmuted
+      14: [], // Column N: 2nd EQ
+      18: [], // Column R: 3rd Initial
+      19: [], // Column S: 3rd Transmuted
+      20: [], // Column T: 3rd EQ
+      24: [], // Column X: 4th Initial
+      25: [], // Column Y: 4th Transmuted
+      26: [], // Column Z: 4th EQ
+      27: [], // Column AA: Final Grading
+      28: []  // Column AB: Final EQ
     };
   
   for (let i = 0; i < numStudentRows; i++) {
@@ -564,42 +589,46 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
       // 1st Grading: Weighted average formula
       const weightedAvg1 = `ROUND((C${row}*${ww}/100+D${row}*${pt}/100+E${row}*${as}/100),2)`;
       const weightedAvg1Formula = `=IF(AND(C${row}<>"",D${row}<>"",E${row}<>""),${weightedAvg1},"")`;
+      formulaColumns[6].push([weightedAvg1Formula]); // 1st Initial
       // 1st Transmuted: Apply transmutation to weighted average
       const transmuted1Formula = _generateTransmutationFormula(weightedAvg1Formula.replace('=', ''));
-      formulaColumns[6].push([transmuted1Formula]);
+      formulaColumns[7].push([transmuted1Formula]); // 1st Transmuted
       // 1st EQ: Based on transmuted grade
-      formulaColumns[7].push([_generateEQFromTransmutation(6, row)]);
+      formulaColumns[8].push([_generateEQFromTransmutation(7, row)]); // 1st EQ
       
-      // 2nd Grading: Weighted average formula
-      const weightedAvg2 = `ROUND((H${row}*${ww}/100+I${row}*${pt}/100+J${row}*${as}/100),2)`;
-      const weightedAvg2Formula = `=IF(AND(H${row}<>"",I${row}<>"",J${row}<>""),${weightedAvg2},"")`;
+      // 2nd Grading: Weighted average formula (Initial)
+      const weightedAvg2 = `ROUND((I${row}*${ww}/100+J${row}*${pt}/100+K${row}*${as}/100),2)`;
+      const weightedAvg2Formula = `=IF(AND(I${row}<>"",J${row}<>"",K${row}<>""),${weightedAvg2},"")`;
+      formulaColumns[12].push([weightedAvg2Formula]); // 2nd Initial
       // 2nd Transmuted: Apply transmutation to weighted average
       const transmuted2Formula = _generateTransmutationFormula(weightedAvg2Formula.replace('=', ''));
-      formulaColumns[11].push([transmuted2Formula]);
+      formulaColumns[13].push([transmuted2Formula]); // 2nd Transmuted
       // 2nd EQ: Based on transmuted grade
-      formulaColumns[12].push([_generateEQFromTransmutation(11, row)]);
+      formulaColumns[14].push([_generateEQFromTransmutation(13, row)]); // 2nd EQ
       
-      // 3rd Grading: Weighted average formula
-      const weightedAvg3 = `ROUND((M${row}*${ww}/100+N${row}*${pt}/100+O${row}*${as}/100),2)`;
-      const weightedAvg3Formula = `=IF(AND(M${row}<>"",N${row}<>"",O${row}<>""),${weightedAvg3},"")`;
+      // 3rd Grading: Weighted average formula (Initial)
+      const weightedAvg3 = `ROUND((O${row}*${ww}/100+P${row}*${pt}/100+Q${row}*${as}/100),2)`;
+      const weightedAvg3Formula = `=IF(AND(O${row}<>"",P${row}<>"",Q${row}<>""),${weightedAvg3},"")`;
+      formulaColumns[18].push([weightedAvg3Formula]); // 3rd Initial
       // 3rd Transmuted: Apply transmutation to weighted average
       const transmuted3Formula = _generateTransmutationFormula(weightedAvg3Formula.replace('=', ''));
-      formulaColumns[16].push([transmuted3Formula]);
+      formulaColumns[19].push([transmuted3Formula]); // 3rd Transmuted
       // 3rd EQ: Based on transmuted grade
-      formulaColumns[17].push([_generateEQFromTransmutation(16, row)]);
+      formulaColumns[20].push([_generateEQFromTransmutation(19, row)]); // 3rd EQ
       
-      // 4th Grading: Weighted average formula
-      const weightedAvg4 = `ROUND((R${row}*${ww}/100+S${row}*${pt}/100+T${row}*${as}/100),2)`;
-      const weightedAvg4Formula = `=IF(AND(R${row}<>"",S${row}<>"",T${row}<>""),${weightedAvg4},"")`;
+      // 4th Grading: Weighted average formula (Initial)
+      const weightedAvg4 = `ROUND((U${row}*${ww}/100+V${row}*${pt}/100+W${row}*${as}/100),2)`;
+      const weightedAvg4Formula = `=IF(AND(U${row}<>"",V${row}<>"",W${row}<>""),${weightedAvg4},"")`;
+      formulaColumns[24].push([weightedAvg4Formula]); // 4th Initial
       // 4th Transmuted: Apply transmutation to weighted average
       const transmuted4Formula = _generateTransmutationFormula(weightedAvg4Formula.replace('=', ''));
-      formulaColumns[21].push([transmuted4Formula]);
+      formulaColumns[25].push([transmuted4Formula]); // 4th Transmuted
       // 4th EQ: Based on transmuted grade
-      formulaColumns[22].push([_generateEQFromTransmutation(21, row)]);
+      formulaColumns[26].push([_generateEQFromTransmutation(25, row)]); // 4th EQ
       
       // Final Grading: Average of all transmuted grades
-      formulaColumns[23].push([`=IF(AND(F${row}<>"",K${row}<>"",P${row}<>"",U${row}<>""),ROUND((F${row}+K${row}+P${row}+U${row})/4,2),"")`]);
-      formulaColumns[24].push([_generateEQFromNonTransmutedGrade(23, row)]);
+      formulaColumns[27].push([`=IF(AND(G${row}<>"",M${row}<>"",S${row}<>"",Y${row}<>""),ROUND((G${row}+M${row}+S${row}+Y${row})/4,2),"")`]);
+      formulaColumns[28].push([_generateEQFromNonTransmutedGrade(27, row)]);
     }
     
     // OPTIMIZATION: Combine student data and empty cells into single batch write
@@ -620,14 +649,14 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     studentDataRange.setValues(allStudentRows);
     
     // OPTIMIZATION: Set formulas and format in combined operations to reduce API calls
-    // Formula columns: F (6), G (7), K (11), L (12), P (16), Q (17), U (21), V (22), W (23), X (24)
-    const formulaColsList = [6, 7, 11, 12, 16, 17, 21, 22, 23, 24];
-    const eqCols = [7, 12, 17, 22, 24]; // EQ columns that need right alignment
+    // Formula columns: F (6), G (7), H (8), L (12), M (13), N (14), R (18), S (19), T (20), X (24), Y (25), Z (26), AA (27), AB (28)
+    const formulaColsList = [6, 7, 8, 12, 13, 14, 18, 19, 20, 24, 25, 26, 27, 28];
+    const eqCols = [8, 14, 20, 26, 28]; // EQ columns that need right alignment
     
     formulaColsList.forEach(col => {
       const range = sheet.getRange(startRow, col, numStudentRows, 1);
       range.setFormulas(formulaColumns[col]);
-      range.setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+      range.setBackground(CONFIG.COLORS.LIGHT_GRAY);
       // Right-align EQ columns
       if (eqCols.includes(col)) {
         range.setHorizontalAlignment('right');
@@ -719,19 +748,20 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     studentRange.setBorder(true, true, true, true, true, true);
     
     // OPTIMIZATION: Batch number format - combine with other formatting where possible
-    const gradeInputCols = [3, 4, 5, 8, 9, 10, 13, 14, 15, 18, 19, 20]; // C, D, E, H, I, J, M, N, O, R, S, T
+    const gradeInputCols = [3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23]; // C, D, E (1st), I, J, K (2nd), O, P, Q (3rd), U, V, W (4th)
     gradeInputCols.forEach(col => {
       sheet.getRange(startRow, col, numStudentRows, 1).setNumberFormat('0.##');
     });
     
-    const transmutedCols = [6, 11, 16, 21, 23]; // F, K, P, U, W
-    transmutedCols.forEach(col => {
+    // Format Initial, Transmuted, and Final Grading columns with 2 decimal places
+    const numberFormatCols = [6, 7, 12, 13, 18, 19, 24, 25, 27]; // F (Initial), G (Transmuted), L (Initial), M (Transmuted), R (Initial), S (Transmuted), X (Initial), Y (Transmuted), AA (Final Grading)
+    numberFormatCols.forEach(col => {
       sheet.getRange(startRow, col, numStudentRows, 1).setNumberFormat('0.00');
     });
     
     // OPTIMIZATION: Batch all conditional formatting rules at once (single setConditionalFormatRules call)
-    // Input columns: C, D, E (1st), H, I, J (2nd), M, N, O (3rd), R, S, T (4th)
-    const inputCols = [3, 4, 5, 8, 9, 10, 13, 14, 15, 18, 19, 20];
+    // Input columns: C, D, E (1st), I, J, K (2nd), O, P, Q (3rd), U, V, W (4th)
+    const inputCols = [3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23];
     const minGrade = CONFIG.TEMPLATE.MIN_GRADE;
     const maxGrade = CONFIG.TEMPLATE.MAX_GRADE;
     const allRules = [];
@@ -756,12 +786,13 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
       allRules.push(rule1, rule2);
     });
     
-    // Add conditional formatting for transmuted grades and final grade: Red if less than 75
-    const transmutedGradeCols = [6, 11, 16, 21]; // Columns F, K, P, U (1st, 2nd, 3rd, 4th Transmuted)
-    const finalGradingCol = 23; // Column W (Final Grading)
+    // Add conditional formatting for Initial, Transmuted grades and final grade: Red if less than 75
+    const initialCols = [6, 12, 18, 24]; // Columns F, L, R, X (1st, 2nd, 3rd, 4th Initial)
+    const transmutedGradeCols = [7, 13, 19, 25]; // Columns G, M, S, Y (1st, 2nd, 3rd, 4th Transmuted)
+    const finalGradingCol = 27; // Column AA (Final Grading)
     const passingGrade = 75;
     
-    [...transmutedGradeCols, finalGradingCol].forEach(col => {
+    [...initialCols, ...transmutedGradeCols, finalGradingCol].forEach(col => {
       const range = sheet.getRange(startRow, col, numStudentRows, 1);
       const rule = SpreadsheetApp.newConditionalFormatRule()
         .setRanges([range])
@@ -1221,7 +1252,7 @@ function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, se
     for (let period = 0; period < 4; period++) {
       const baseCol = 3 + (period * 7); // Starting column for this period (3, 10, 17, 24)
       const transmutedCol = transmutedCols[period]; // Column in subject sheets (6, 11, 16, 21)
-      const transmutedColLetter = String.fromCharCode(64 + transmutedCol); // F, K, P, U
+      const transmutedColLetter = _columnNumberToLetter(transmutedCol); // F, K, P, U
       
       // Music, Arts, PE, Health formulas: Reference transmuted columns from respective subject sheets
       const musicFormula = `=IF('${musicSheetName}'!${transmutedColLetter}${row}="","",'${musicSheetName}'!${transmutedColLetter}${row})`;
@@ -1230,18 +1261,18 @@ function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, se
       const healthFormula = `=IF('${healthSheetName}'!${transmutedColLetter}${row}="","",'${healthSheetName}'!${transmutedColLetter}${row})`;
       
       // AVE formula: Average of Music, Arts, PE, Health
-      const musicColLetter = String.fromCharCode(64 + baseCol);
-      const artsColLetter = String.fromCharCode(64 + baseCol + 1);
-      const peColLetter = String.fromCharCode(64 + baseCol + 2);
-      const healthColLetter = String.fromCharCode(64 + baseCol + 3);
+      const musicColLetter = _columnNumberToLetter(baseCol);
+      const artsColLetter = _columnNumberToLetter(baseCol + 1);
+      const peColLetter = _columnNumberToLetter(baseCol + 2);
+      const healthColLetter = _columnNumberToLetter(baseCol + 3);
       const aveFormula = `=IF(AND(${musicColLetter}${row}<>"",${artsColLetter}${row}<>"",${peColLetter}${row}<>"",${healthColLetter}${row}<>""),ROUND(AVERAGE(${musicColLetter}${row},${artsColLetter}${row},${peColLetter}${row},${healthColLetter}${row}),2),"")`;
       
       // GLC formula: Transmuted value of AVE
-      const aveColLetter = String.fromCharCode(64 + baseCol + 4);
+      const aveColLetter = _columnNumberToLetter(baseCol + 4);
       const glcFormula = _generateTransmutationFormula(aveColLetter + row);
       
       // GLC EQ formula: EQ based on GLC transmuted value
-      const glcColLetter = String.fromCharCode(64 + baseCol + 5);
+      const glcColLetter = _columnNumberToLetter(baseCol + 5);
       const glcEQFormula = _generateEQFromTransmutation(baseCol + 5, row);
       
       formulaColumns[baseCol].push([musicFormula]);      // Music
@@ -1254,10 +1285,10 @@ function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, se
     }
     
     // Final Grading: Average of the 4 AVE columns (columns 7, 14, 21, 28) - no transmutation needed
-    const ave1ColLetter = String.fromCharCode(64 + 7);  // Column G (1st AVE)
-    const ave2ColLetter = String.fromCharCode(64 + 14); // Column N (2nd AVE)
-    const ave3ColLetter = String.fromCharCode(64 + 21); // Column U (3rd AVE)
-    const ave4ColLetter = String.fromCharCode(64 + 28); // Column AB (4th AVE)
+    const ave1ColLetter = _columnNumberToLetter(7);  // Column G (1st AVE)
+    const ave2ColLetter = _columnNumberToLetter(14); // Column N (2nd AVE)
+    const ave3ColLetter = _columnNumberToLetter(21); // Column U (3rd AVE)
+    const ave4ColLetter = _columnNumberToLetter(28); // Column AB (4th AVE)
     const finalGradingFormula = `=IF(AND(${ave1ColLetter}${row}<>"",${ave2ColLetter}${row}<>"",${ave3ColLetter}${row}<>"",${ave4ColLetter}${row}<>""),ROUND(AVERAGE(${ave1ColLetter}${row},${ave2ColLetter}${row},${ave3ColLetter}${row},${ave4ColLetter}${row}),2),"")`;
     
     // Final EQ: Based on Final Grading (non-transmuted) using EQ_GRADING_SCALE_NON_TRANSMUTED
@@ -1584,8 +1615,8 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       }
       
       // Add Days ABSENT formulas: School DAYS - Days PRESENT
-      const schoolDaysColLetter = String.fromCharCode(64 + schoolDaysCol); // Convert to column letter
-      const daysPresentColLetter = String.fromCharCode(64 + daysPresentCol);
+      const schoolDaysColLetter = _columnNumberToLetter(schoolDaysCol); // Convert to column letter
+      const daysPresentColLetter = _columnNumberToLetter(daysPresentCol);
       const absentFormulas = [];
       for (let r = 0; r < numStudentRows; r++) {
         const rowNum = startRow + r;
@@ -1619,8 +1650,8 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     const allRules = [];
     daysPresentCols.forEach(({ presentCol, schoolDaysCol }) => {
       const presentRange = sheet.getRange(startRow, presentCol, numStudentRows, 1);
-      const schoolDaysColLetter = String.fromCharCode(64 + schoolDaysCol);
-      const presentColLetter = String.fromCharCode(64 + presentCol);
+      const schoolDaysColLetter = _columnNumberToLetter(schoolDaysCol);
+      const presentColLetter = _columnNumberToLetter(presentCol);
       
       // Rule 1: Red if Days PRESENT is less than 0
       const rule1 = SpreadsheetApp.newConditionalFormatRule()
@@ -1668,8 +1699,8 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       const daysAbsentCol = colIndex + 2;
       
       // Add Days ABSENT formulas: School DAYS - Days PRESENT
-      const schoolDaysColLetter = String.fromCharCode(64 + schoolDaysCol);
-      const daysPresentColLetter = String.fromCharCode(64 + daysPresentCol);
+      const schoolDaysColLetter = _columnNumberToLetter(schoolDaysCol);
+      const daysPresentColLetter = _columnNumberToLetter(daysPresentCol);
       const absentFormulas = [];
       for (let r = 0; r < numStudentRows; r++) {
         const rowNum = startRow + r;
@@ -1703,8 +1734,8 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     const allRules = [];
     daysPresentCols.forEach(({ presentCol, schoolDaysCol }) => {
       const presentRange = sheet.getRange(startRow, presentCol, numStudentRows, 1);
-      const schoolDaysColLetter = String.fromCharCode(64 + schoolDaysCol);
-      const presentColLetter = String.fromCharCode(64 + presentCol);
+      const schoolDaysColLetter = _columnNumberToLetter(schoolDaysCol);
+      const presentColLetter = _columnNumberToLetter(presentCol);
       
       // Rule 1: Red if Days PRESENT is less than 0
       const rule1 = SpreadsheetApp.newConditionalFormatRule()
@@ -1856,7 +1887,7 @@ function _getActiveTraits() {
  */
 function _generateEQFormula(gradeCol, row) {
   const ranges = CONFIG.EQ_GRADING_SCALE.RANGES;
-  const colLetter = String.fromCharCode(64 + gradeCol); // Convert column number to letter (A=1, B=2, etc.)
+  const colLetter = _columnNumberToLetter(gradeCol); // Convert column number to letter
   const cellRef = `${colLetter}${row}`;
   
   // Build nested IF formula checking from highest to lowest range
@@ -1929,7 +1960,7 @@ function _generateTransmutationFormula(weightedAvgFormula) {
  */
 function _generateEQFromTransmutation(transmutedCol, row) {
   const table = CONFIG.TRANSMUTATION_TABLE;
-  const colLetter = String.fromCharCode(64 + transmutedCol); // Convert column number to letter
+  const colLetter = _columnNumberToLetter(transmutedCol); // Convert column number to letter
   const cellRef = `${colLetter}${row}`;
   
   // Build nested IF formula checking transmuted grade against transmutation values
@@ -1970,7 +2001,7 @@ function _generateEQFromTransmutation(transmutedCol, row) {
  */
 function _generateEQFromNonTransmutedGrade(gradeCol, row) {
   const table = CONFIG.EQ_GRADING_SCALE_NON_TRANSMUTED.RANGES;
-  const colLetter = String.fromCharCode(64 + gradeCol); // Convert column number to letter
+  const colLetter = _columnNumberToLetter(gradeCol); // Convert column number to letter
   const cellRef = `${colLetter}${row}`;
   
   // Build nested IF formula checking grade against ranges
