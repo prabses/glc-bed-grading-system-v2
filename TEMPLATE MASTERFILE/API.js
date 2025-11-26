@@ -1493,11 +1493,15 @@ function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, se
  * @param {string} teacher - The teacher/advisor name
  * @param {Array} students - Array of student objects
  */
-function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, students = []) {
-  // Clear the sheet first
+function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, students = [], masterSpreadsheetId = null) {
   sheet.clear();
   
-  // Get monthly school days for the school year
+  if (!masterSpreadsheetId) {
+    const masterSpreadsheet = getSpreadsheet();
+    masterSpreadsheetId = masterSpreadsheet.getId();
+  }
+  const attendanceRefSheetName = CONFIG.SHEET_NAMES.ATTENDANCE_REF;
+  
   const monthlyDays = _getMonthlySchoolDays(schoolYear);
   
   // Only use months that exist in the monthlyDays sheet for this school year
@@ -1647,17 +1651,22 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       // Get school days directly from monthlyDays using the exact key
       const schoolDays = monthlyDays[monthKey];
       
-      // Column structure per month: School DAYS (colIndex), Days PRESENT (colIndex+1), Days ABSENT (colIndex+2)
       const schoolDaysCol = colIndex;
       const daysPresentCol = colIndex + 1;
       const daysAbsentCol = colIndex + 2;
       
-      if (schoolDays) {
-        // Fill School DAYS column for all student rows
-        const schoolDaysRange = sheet.getRange(startRow, schoolDaysCol, numStudentRows, 1);
-        const schoolDaysValues = Array(numStudentRows).fill([schoolDays]);
-        schoolDaysRange.setValues(schoolDaysValues);
+      const monthHeaderColLetter = _columnNumberToLetter(colIndex);
+      const schoolYearRow = 2;
+      const monthHeaderRow = 6;
+      
+      const schoolDaysFormulas = [];
+      const schoolYearColLetter = _columnNumberToLetter(2);
+      for (let r = 0; r < numStudentRows; r++) {
+        const rowNum = startRow + r;
+        const formula = `=INDEX(IMPORTRANGE("${masterSpreadsheetId}","${attendanceRefSheetName}!D:D"), MATCH(1, (IMPORTRANGE("${masterSpreadsheetId}","${attendanceRefSheetName}!B:B")=$${schoolYearColLetter}$${schoolYearRow})*(IMPORTRANGE("${masterSpreadsheetId}","${attendanceRefSheetName}!C:C")=${monthHeaderColLetter}$${monthHeaderRow}), 0))`;
+        schoolDaysFormulas.push([formula]);
       }
+      sheet.getRange(startRow, schoolDaysCol, numStudentRows, 1).setFormulas(schoolDaysFormulas);
       
       // Add Days ABSENT formulas: School DAYS - Days PRESENT
       const schoolDaysColLetter = _columnNumberToLetter(schoolDaysCol); // Convert to column letter
@@ -1738,12 +1747,24 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     // Add Days ABSENT formulas for empty rows as well
     colIndex = 3; // Start at column C
     const absentFormulaCols = []; // Track Days ABSENT columns for gray background
-    monthsToUse.forEach(() => {
+    monthsToUse.forEach((monthKey) => {
       const schoolDaysCol = colIndex;
       const daysPresentCol = colIndex + 1;
       const daysAbsentCol = colIndex + 2;
       
-      // Add Days ABSENT formulas: School DAYS - Days PRESENT
+      const monthHeaderColLetter = _columnNumberToLetter(colIndex);
+      const schoolYearRow = 2;
+      const monthHeaderRow = 6;
+      const schoolYearColLetter = _columnNumberToLetter(2);
+      
+      const schoolDaysFormulas = [];
+      for (let r = 0; r < numStudentRows; r++) {
+        const rowNum = startRow + r;
+        const formula = `=INDEX(IMPORTRANGE("${masterSpreadsheetId}","${attendanceRefSheetName}!D:D"), MATCH(1, (IMPORTRANGE("${masterSpreadsheetId}","${attendanceRefSheetName}!B:B")=$${schoolYearColLetter}$${schoolYearRow})*(IMPORTRANGE("${masterSpreadsheetId}","${attendanceRefSheetName}!C:C")=${monthHeaderColLetter}$${monthHeaderRow}), 0))`;
+        schoolDaysFormulas.push([formula]);
+      }
+      sheet.getRange(startRow, schoolDaysCol, numStudentRows, 1).setFormulas(schoolDaysFormulas);
+      
       const schoolDaysColLetter = _columnNumberToLetter(schoolDaysCol);
       const daysPresentColLetter = _columnNumberToLetter(daysPresentCol);
       const absentFormulas = [];
@@ -1755,7 +1776,7 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       sheet.getRange(startRow, daysAbsentCol, numStudentRows, 1).setFormulas(absentFormulas);
       absentFormulaCols.push(daysAbsentCol);
       
-      colIndex += 3; // Move to next month
+      colIndex += 3;
     });
     
     // Apply gray background to Days ABSENT formula columns (efficient batch operation)
@@ -2976,7 +2997,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     const isAdvisor = _isTeacherAdvisor(teacher, gradeLevel, section);
     if (isAdvisor) {
       const attendanceSheet = templateSpreadsheet.insertSheet('Attendance');
-      _setupAttendanceSheet(attendanceSheet, schoolYear, gradeLevel, section, teacher, students);
+      _setupAttendanceSheet(attendanceSheet, schoolYear, gradeLevel, section, teacher, students, masterSpreadsheet.getId());
       // Add color to Attendance sheet tab to distinguish from subject sheets
       attendanceSheet.setTabColor(CONFIG.COLORS.BLUE);
       
