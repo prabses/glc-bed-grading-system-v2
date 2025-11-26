@@ -71,11 +71,9 @@ const CONFIG = {
     UPDATE_LOG: 'Update Log'
   },
   
-  // Data row configuration
-  DATA_START_ROW: 3, // Student data starts from row 3
-  HEADER_ROWS: 2, // Rows 1-2 contain headers
+  DATA_START_ROW: 3,
+  HEADER_ROWS: 2,
   
-  // Working Instructions HTML file name (without .html extension)
-  WORKING_INSTRUCTIONS_HTML: "Working_Instructions"
+  WORKING_INSTRUCTIONS_URL: ""
 };
 

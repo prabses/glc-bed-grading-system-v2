@@ -280,6 +280,6 @@ const CONFIG = {
     }
   },
   
-  WORKING_INSTRUCTIONS_URL: ""
+  WORKING_INSTRUCTIONS_URL: "https://template-masterfile.vercel.app/"
 };
 
