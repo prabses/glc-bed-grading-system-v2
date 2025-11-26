@@ -1644,13 +1644,10 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setValues(studentValues);
     
-    // Populate School DAYS for each month from monthlyDays data and add Days ABSENT formulas
-    colIndex = 3; // Start at column C
-    const absentFormulaCols = []; // Track Days ABSENT columns for gray background
+    colIndex = 3;
+    const schoolDaysCols = [];
+    const absentFormulaCols = [];
     monthsToUse.forEach((monthKey) => {
-      // Get school days directly from monthlyDays using the exact key
-      const schoolDays = monthlyDays[monthKey];
-      
       const schoolDaysCol = colIndex;
       const daysPresentCol = colIndex + 1;
       const daysAbsentCol = colIndex + 2;
@@ -1667,9 +1664,9 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
         schoolDaysFormulas.push([formula]);
       }
       sheet.getRange(startRow, schoolDaysCol, numStudentRows, 1).setFormulas(schoolDaysFormulas);
+      schoolDaysCols.push(schoolDaysCol);
       
-      // Add Days ABSENT formulas: School DAYS - Days PRESENT
-      const schoolDaysColLetter = _columnNumberToLetter(schoolDaysCol); // Convert to column letter
+      const schoolDaysColLetter = _columnNumberToLetter(schoolDaysCol);
       const daysPresentColLetter = _columnNumberToLetter(daysPresentCol);
       const absentFormulas = [];
       for (let r = 0; r < numStudentRows; r++) {
@@ -1680,10 +1677,15 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       sheet.getRange(startRow, daysAbsentCol, numStudentRows, 1).setFormulas(absentFormulas);
       absentFormulaCols.push(daysAbsentCol);
       
-      colIndex += 3; // Move to next month
+      colIndex += 3;
     });
     
-    // Apply gray background to Days ABSENT formula columns (efficient batch operation)
+    if (schoolDaysCols.length > 0) {
+      schoolDaysCols.forEach(col => {
+        sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
+      });
+    }
+    
     if (absentFormulaCols.length > 0) {
       absentFormulaCols.forEach(col => {
         sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.MEDIUM_GRAY);
@@ -1745,8 +1747,9 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     studentRange.setValues(emptyValues);
     
     // Add Days ABSENT formulas for empty rows as well
-    colIndex = 3; // Start at column C
-    const absentFormulaCols = []; // Track Days ABSENT columns for gray background
+    colIndex = 3;
+    const schoolDaysCols = [];
+    const absentFormulaCols = [];
     monthsToUse.forEach((monthKey) => {
       const schoolDaysCol = colIndex;
       const daysPresentCol = colIndex + 1;
@@ -1764,6 +1767,7 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
         schoolDaysFormulas.push([formula]);
       }
       sheet.getRange(startRow, schoolDaysCol, numStudentRows, 1).setFormulas(schoolDaysFormulas);
+      schoolDaysCols.push(schoolDaysCol);
       
       const schoolDaysColLetter = _columnNumberToLetter(schoolDaysCol);
       const daysPresentColLetter = _columnNumberToLetter(daysPresentCol);
@@ -1779,7 +1783,12 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       colIndex += 3;
     });
     
-    // Apply gray background to Days ABSENT formula columns (efficient batch operation)
+    if (schoolDaysCols.length > 0) {
+      schoolDaysCols.forEach(col => {
+        sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
+      });
+    }
+    
     if (absentFormulaCols.length > 0) {
       absentFormulaCols.forEach(col => {
         sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.MEDIUM_GRAY);
@@ -2970,7 +2979,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     
     // Check for each required subject (case-insensitive, trimmed)
     const hasMusic = normalizedSubjects.includes('music');
-    const hasArts = normalizedSubjects.includes('art');
+    const hasArts = normalizedSubjects.some(s => s === 'art' || s === 'arts');
     const hasPE = normalizedSubjects.some(s => s === 'pe' || s === 'physical education');
     const hasHealth = normalizedSubjects.includes('health');
     
