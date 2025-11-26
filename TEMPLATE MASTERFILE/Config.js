@@ -280,7 +280,6 @@ const CONFIG = {
     }
   },
   
-  // Working Instructions HTML file name (without .html extension)
-  WORKING_INSTRUCTIONS_HTML: "Working_Instructions"
+  WORKING_INSTRUCTIONS_URL: ""
 };
 
