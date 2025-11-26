@@ -377,7 +377,7 @@ function _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl
     sheet.getRange(1, 6).setValue('Created');
     sheet.getRange(1, 7).setValue('Modified');
     sheet.getRange(1, 8).setValue('Created By');
-    sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+    sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.DARK_GRAY);
   }
   
   const timestamp = new Date();
@@ -524,12 +524,12 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
   const row8Range = sheet.getRange(8, 3, 1, 26);
   row8Range.setFontWeight('bold')
     .setHorizontalAlignment('center')
-    .setBackground(CONFIG.COLORS.LIGHTER_GRAY);
+    .setBackground(CONFIG.COLORS.MEDIUM_GRAY);
   
   // Row 9: Column headers - single batch operation
   const headerRange = sheet.getRange(9, 1, 1, numCols);
   headerRange.setFontWeight('bold')
-    .setBackground(CONFIG.COLORS.MEDIUM_GRAY)
+    .setBackground(CONFIG.COLORS.DARK_GRAY)
     .setHorizontalAlignment('center')
     .setBorder(true, true, true, true, true, true);
   
@@ -656,7 +656,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     formulaColsList.forEach(col => {
       const range = sheet.getRange(startRow, col, numStudentRows, 1);
       range.setFormulas(formulaColumns[col]);
-      range.setBackground(CONFIG.COLORS.LIGHT_GRAY);
+      range.setBackground(CONFIG.COLORS.MEDIUM_GRAY);
       // Right-align EQ columns
       if (eqCols.includes(col)) {
         range.setHorizontalAlignment('right');
@@ -1216,14 +1216,14 @@ function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, se
     sheet.getRange(8, 24, 1, 7)
   ];
   gradingHeaderRanges.forEach(range => {
-    range.setBackground(CONFIG.COLORS.LIGHTER_GRAY)
+    range.setBackground(CONFIG.COLORS.MEDIUM_GRAY)
       .setFontWeight('bold')
       .setHorizontalAlignment('center');
   });
   
   // Row 9: Column headers - format
   sheet.getRange(9, 1, 1, numCols).setFontWeight('bold')
-    .setBackground(CONFIG.COLORS.MEDIUM_GRAY)
+    .setBackground(CONFIG.COLORS.DARK_GRAY)
     .setHorizontalAlignment('center');
   
   // Freeze rows 1-9
@@ -1329,10 +1329,17 @@ function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, se
     }
   });
   
-  // Apply gray background to all formula columns (excluding headers)
-  const allFormulaCols = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28];
-  allFormulaCols.forEach(col => {
+  // Apply gray background to formula columns with different colors
+  // Music, Arts, PE, Health columns: LIGHT_GRAY
+  const musicArtsPEColumns = [3, 4, 5, 6, 9, 10, 11, 12, 15, 16, 17, 18, 21, 22, 23, 24]; // All Music, Arts, PE, Health columns
+  musicArtsPEColumns.forEach(col => {
     sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
+  });
+  
+  // AVE, AVE EQ, Final Grading, Final EQ columns: MEDIUM_GRAY
+  const aveAndEQColumns = [7, 8, 13, 14, 19, 20, 25, 26, 27, 28]; // AVE, AVE EQ for each period, plus Final Grading, Final EQ
+  aveAndEQColumns.forEach(col => {
+    sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.MEDIUM_GRAY);
   });
   
   // Right align EQ columns (AVE EQ and Final EQ)
@@ -1580,14 +1587,14 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     mergedCell.setValue(monthKey)
       .setFontWeight('bold')
       .setHorizontalAlignment('center')
-      .setBackground(CONFIG.COLORS.LIGHTER_GRAY);
+      .setBackground(CONFIG.COLORS.MEDIUM_GRAY);
     colIndex += 3;
   });
   
   // Row 7: Format column headers (matching subject sheet format)
   sheet.getRange(7, 1, 1, numCols)
     .setFontWeight('bold')
-    .setBackground(CONFIG.COLORS.MEDIUM_GRAY)
+    .setBackground(CONFIG.COLORS.DARK_GRAY)
     .setHorizontalAlignment('center')
     .setBorder(true, true, true, true, true, true);
   
@@ -2157,7 +2164,7 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   // Row 7: Format column headers (matching subject sheet format)
   sheet.getRange(7, 1, 1, numCols)
     .setFontWeight('bold')
-    .setBackground(CONFIG.COLORS.MEDIUM_GRAY)
+    .setBackground(CONFIG.COLORS.DARK_GRAY)
     .setHorizontalAlignment('center')
     .setBorder(true, true, true, true, true, true);
   
@@ -2709,7 +2716,7 @@ function _setupQRSheet(sheet, schoolYear, gradeLevel, section, teacher, students
     sheet.getRange(13, col).setValue(headerText)
       .setFontWeight('bold')
       .setHorizontalAlignment('center')
-      .setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+      .setBackground(CONFIG.COLORS.DARK_GRAY);
   });
   
   // Subject rows - format first column (subject names)
@@ -2738,14 +2745,14 @@ function _setupQRSheet(sheet, schoolYear, gradeLevel, section, teacher, students
     sheet.getRange(monthHeaderRowNum, monthStartCol + index, 1, 1)
       .setFontWeight('bold')
       .setHorizontalAlignment('center')
-      .setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+      .setBackground(CONFIG.COLORS.DARK_GRAY);
   });
   // TOTAL column (after all months)
   if (monthsToUse.length > 0) {
     sheet.getRange(monthHeaderRowNum, monthStartCol + monthsToUse.length, 1, 1)
       .setFontWeight('bold')
       .setHorizontalAlignment('center')
-      .setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+      .setBackground(CONFIG.COLORS.DARK_GRAY);
   }
   
   // Days of School, Days Present, Days Absent rows
@@ -3044,7 +3051,7 @@ function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
       sheet.getRange(1, 6).setValue('Created');
       sheet.getRange(1, 7).setValue('Modified');
       sheet.getRange(1, 8).setValue('Created By');
-      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.DARK_GRAY);
     }
     
     const timestamp = new Date();
@@ -3141,7 +3148,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
       sheet.getRange(1, 6).setValue('Created');
       sheet.getRange(1, 7).setValue('Modified');
       sheet.getRange(1, 8).setValue('Created By');
-      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.DARK_GRAY);
     }
     
     const timestamp = new Date();
@@ -3574,7 +3581,7 @@ function _addAdvisory(teacher, gradeLevel, section, userEmail) {
       sheet.getRange(1, 5).setValue('Created');
       sheet.getRange(1, 6).setValue('Modified');
       sheet.getRange(1, 7).setValue('Created By');
-      sheet.getRange(1, 1, 1, 7).setFontWeight('bold').setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+      sheet.getRange(1, 1, 1, 7).setFontWeight('bold').setBackground(CONFIG.COLORS.DARK_GRAY);
     }
     
     const timestamp = new Date();

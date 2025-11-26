@@ -96,8 +96,8 @@ const CONFIG = {
   COLORS: {
     // Template colors
     LIGHT_GRAY: '#f3f3f3',   // Light gray for info rows
-    MEDIUM_GRAY: '#d9d9d9',  // Medium gray for headers and formula columns
-    LIGHTER_GRAY: '#e6e6e6', // Lighter gray for grading period headers
+    DARK_GRAY: '#d9d9d9',  // Dark gray for headers and formula columns
+    MEDIUM_GRAY: '#e6e6e6', // Medium gray for grading period headers
     LIGHT_RED: '#ffcccc',    // Light red for validation errors
     BLUE: '#667eea'          // Blue for sheet tabs
   },
