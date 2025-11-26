@@ -74,6 +74,6 @@ const CONFIG = {
   DATA_START_ROW: 3,
   HEADER_ROWS: 2,
   
-  WORKING_INSTRUCTIONS_URL: ""
+  WORKING_INSTRUCTIONS_URL: "https://students-db.vercel.app/"
 };
 
