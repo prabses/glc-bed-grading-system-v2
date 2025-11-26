@@ -1,0 +1,814 @@
+<!DOCTYPE html><html><head>
+      <title>Working_InstructionsOGS</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///c:\Users\Ricko\.cursor\extensions\shd101wyy.markdown-preview-enhanced-0.8.20-universal\crossnote\dependencies\katex\katex.min.css">
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+            #backToTop {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #08c;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-decoration: none;
+            display: none;
+            cursor: pointer;
+            z-index: 9999;
+            }
+
+            #backToTop:hover {
+            background: #00a3f5;
+            }
+      </style>
+      <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script></head><body for="html-export">
+    
+    
+      <div class="crossnote markdown-preview  ">
+            <a id="top"></a>      
+<h2 id="official-grade-sheet---working-instructions">Official Grade Sheet - Working Instructions </h2>
+<h3 id="table-of-contents">Table of Contents </h3>
+<ol>
+<li><a href="#1-system-overview">System Overview</a>
+<ul>
+<li>1.1 <a href="#11-quick-start-guide--prerequisites">Quick Start Guide &amp; Prerequisites</a></li>
+</ul>
+</li>
+<li><a href="#2-accessing-the-official-grade-sheet">Accessing the Official Grade Sheet</a></li>
+<li><a href="#3-understanding-the-ogs-file-structure">Understanding the OGS File Structure</a></li>
+<li><a href="#4-subject-sheets-instructions">Subject Sheets Instructions</a>
+<ul>
+<li>4.1 <a href="#41-understanding-the-subject-sheet-layout">Understanding the Subject Sheet Layout</a></li>
+<li>4.2 <a href="#42-step-by-step-entering-subject-grades">Step-by-Step: Entering Subject Grades</a></li>
+<li>4.3 <a href="#43-eq-legend-grading-scale">EQ Legend (Grading Scale)</a></li>
+</ul>
+</li>
+<li><a href="#5-attendance-sheet-instructions">Attendance Sheet Instructions</a>
+<ul>
+<li>5.1 <a href="#51-understanding-the-attendance-sheet-layout">Understanding the Attendance Sheet Layout</a></li>
+<li>5.2 <a href="#52-step-by-step-entering-attendance">Step-by-Step: Entering Attendance</a></li>
+</ul>
+</li>
+<li><a href="#6-character-sheet-instructions">Character Sheet Instructions</a>
+<ul>
+<li>6.1 <a href="#61-understanding-the-character-sheet-layout">Understanding the Character Sheet Layout</a></li>
+<li>6.2 <a href="#62-step-by-step-entering-character-grades">Step-by-Step: Entering Character Grades</a></li>
+</ul>
+</li>
+<li><a href="#7-important-reminders">Important Reminders</a></li>
+<li><a href="#8-troubleshooting-guide">Troubleshooting Guide</a>
+<ul>
+<li>8.1 <a href="#81-auto-calculated-values-not-appearing">Auto-Calculated Values Not Appearing</a></li>
+<li>8.2 <a href="#82-error-messages-in-cells">Error Messages in Cells</a></li>
+<li>8.3 <a href="#83-cannot-edit-cells">Cannot Edit Cells</a></li>
+<li>8.4 <a href="#84-student-list-issues">Student List Issues</a></li>
+<li>8.5 <a href="#85-file-access-issues">File Access Issues</a></li>
+<li>8.6 <a href="#86-changes-not-saving">Changes Not Saving</a></li>
+<li>8.7 <a href="#87-wrong-grading-period-data">Wrong Grading Period Data</a></li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="1-system-overview">1. System Overview </h3>
+<p>The Official Grade Sheet (OGS) is a Google Sheets file generated from the Template Masterfile system. It serves as the official record for student grades, attendance, and character development assessments.</p>
+<p>The OGS file contains multiple sheets:</p>
+<ul>
+<li><strong>Subject Sheets</strong>: One sheet per subject assigned to the teacher (e.g., English, Math, Science, Filipino, etc.)</li>
+<li><strong>Attendance Sheet</strong>: For tracking monthly student attendance</li>
+<li><strong>Character Sheet</strong>: For assessing student behavioral traits</li>
+</ul>
+<p><strong>Key features:</strong></p>
+<ul>
+<li>Student information is automatically populated from the Students Database</li>
+<li>Grade calculations (Transmuted, EQ, Final Grading) are automatic</li>
+<li>Attendance calculations (Days Absent) are automatic</li>
+<li>Character EQ calculations are automatic</li>
+</ul>
+<p><strong>File naming format:</strong> <code>OGS-GRADE-[Level][Section]-[School Year] - [Teacher Name]</code></p>
+<p>Example: <code>OGS-GRADE-2A-2026-2027 - Cerado, Marites</code></p>
+<hr>
+<h4 id="11-quick-start-guide--prerequisites">1.1 Quick Start Guide &amp; Prerequisites </h4>
+<p><strong>Prerequisites:</strong></p>
+<ul>
+<li>A Google account with edit permissions for the OGS file</li>
+<li>The OGS file has been generated from the Template Masterfile</li>
+<li>Access to the Template Masterfile to locate the OGS link</li>
+</ul>
+<p><strong>To input subject grades:</strong></p>
+<ol>
+<li>Open the OGS file from the Template Masterfile</li>
+<li>Click on a subject sheet tab (e.g., English, Math, Science)</li>
+<li>Enter scores in the Written, Performance, and Assessment columns for each grading period</li>
+<li>Transmuted grades and EQ values will be calculated automatically</li>
+</ol>
+<p><strong>To input attendance:</strong></p>
+<ol>
+<li>Click on the <strong>Attendance</strong> sheet tab</li>
+<li>Enter the School Days for each month</li>
+<li>Enter Days Present for each student</li>
+<li>Days Absent will be calculated automatically</li>
+</ol>
+<p><strong>To input character grades:</strong></p>
+<ol>
+<li>Click on the <strong>Character</strong> sheet tab</li>
+<li>Enter the Grade for each behavioral trait per student</li>
+<li>EQ values will be calculated automatically</li>
+</ol>
+<hr>
+<h3 id="2-accessing-the-official-grade-sheet">2. Accessing the Official Grade Sheet </h3>
+<p><img src="assets/OGSTemplateLink.png" alt="Image"></p>
+<ol>
+<li>Open the <strong>Template Masterfile</strong> Google Sheets document</li>
+<li>Navigate to the <strong>MASTER_DATA</strong> sheet</li>
+<li>Find the row containing your class information (School Year, Grade Level, Section, Teacher)</li>
+<li>Click on the <strong>Template Link</strong> hyperlink in that row</li>
+<li>The Official Grade Sheet will open in a new browser tab</li>
+</ol>
+<blockquote>
+<p><strong>Note</strong>: The OGS link is automatically created when the template is exported from the Template Masterfile. If you cannot find the link, contact your administrator or generate a new template.</p>
+</blockquote>
+<hr>
+<h3 id="3-understanding-the-ogs-file-structure">3. Understanding the OGS File Structure </h3>
+<h4 id="sheet-tabs">Sheet Tabs </h4>
+<p>At the bottom of the OGS file, you will see multiple sheet tabs:</p>
+<table>
+<thead>
+<tr>
+<th>Tab Type</th>
+<th>Examples</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Subject Sheets</td>
+<td>English, Math, Science, Filipino, Sibika at Kultura, Music, Art, PE, Health, Computer, HELE, TLE, Values</td>
+<td>Record academic grades</td>
+</tr>
+<tr>
+<td>Attendance</td>
+<td>Attendance</td>
+<td>Track monthly attendance</td>
+</tr>
+<tr>
+<td>Character</td>
+<td>Character</td>
+<td>Assess behavioral traits</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Tip</strong>: Click on any tab to switch between sheets. Use the arrow buttons at the bottom-left if there are many tabs.</p>
+</blockquote>
+<hr>
+<h4 id="header-information">Header Information </h4>
+<p>Each sheet contains header information in the top rows that is automatically populated:</p>
+<p><strong>Subject Sheets (Rows 2-7):</strong></p>
+<ul>
+<li>Teacher Name, School Year, Level, Section, Total Student, Subject</li>
+</ul>
+<p><strong>Attendance &amp; Character Sheets (Rows 1-6):</strong></p>
+<ul>
+<li>Advisor Name, School Year, Level, Section, Total Student, EQ Legend (Character only)</li>
+</ul>
+<blockquote>
+<p><strong>Important</strong>: Do not modify header information as it is pre-filled from the system.</p>
+</blockquote>
+<hr>
+<h4 id="protected-cells-gray-colored">Protected Cells (Gray Colored) </h4>
+<p>Cells with a <strong>gray background</strong> contain formulas and should not be edited. These include:</p>
+<ul>
+<li>Transmuted grade columns</li>
+<li>EQ columns</li>
+<li>Days Absent columns</li>
+<li>Final Grading columns</li>
+<li>Header information cells</li>
+</ul>
+<blockquote>
+<p><strong>Warning</strong>: Do not type in gray-colored cells. Doing so will overwrite the formulas and break the automatic calculations.</p>
+</blockquote>
+<hr>
+<h3 id="4-subject-sheets-instructions">4. Subject Sheets Instructions </h3>
+<h4 id="41-understanding-the-subject-sheet-layout">4.1 Understanding the Subject Sheet Layout </h4>
+<p>Each subject sheet has the following column structure:</p>
+<p><strong>Student Information (Columns A–B):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Header</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>Student No</td>
+<td>Student identification number</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Student Name</td>
+<td>Full name of the student</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Grading Periods (Repeated for 1st, 2nd, 3rd, 4th):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column Type</th>
+<th>Example Headers</th>
+<th>Input/Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Written</td>
+<td>TS1-Written, TS2-Written, TS3-Written, TS4-Written</td>
+<td><strong>Input</strong></td>
+</tr>
+<tr>
+<td>Performance</td>
+<td>TS1-Performance, TS2-Performance, TS3-Performance, TS4-Performance</td>
+<td><strong>Input</strong></td>
+</tr>
+<tr>
+<td>Assessment</td>
+<td>TS1-Assessment, TS2-Assessment, TS3-Assessment, TS4-Assessment</td>
+<td><strong>Input</strong></td>
+</tr>
+<tr>
+<td>Transmuted</td>
+<td>1st Transmuted, 2nd Transmuted, 3rd Transmuted, 4th Transmuted</td>
+<td>Auto</td>
+</tr>
+<tr>
+<td>EQ</td>
+<td>1st EQ, 2nd EQ, 3rd EQ, 4th EQ</td>
+<td>Auto</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Final Columns:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Header</th>
+<th>Input/Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Final Grading</td>
+<td>Final Grading</td>
+<td>Auto</td>
+</tr>
+<tr>
+<td>Final EQ</td>
+<td>Final EQ</td>
+<td>Auto</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="42-step-by-step-entering-subject-grades">4.2 Step-by-Step: Entering Subject Grades </h4>
+<h3 id="step-1-select-the-subject-sheet"><strong>Step 1: Select the Subject Sheet</strong> </h3>
+<p><img src="assets/SubjectSheets.png" alt="Image"></p>
+<ol>
+<li>Click on the subject tab at the bottom of the screen (e.g., <strong>English</strong>, <strong>Math</strong>)</li>
+<li>The sheet will display the student list and grading columns</li>
+</ol>
+<hr>
+<h3 id="step-2-locate-the-grading-period"><strong>Step 2: Locate the Grading Period</strong> </h3>
+<p><img src="assets/GradingPeriod.png" alt="Image"></p>
+<ol>
+<li>Find the grading period you want to input (1ST GRADING, 2ND GRADING, etc.)</li>
+<li>The grading period header spans across the Written, Performance, and Assessment columns</li>
+</ol>
+<hr>
+<h3 id="step-3-enter-written-scores"><strong>Step 3: Enter Written Scores</strong> </h3>
+<p><img src="assets/ColumnWrittenScores1.png" alt="Image"></p>
+<ol>
+<li>Click on the <strong>TS1-Written</strong> cell (or TS2, TS3, TS4 for other periods) for the first student</li>
+<li>Type the student's written work score</li>
+<li>Press <strong>Enter</strong> or <strong>Tab</strong> to move to the next cell</li>
+<li>Continue entering scores for all students</li>
+</ol>
+<hr>
+<h3 id="step-4-enter-performance-scores"><strong>Step 4: Enter Performance Scores</strong> </h3>
+<p><img src="assets/ColumnPerformanceScores.png" alt="Image"></p>
+<ol>
+<li>Move to the <strong>TS1-Performance</strong> column</li>
+<li>Enter the performance task score for each student</li>
+<li>Continue until all students have scores</li>
+</ol>
+<hr>
+<h3 id="step-5-enter-assessment-scores"><strong>Step 5: Enter Assessment Scores</strong> </h3>
+<p><img src="assets/ColumnAssessment.png" alt="Image"></p>
+<ol>
+<li>Move to the <strong>TS1-Assessment</strong> column</li>
+<li>Enter the assessment score for each student</li>
+<li>Continue until all students have scores</li>
+</ol>
+<hr>
+<h3 id="step-6-verify-auto-calculated-values"><strong>Step 6: Verify Auto-Calculated Values</strong> </h3>
+<p><img src="assets/Auto-CalculatedColumn.png" alt="Image"></p>
+<ol>
+<li>After entering all three components, check the <strong>Transmuted</strong> column</li>
+<li>The transmuted grade should appear automatically</li>
+<li>The <strong>EQ</strong> column will show the equivalent rating (A, P, AP, D, B)</li>
+</ol>
+<hr>
+<h3 id="step-7-repeat-for-other-grading-periods"><strong>Step 7: Repeat for Other Grading Periods</strong> </h3>
+<p><img src="assets/FinalGrading&amp;EQColumn.png" alt="Image"></p>
+<ol>
+<li>Repeat Steps 3–6 for 2ND, 3RD, and 4TH GRADING periods</li>
+<li>After all four periods are complete, the <strong>Final Grading</strong> and <strong>Final EQ</strong> columns will calculate automatically</li>
+</ol>
+<hr>
+<h4 id="43-eq-legend-grading-scale">4.3 EQ Legend (Grading Scale) </h4>
+<table>
+<thead>
+<tr>
+<th>Grade Range</th>
+<th>EQ</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>94.45 – 100</td>
+<td>A</td>
+<td>Advanced</td>
+</tr>
+<tr>
+<td>88.45 – 94.44</td>
+<td>P</td>
+<td>Proficient</td>
+</tr>
+<tr>
+<td>81.45 – 88.44</td>
+<td>AP</td>
+<td>Approaching Proficiency</td>
+</tr>
+<tr>
+<td>74.45 – 81.44</td>
+<td>D</td>
+<td>Developing</td>
+</tr>
+<tr>
+<td>70 – 74.44</td>
+<td>B</td>
+<td>Beginning</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="5-attendance-sheet-instructions">5. Attendance Sheet Instructions </h3>
+<h4 id="51-understanding-the-attendance-sheet-layout">5.1 Understanding the Attendance Sheet Layout </h4>
+<p><strong>Student Information (Columns A–B):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Header</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>Student No</td>
+<td>Student identification number</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Student Name</td>
+<td>Full name of the student</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Monthly Columns (Repeated for each month):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column Type</th>
+<th>Example Headers</th>
+<th>Input/Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>School DAYS</td>
+<td>School DAYS</td>
+<td><strong>Input</strong></td>
+</tr>
+<tr>
+<td>Days PRESENT</td>
+<td>Days PRESENT</td>
+<td><strong>Input</strong></td>
+</tr>
+<tr>
+<td>Days ABSENT</td>
+<td>Days ABSENT</td>
+<td>Auto</td>
+</tr>
+</tbody>
+</table>
+<p>Months included: July, August, September, October, November, December, January, February, March, April, May, June</p>
+<hr>
+<h4 id="52-step-by-step-entering-attendance">5.2 Step-by-Step: Entering Attendance </h4>
+<h3 id="step-1-select-the-attendance-sheet"><strong>Step 1: Select the Attendance Sheet</strong> </h3>
+<p><img src="assets/AttendanceSheet.png" alt="Image"></p>
+<ol>
+<li>Click on the <strong>Attendance</strong> tab at the bottom of the screen</li>
+<li>The sheet will display the student list and monthly attendance columns</li>
+</ol>
+<hr>
+<h3 id="step-2-enter-school-days"><strong>Step 2: Enter School Days</strong> </h3>
+<p><img src="assets/SchoolDays.png" alt="Image"></p>
+<ol>
+<li>For each month, enter the total number of school days in the <strong>School DAYS</strong> column</li>
+<li>This value is typically the same for all students in a given month</li>
+</ol>
+<blockquote>
+<p><strong>Tip</strong>: You can enter the School Days value once and copy it down for all students in that month.</p>
+</blockquote>
+<hr>
+<h3 id="step-3-enter-days-present"><strong>Step 3: Enter Days Present</strong> </h3>
+<p><img src="assets/PresentDays.png" alt="Image"></p>
+<ol>
+<li>For each student, enter the number of days they were present in the <strong>Days PRESENT</strong> column</li>
+<li>Move down the column to enter for all students</li>
+</ol>
+<hr>
+<h3 id="step-4-verify-days-absent"><strong>Step 4: Verify Days Absent</strong> </h3>
+<p><img src="assets/AbsentDays.png" alt="Image"></p>
+<ol>
+<li>The <strong>Days ABSENT</strong> column will automatically calculate (School Days - Days Present)</li>
+<li>Verify that the values are correct</li>
+</ol>
+<hr>
+<h3 id="step-5-repeat-for-each-month"><strong>Step 5: Repeat for Each Month</strong> </h3>
+<ol>
+<li>Repeat Steps 2–4 for each month of the school year</li>
+<li>Move to the next month's columns and enter the data</li>
+</ol>
+<hr>
+<p><strong>Example Attendance Entry:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Student Name</th>
+<th>School DAYS (July)</th>
+<th>Days PRESENT (July)</th>
+<th>Days ABSENT (July)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flores, Antonio</td>
+<td>22</td>
+<td>20</td>
+<td>2 (auto)</td>
+</tr>
+<tr>
+<td>Bautista, Catherine</td>
+<td>22</td>
+<td>22</td>
+<td>0 (auto)</td>
+</tr>
+<tr>
+<td>Torres, Daniel</td>
+<td>22</td>
+<td>18</td>
+<td>4 (auto)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="6-character-sheet-instructions">6. Character Sheet Instructions </h3>
+<h4 id="61-understanding-the-character-sheet-layout">6.1 Understanding the Character Sheet Layout </h4>
+<p><strong>Student Information (Columns A–B):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Header</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>Student No</td>
+<td>Student identification number</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Student Name</td>
+<td>Full name of the student</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Traits Column (Column C):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Header</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C</td>
+<td>TRAITS</td>
+<td>Behavioral trait being assessed</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Grading Columns (Repeated for 1st, 2nd, 3rd, 4th):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column Type</th>
+<th>Example Headers</th>
+<th>Input/Auto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Grade</td>
+<td>1st Grade, 2nd Grade, 3rd Grade, 4th Grade</td>
+<td><strong>Input</strong></td>
+</tr>
+<tr>
+<td>EQ</td>
+<td>1st EQ, 2nd EQ, 3rd EQ, 4th EQ</td>
+<td>Auto</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><strong>Behavioral Traits List:</strong></p>
+<p>Each student is assessed on multiple behavioral traits, including:</p>
+<ul>
+<li>Courteous in speech and manners</li>
+<li>Displays cheerful disposition</li>
+<li>Displays self-confidence</li>
+<li>Follows rules and regulations</li>
+<li>Respects rights and properties of others</li>
+<li>Willingness to admit mistakes and take responsibility for correcting them</li>
+<li>Relates well with teachers and classmates</li>
+<li>Ability to manage one's emotions and impulses</li>
+<li>Resolves conflicts in non-violent ways</li>
+<li>Assumes responsibility</li>
+<li>Regular and punctual in doing assignments</li>
+<li>Works independently</li>
+<li>Works cooperatively in a joint project</li>
+<li>Gives positive feedback and compliments on others' works</li>
+<li>Resourceful</li>
+<li>Shows leadership</li>
+<li>Works patiently and diligently</li>
+<li>Works voluntarily</li>
+<li>Shows leadership and performs well in his/her duties</li>
+<li>Conserves water and electricity</li>
+<li>Maintains cleanliness of the classroom and surroundings</li>
+<li>Handles personal and school materials with care</li>
+<li>Keeps oneself neat and orderly</li>
+<li>Shows interest in gardening and expresses care for animals</li>
+<li>Picks up and disposes trash voluntarily</li>
+</ul>
+<hr>
+<p><strong>Character Grading Scale (EQ Legend):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Grade Range</th>
+<th>EQ</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>94.45 – 100</td>
+<td>O</td>
+<td>Outstanding</td>
+</tr>
+<tr>
+<td>88.45 – 94.44</td>
+<td>VG</td>
+<td>Very Good</td>
+</tr>
+<tr>
+<td>81.45 – 88.44</td>
+<td>G</td>
+<td>Good</td>
+</tr>
+<tr>
+<td>74.45 – 81.44</td>
+<td>F</td>
+<td>Fair</td>
+</tr>
+<tr>
+<td>70 – 74.44</td>
+<td>NI</td>
+<td>Needs Improvement</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="62-step-by-step-entering-character-grades">6.2 Step-by-Step: Entering Character Grades </h4>
+<h3 id="step-1-select-the-character-sheet"><strong>Step 1: Select the Character Sheet</strong> </h3>
+<p><img src="assets/CharacterSheet.png" alt="Image"></p>
+<ol>
+<li>Click on the <strong>Character</strong> tab at the bottom of the screen</li>
+<li>The sheet will display students with their behavioral traits</li>
+</ol>
+<hr>
+<h3 id="step-2-understand-the-layout"><strong>Step 2: Understand the Layout</strong> </h3>
+<ol>
+<li>Each student has multiple rows — one for each behavioral trait</li>
+<li>The Student No and Student Name repeat for each trait row</li>
+<li>The TRAITS column shows which trait is being graded</li>
+</ol>
+<hr>
+<h3 id="step-3-enter-grades-for-each-trait"><strong>Step 3: Enter Grades for Each Trait</strong> </h3>
+<p><img src="assets/GradingTrait.png" alt="Image"></p>
+<ol>
+<li>Locate the first student's first trait row</li>
+<li>Enter the grade in the <strong>1st Grade</strong> column (use the grading scale above)</li>
+<li>Move down to enter grades for each trait</li>
+<li>Continue until all traits for all students are graded</li>
+</ol>
+<hr>
+<h3 id="step-4-verify-auto-calculated-eq"><strong>Step 4: Verify Auto-Calculated EQ</strong> </h3>
+<p><img src="assets/GradingTraitEQ.png" alt="Image"></p>
+<ol>
+<li>The <strong>1st EQ</strong> column will automatically display the equivalent rating</li>
+<li>Check that the EQ matches the expected value based on the grade entered</li>
+</ol>
+<hr>
+<h3 id="step-5-repeat-for-other-grading-periods"><strong>Step 5: Repeat for Other Grading Periods</strong> </h3>
+<p><img src="assets/GradingTraitAll.png" alt="Image"></p>
+<ol>
+<li>Repeat the process for <strong>2nd Grade</strong>, <strong>3rd Grade</strong>, and <strong>4th Grade</strong> columns</li>
+<li>Each period's EQ will calculate automatically</li>
+</ol>
+<hr>
+<h3 id="7-important-reminders">7. Important Reminders </h3>
+<p><strong>Do's:</strong></p>
+<ul>
+<li>Save your work regularly (Google Sheets auto-saves, but verify the "All changes saved" indicator)</li>
+<li>Double-check entries before moving to the next student or period</li>
+<li>Use the correct grading period columns (1st, 2nd, 3rd, 4th)</li>
+<li>Verify auto-calculated values appear correctly</li>
+<li>Enter 0 if there is no score (do not leave input cells blank)</li>
+</ul>
+<p><strong>Don'ts:</strong></p>
+<ul>
+<li>Do not edit gray-colored cells (these contain formulas)</li>
+<li>Do not modify header information (pre-filled from the system)</li>
+<li>Do not delete rows or columns (this will break formulas)</li>
+<li>Do not rename sheet tabs (the system relies on specific sheet names)</li>
+<li>Do not manually add or modify student information in the OGS</li>
+</ul>
+<p><strong>Data Entry Tips:</strong></p>
+<ul>
+<li>Use <strong>Tab key</strong> to move to the next cell (right)</li>
+<li>Use <strong>Enter key</strong> to move to the cell below</li>
+<li>Use <strong>arrow keys</strong> for precise navigation</li>
+<li>If an auto-calculated cell shows an error, you may have accidentally edited it</li>
+</ul>
+<hr>
+<h3 id="8-troubleshooting-guide">8. Troubleshooting Guide </h3>
+<h4 id="81-auto-calculated-values-not-appearing">8.1 Auto-Calculated Values Not Appearing </h4>
+<p><strong>Problem</strong>: Transmuted, EQ, or Days Absent columns show blank or error</p>
+<p><strong>Solutions</strong>:</p>
+<ol>
+<li>Verify that you entered values in all required input columns</li>
+<li>Check if the formula was accidentally deleted (cell should have gray background)</li>
+<li>Do not leave input cells blank — enter 0 if there is no score</li>
+<li>Contact your administrator if formulas need to be restored</li>
+</ol>
+<hr>
+<h4 id="82-error-messages-in-cells">8.2 Error Messages in Cells </h4>
+<p><strong>Problem</strong>: Cells show #REF!, #VALUE!, #DIV/0!, or other errors</p>
+<p><strong>Solutions</strong>:</p>
+<ol>
+<li><strong>#REF!</strong> — A referenced cell was deleted; contact administrator</li>
+<li><strong>#VALUE!</strong> — Invalid data type entered; ensure you're entering numbers only</li>
+<li><strong>#DIV/0!</strong> — Division by zero; check if School Days is entered (for attendance)</li>
+<li>Do not attempt to fix formula errors yourself; contact your administrator</li>
+</ol>
+<hr>
+<h4 id="83-cannot-edit-cells">8.3 Cannot Edit Cells </h4>
+<p><strong>Problem</strong>: Clicking on a cell does not allow typing</p>
+<p><strong>Solutions</strong>:</p>
+<ol>
+<li>The cell may be protected — check if it's a gray-colored (formula) cell</li>
+<li>You may not have edit permissions — contact your administrator</li>
+<li>Try refreshing the browser page</li>
+<li>Verify your access level with your administrator</li>
+</ol>
+<hr>
+<h4 id="84-student-list-issues">8.4 Student List Issues </h4>
+<p><strong>Problem</strong>: Missing students or wrong student information</p>
+<p><strong>Solutions</strong>:</p>
+<ol>
+<li>Student data is pulled from the Students Database at the time of template generation</li>
+<li>If students were added after template generation, contact your administrator to regenerate the template</li>
+<li>Do not manually add or modify student information in the OGS</li>
+</ol>
+<hr>
+<h4 id="85-file-access-issues">8.5 File Access Issues </h4>
+<p><strong>Problem</strong>: Cannot open the OGS file from the Template Masterfile link</p>
+<p><strong>Solutions</strong>:</p>
+<ol>
+<li>Verify you are logged into the correct Google account</li>
+<li>Check with your administrator about file access permissions</li>
+<li>The file may have been moved or deleted — contact your administrator</li>
+<li>Try accessing Google Drive directly and search for the file name</li>
+</ol>
+<hr>
+<h4 id="86-changes-not-saving">8.6 Changes Not Saving </h4>
+<p><strong>Problem</strong>: Edits disappear or don't persist</p>
+<p><strong>Solutions</strong>:</p>
+<ol>
+<li>Check your internet connection</li>
+<li>Look for "Saving..." or "All changes saved" indicator in Google Sheets</li>
+<li>Refresh the page and verify if changes were saved</li>
+<li>Avoid closing the browser immediately after making changes</li>
+<li>Verify you have edit (not just view) permissions</li>
+</ol>
+<hr>
+<h4 id="87-wrong-grading-period-data">8.7 Wrong Grading Period Data </h4>
+<p><strong>Problem</strong>: Entered data in the wrong grading period column</p>
+<p><strong>Solutions</strong>:</p>
+<ol>
+<li>Clear the incorrectly entered data (select cells and press Delete)</li>
+<li>Re-enter the data in the correct grading period columns</li>
+<li>Double-check column headers before entering data</li>
+<li>Use the grading period header row as a guide (1ST GRADING, 2ND GRADING, etc.)</li>
+</ol>
+<hr>
+<h3 id="related-documents">Related Documents </h3>
+<ul>
+<li><strong>Students Database - Working Instructions</strong>: For managing student information</li>
+<li><strong>Template Masterfile - Working Instructions</strong>: For generating OGS templates and managing subjects/advisory classes</li>
+</ul>
+<hr>
+<p><em>This working instruction document covers the complete functionality of the Official Grade Sheet. For additional support or system modifications, contact your systems developer.</em></p>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+      <a id="backToTop" href="#top" style="display:none">Back to Top</a>
+
+      <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('backToTop');
+    if (!btn) return;
+  
+    // show/hide on scroll
+    function toggleButton() {
+      btn.style.display = window.scrollY > 300 ? 'block' : 'none';
+    }
+    document.addEventListener('scroll', toggleButton);
+    toggleButton(); // initial state
+  
+    // smooth scroll without the browser instant-jump
+    btn.addEventListener('click', function (e) {
+      e.preventDefault(); // IMPORTANT: stop the instant anchor jump
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  });
+  </script>  
+    </body></html>
