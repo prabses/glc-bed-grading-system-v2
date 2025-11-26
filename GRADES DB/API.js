@@ -410,15 +410,16 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     }
 
     // Perform updates
+    const numColumns = headerRow.length;
     for (let i = 0; i < rowsToUpdate.length; i++) {
       const update = rowsToUpdate[i];
-      targetSheet.getRange(update.row, 1, 1, rowData.length).setValues([update.data]);
+      targetSheet.getRange(update.row, 1, 1, numColumns).setValues([update.data]);
     }
 
     // Perform inserts
     if (rowsToInsert.length > 0) {
       const insertRow = lastRow + 1;
-      targetSheet.getRange(insertRow, 1, rowsToInsert.length, rowData.length).setValues(rowsToInsert);
+      targetSheet.getRange(insertRow, 1, rowsToInsert.length, numColumns).setValues(rowsToInsert);
     }
 
     const updatedCount = rowsToUpdate.length;
