@@ -75,7 +75,7 @@ function getStudentSheets() {
 function showImportGradesDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("ImportGradesDialog")
     .setWidth(500)
-    .setHeight(450)
+    .setHeight(550)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Import Student Grades");

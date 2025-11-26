@@ -183,8 +183,9 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     const ogsSheets = ogsSpreadsheet.getSheets();
     
     // Find subject sheets and info sheet
-    // Subject sheets typically don't have names like "Attendance", "Characters", "MAPEH"
-    const excludedSheetNames = ['Attendance', 'Characters', 'MAPEH'];
+    // Subject sheets typically don't have names like "Attendance", "Characters"
+    // MAPEH is included as a subject sheet but uses a different Final Grading column
+    const excludedSheetNames = ['Attendance', 'Characters'];
     let infoSheet = null;
     let attendanceSheet = null;
     let subjectSheets = [];
@@ -199,7 +200,8 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
         }
         subjectSheets.push({
           name: sheetName,
-          sheet: ogsSheets[i]
+          sheet: ogsSheets[i],
+          isMAPEH: sheetName === 'MAPEH' // Flag to identify MAPEH sheet
         });
       }
     }
@@ -297,28 +299,35 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     }
 
     // Collect grades from all subject sheets
-    // Data starts at row 10 (after headers)
+    // Data starts at row 10 (after headers) for regular subjects, row 10 for MAPEH
     // Student Number is column A (index 0)
     // Student Name is column B (index 1)
-    // Final Grading is column AA (index 26)
+    // Final Grading: column AA (index 26) for regular subjects, column AF (index 30) for MAPEH
     const studentGrades = {}; // Key: studentNumber, Value: { name, grades: { subject: grade } }
     
     for (let i = 0; i < subjectSheets.length; i++) {
       const subjectSheet = subjectSheets[i].sheet;
       const subjectName = subjectSheets[i].name;
+      const isMAPEH = subjectSheets[i].isMAPEH || false;
       
       const lastRow = subjectSheet.getLastRow();
       if (lastRow < 10) continue; // Skip if no data
       
-      // Get student data (columns A, B, AA) starting from row 10
-      const dataRange = subjectSheet.getRange(10, 1, lastRow - 9, 27); // Up to column AA
+      // Determine Final Grading column based on sheet type
+      // Regular subjects: column AA (index 26, 1-based column 27)
+      // MAPEH: column AF (index 30, 1-based column 31)
+      const finalGradingColumnIndex = isMAPEH ? 30 : 26; // 0-based index
+      const numColumnsNeeded = isMAPEH ? 32 : 27; // MAPEH has 32 columns, regular subjects have 28
+      
+      // Get student data starting from row 10
+      const dataRange = subjectSheet.getRange(10, 1, lastRow - 9, numColumnsNeeded);
       const data = dataRange.getValues();
       
       for (let j = 0; j < data.length; j++) {
         const row = data[j];
         const studentNumber = String(row[0] || '').trim();
         const studentName = String(row[1] || '').trim();
-        const finalGrade = row[26]; // Column AA (Final Grading)
+        const finalGrade = row[finalGradingColumnIndex]; // Final Grading column (varies by sheet type)
         
         if (!studentNumber) continue; // Skip empty rows
         
