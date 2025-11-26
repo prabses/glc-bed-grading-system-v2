@@ -13,6 +13,10 @@ function onOpen() {
     .addItem("Filter Student Data", "showStudentFilterDialog")
     .addItem("Import Student Grades", "showImportGradesDialog")
     .addToUi();
+
+  ui.createMenu("W.I.")
+    .addItem("Open Working Instruction", "showWorkingInstructions")
+    .addToUi();
 }
 
 /**
@@ -54,7 +58,7 @@ function getStudentSheets() {
   const yearPattern = /^\d{4}-\d{4}$/;
   
   for (let i = 0; i < sheets.length; i++) {
-    const sheetName = sheets[i].getName();
+    const sheetName = sheets[i].getName().trim();
     // Only include sheets that match the YYYY-YYYY format
     if (yearPattern.test(sheetName)) {
       sheetNames.push(sheetName);
@@ -75,4 +79,52 @@ function showImportGradesDialog() {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Import Student Grades");
+}
+
+/**
+ * Client-callable function to import grades via API.
+ * This function is called from the client-side HTML form.
+ * @param {string} ogsTemplateUrl - The URL of the OGS template Google Sheet
+ * @param {string} academicYearSheet - The name of the target academic year sheet
+ * @return {Object} Result object with success status and message
+ */
+function importGrades(ogsTemplateUrl, academicYearSheet) {
+  console.log(
+    "Function importGrades executed by: " + Session.getActiveUser().getEmail()
+  );
+  return callApi("importGrades", { ogsTemplateUrl, academicYearSheet });
+}
+
+/**
+ * Shows the working instructions dialog with HTML interface
+ * Opens in a modal dialog with 16:9 aspect ratio
+ */
+function showWorkingInstructions() {
+  // Get the HTML file name from config
+  const htmlFileName = CONFIG.WORKING_INSTRUCTIONS_HTML;
+  
+  if (!htmlFileName) {
+    SpreadsheetApp.getUi().alert(
+      'Configuration Error',
+      'Working Instructions HTML file name is not configured in Config.js',
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+    return;
+  }
+  
+  try {
+    // 16:9 aspect ratio - using 1600x900 pixels
+    const htmlOutput = HtmlService.createHtmlOutputFromFile(htmlFileName)
+      .setWidth(1600)
+      .setHeight(900)
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+
+    SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Working Instructions");
+  } catch (error) {
+    SpreadsheetApp.getUi().alert(
+      'Error',
+      'Could not open Working Instructions. Please check that the HTML file "' + htmlFileName + '" exists.\n\nError: ' + error.message,
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+  }
 }

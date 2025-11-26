@@ -5,15 +5,20 @@
     <meta charset="utf-8" />
     <title>Import Student Grades</title>
     <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        margin: 0;
         padding: 20px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-sizing: border-box;
       }
 
       .container {
@@ -161,6 +166,13 @@
 
       <form id="importGradesForm">
         <div class="form-group">
+          <label class="form-label" for="academicYear">Academic Year</label>
+          <select id="academicYear" class="form-control" required>
+            <option value="">Select academic year...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
           <label class="form-label" for="googleSheetLink">Google Sheet Link</label>
           <textarea
             id="googleSheetLink"
@@ -184,12 +196,52 @@
     </div>
 
     <script>
+      // Populate academic year dropdown when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        google.script.run
+          .withSuccessHandler(function(sheets) {
+            const select = document.getElementById('academicYear');
+            if (sheets && sheets.length > 0) {
+              sheets.forEach(function(sheetName) {
+                const option = document.createElement('option');
+                option.value = sheetName;
+                option.textContent = sheetName;
+                select.appendChild(option);
+              });
+            } else {
+              // If no sheets found, show a message
+              const option = document.createElement('option');
+              option.value = '';
+              option.textContent = 'No academic year sheets found';
+              option.disabled = true;
+              select.appendChild(option);
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error loading sheets:', error);
+            const select = document.getElementById('academicYear');
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Error loading academic years';
+            option.disabled = true;
+            select.appendChild(option);
+            alert('Error loading academic years: ' + error.toString());
+          })
+          .getStudentSheets();
+      });
+
       document
         .getElementById("importGradesForm")
         .addEventListener("submit", function (e) {
           e.preventDefault();
 
+          const academicYear = document.getElementById("academicYear").value;
           const googleSheetLink = document.getElementById("googleSheetLink").value.trim();
+
+          if (!academicYear) {
+            alert("Please select an academic year.");
+            return;
+          }
 
           if (!googleSheetLink) {
             alert("Please enter a Google Sheet link.");
@@ -202,12 +254,30 @@
             return;
           }
 
-          // Show placeholder message
-          alert(
-            "Import functionality will be implemented soon!\n\n" +
-            "Google Sheet Link: " + googleSheetLink
-          );
-          google.script.host.close();
+          // Show loading state
+          const submitButton = document.querySelector('button[type="submit"]');
+          const originalText = submitButton.textContent;
+          submitButton.textContent = 'Importing...';
+          submitButton.disabled = true;
+
+          // Call the import function
+          google.script.run
+            .withSuccessHandler(function(result) {
+              if (result.success) {
+                alert('Success!\n\n' + result.message);
+                google.script.host.close();
+              } else {
+                alert('Import Failed!\n\n' + result.message);
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
+              }
+            })
+            .withFailureHandler(function(error) {
+              alert('Error: ' + error.toString());
+              submitButton.textContent = originalText;
+              submitButton.disabled = false;
+            })
+            .importGrades(googleSheetLink, academicYear);
         });
     </script>
   </body>
