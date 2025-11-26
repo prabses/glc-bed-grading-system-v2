@@ -14,7 +14,7 @@ function onOpen() {
     .addItem("Import Student Grades", "showImportGradesDialog")
     .addToUi();
 
-  ui.createMenu("W.I.")
+  ui.createMenu("Manual")
     .addItem("Open Working Instruction", "showWorkingInstructions")
     .addToUi();
 }
@@ -95,36 +95,71 @@ function importGrades(ogsTemplateUrl, academicYearSheet) {
   return callApi("importGrades", { ogsTemplateUrl, academicYearSheet });
 }
 
-/**
- * Shows the working instructions dialog with HTML interface
- * Opens in a modal dialog with 16:9 aspect ratio
- */
 function showWorkingInstructions() {
-  // Get the HTML file name from config
-  const htmlFileName = CONFIG.WORKING_INSTRUCTIONS_HTML;
+  const url = CONFIG.WORKING_INSTRUCTIONS_URL;
   
-  if (!htmlFileName) {
+  if (!url) {
     SpreadsheetApp.getUi().alert(
       'Configuration Error',
-      'Working Instructions HTML file name is not configured in Config.js',
+      'Working Instructions URL is not configured in Config.js',
       SpreadsheetApp.getUi().ButtonSet.OK
     );
     return;
   }
   
-  try {
-    // 16:9 aspect ratio - using 1600x900 pixels
-    const htmlOutput = HtmlService.createHtmlOutputFromFile(htmlFileName)
-      .setWidth(1600)
-      .setHeight(900)
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <base target="_top">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+          }
+          .message {
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 16px;
+          }
+          button {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+          }
+          button:hover {
+            background-color: #357ae8;
+          }
+          button:active {
+            background-color: #2a5fcf;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="message">
+          <p>Click the button below to open the Working Instructions in a new tab.</p>
+        </div>
+        <button onclick="openInstructions()">Open Working Instructions</button>
+        <script>
+          function openInstructions() {
+            window.open('${url}', '_blank');
+            google.script.host.close();
+          }
+        </script>
+      </body>
+    </html>
+  `;
+  
+  const htmlOutput = HtmlService.createHtmlOutput(htmlContent)
+    .setWidth(400)
+    .setHeight(200)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
-    SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Working Instructions");
-  } catch (error) {
-    SpreadsheetApp.getUi().alert(
-      'Error',
-      'Could not open Working Instructions. Please check that the HTML file "' + htmlFileName + '" exists.\n\nError: ' + error.message,
-      SpreadsheetApp.getUi().ButtonSet.OK
-    );
-  }
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Working Instructions");
 }
