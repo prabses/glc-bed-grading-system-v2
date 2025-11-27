@@ -427,11 +427,23 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     });
 
     // Get existing data to check for duplicates (Student Number + Subject combination)
-    const lastRow = targetSheet.getLastRow();
+    // Find the actual last row with data (check column A for Student Number)
+    const maxRows = targetSheet.getMaxRows();
+    const studentNumberColumn = targetSheet.getRange(2, 1, maxRows - 1, 1).getValues();
+    let lastDataRow = 1;
+    
+    for (let i = studentNumberColumn.length - 1; i >= 0; i--) {
+      const studentNum = String(studentNumberColumn[i][0] || '').trim();
+      if (studentNum) {
+        lastDataRow = i + 2;
+        break;
+      }
+    }
+    
     const existingKeys = new Map();
     
-    if (lastRow > 1) {
-      const existingRange = targetSheet.getRange(2, 1, lastRow - 1, numColumns);
+    if (lastDataRow > 1) {
+      const existingRange = targetSheet.getRange(2, 1, lastDataRow - 1, numColumns);
       const existingValues = existingRange.getValues();
       
       for (let i = 0; i < existingValues.length; i++) {
@@ -473,7 +485,7 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
 
     // Perform inserts
     if (rowsToInsert.length > 0) {
-      const insertRow = lastRow + 1;
+      const insertRow = lastDataRow + 1;
       targetSheet.getRange(insertRow, 1, rowsToInsert.length, numColumns).setValues(rowsToInsert);
     }
 
