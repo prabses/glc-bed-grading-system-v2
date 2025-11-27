@@ -56,6 +56,21 @@ function doPost(e) {
           payload.ogsTemplateUrl,
           payload.academicYearSheet
         ));
+      case "getGradeInfo":
+        return response(200, _getGradeInfo(
+          payload.studentNumber,
+          payload.academicYearSheet,
+          payload.subject
+        ));
+      case "updateGrades":
+        return response(200, _updateGrades(
+          payload.studentNumber,
+          payload.academicYearSheet,
+          payload.subject,
+          payload.gradeUpdates,
+          payload.remarks,
+          payload.userEmail
+        ));
       default:
         return response(400, "Bad Request: Invalid action.");
     }
@@ -486,6 +501,267 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
       success: false, 
       message: `Error importing grades: ${error.toString()}` 
     };
+  }
+}
+
+/**
+ * Internal function to get grade information for a student-subject combination.
+ * @param {string} studentNumber - The student number
+ * @param {string} academicYearSheet - The academic year sheet name
+ * @param {string} subject - The subject name
+ * @return {Object} Result object with grade data or error
+ */
+function _getGradeInfo(studentNumber, academicYearSheet, subject) {
+  try {
+    if (!studentNumber || studentNumber.toString().trim() === '') {
+      return { success: false, message: 'Student number cannot be empty' };
+    }
+    
+    if (!academicYearSheet || academicYearSheet.toString().trim() === '') {
+      return { success: false, message: 'Academic year must be specified' };
+    }
+    
+    if (!subject || subject.toString().trim() === '') {
+      return { success: false, message: 'Subject must be specified' };
+    }
+    
+    const targetSheet = getSheet(academicYearSheet);
+    
+    if (!targetSheet) {
+      return { success: false, message: 'Academic year sheet not found' };
+    }
+    
+    const lastRow = targetSheet.getLastRow();
+    if (lastRow < 2) {
+      return { success: false, message: 'No grade data found in the sheet' };
+    }
+    
+    // Get header row to find column indices
+    const headerRow = targetSheet.getRange(1, 1, 1, targetSheet.getLastColumn()).getValues()[0];
+    
+    // Expected column order: Student Number (0), Full Name (1), Grade Level (2), Section (3), 
+    // Subject (4), Teacher (5), 1st Initial (6), 1st Transmuted (7), 1st EQ (8),
+    // 2nd Initial (9), 2nd Transmuted (10), 2nd EQ (11),
+    // 3rd Initial (12), 3rd Transmuted (13), 3rd EQ (14),
+    // 4th Initial (15), 4th Transmuted (16), 4th EQ (17),
+    // Final Grading (18), Final EQ (19)
+    
+    // Get all data starting from row 2
+    const dataRange = targetSheet.getRange(2, 1, lastRow - 1, headerRow.length);
+    const data = dataRange.getValues();
+    
+    // Find the row matching student number and subject
+    for (let i = 0; i < data.length; i++) {
+      const rowStudentNum = String(data[i][0] || '').trim();
+      const rowSubject = String(data[i][4] || '').trim();
+      
+      if (rowStudentNum === studentNumber.toString().trim() && 
+          rowSubject === subject.toString().trim()) {
+        return {
+          success: true,
+          gradeData: {
+            'Student Number': data[i][0],
+            'Full Name': data[i][1],
+            'Grade Level': data[i][2],
+            'Section': data[i][3],
+            'Subject': data[i][4],
+            'Teacher': data[i][5],
+            '1st Initial': data[i][6] || '',
+            '1st Transmuted': data[i][7] || '',
+            '1st EQ': data[i][8] || '',
+            '2nd Initial': data[i][9] || '',
+            '2nd Transmuted': data[i][10] || '',
+            '2nd EQ': data[i][11] || '',
+            '3rd Initial': data[i][12] || '',
+            '3rd Transmuted': data[i][13] || '',
+            '3rd EQ': data[i][14] || '',
+            '4th Initial': data[i][15] || '',
+            '4th Transmuted': data[i][16] || '',
+            '4th EQ': data[i][17] || '',
+            'Final Grading': data[i][18] || '',
+            'Final EQ': data[i][19] || ''
+          },
+          rowIndex: i + 2 // Actual row number in sheet (1-based, +1 for header)
+        };
+      }
+    }
+    
+    return { success: false, message: 'Grade record not found for the specified student and subject' };
+    
+  } catch (error) {
+    console.error('Error getting grade info:', error);
+    return { 
+      success: false, 
+      message: `Error retrieving grade data: ${error.toString()}` 
+    };
+  }
+}
+
+/**
+ * Internal function to update grades and log the changes.
+ * @param {string} studentNumber - The student number
+ * @param {string} academicYearSheet - The academic year sheet name
+ * @param {string} subject - The subject name
+ * @param {Object} gradeUpdates - Object with period keys (1st Initial, 2nd Initial, etc.) and new values
+ * @param {string} remarks - Optional remarks about the update
+ * @param {string} userEmail - The email of the user making the update
+ * @return {Object} Result object with success status and message
+ */
+function _updateGrades(studentNumber, academicYearSheet, subject, gradeUpdates, remarks, userEmail) {
+  try {
+    if (!studentNumber || studentNumber.toString().trim() === '') {
+      return { success: false, message: 'Student number cannot be empty' };
+    }
+    
+    if (!academicYearSheet || academicYearSheet.toString().trim() === '') {
+      return { success: false, message: 'Academic year must be specified' };
+    }
+    
+    if (!subject || subject.toString().trim() === '') {
+      return { success: false, message: 'Subject must be specified' };
+    }
+    
+    if (!gradeUpdates || Object.keys(gradeUpdates).length === 0) {
+      return { success: false, message: 'No grade updates provided' };
+    }
+    
+    const targetSheet = getSheet(academicYearSheet);
+    
+    if (!targetSheet) {
+      return { success: false, message: 'Academic year sheet not found' };
+    }
+    
+    // Get current grade information
+    const gradeInfo = _getGradeInfo(studentNumber, academicYearSheet, subject);
+    
+    if (!gradeInfo.success) {
+      return gradeInfo;
+    }
+    
+    // Column mapping for initial grades (0-based indices)
+    const columnMap = {
+      '1st Initial': 6,
+      '2nd Initial': 9,
+      '3rd Initial': 12,
+      '4th Initial': 15
+    };
+    
+    const updatedPeriods = [];
+    const rowIndex = gradeInfo.rowIndex;
+    
+    // Update each grade period that was provided
+    for (const period in gradeUpdates) {
+      if (!columnMap.hasOwnProperty(period)) {
+        continue; // Skip invalid periods
+      }
+      
+      const newValue = gradeUpdates[period];
+      const trimmedNewValue = newValue !== null && newValue !== undefined ? String(newValue).trim() : '';
+      const oldValue = gradeInfo.gradeData[period] || '';
+      const trimmedOldValue = oldValue !== null && oldValue !== undefined ? String(oldValue).trim() : '';
+      
+      // Check if the value is actually changing
+      if (trimmedOldValue === trimmedNewValue) {
+        continue; // Skip if no change
+      }
+      
+      // Update the cell
+      const columnIndex = columnMap[period] + 1; // Convert to 1-based index
+      targetSheet.getRange(rowIndex, columnIndex).setValue(trimmedNewValue);
+      targetSheet.getRange(rowIndex, columnIndex).setHorizontalAlignment('left');
+      
+      // Log the update
+      logUpdate(
+        studentNumber,
+        gradeInfo.gradeData['Full Name'],
+        academicYearSheet,
+        subject,
+        period,
+        trimmedOldValue,
+        trimmedNewValue,
+        remarks || '',
+        userEmail
+      );
+      
+      updatedPeriods.push(period);
+    }
+    
+    if (updatedPeriods.length === 0) {
+      return { success: false, message: 'No grades were updated. All values are the same as current values.' };
+    }
+    
+    return { 
+      success: true, 
+      message: `Successfully updated ${updatedPeriods.length} grade period(s) for ${subject}:\n${updatedPeriods.join(', ')}` 
+    };
+    
+  } catch (error) {
+    console.error('Error updating grades:', error);
+    return { 
+      success: false, 
+      message: `Error updating grades: ${error.toString()}` 
+    };
+  }
+}
+
+/**
+ * Logs the grade update to the UPDATE LOG sheet
+ * @param {string} studentNumber - The student number
+ * @param {string} fullName - The student's full name
+ * @param {string} academicYear - The academic year (sheet name)
+ * @param {string} subject - The subject name
+ * @param {string} period - The grading period (1st Initial, 2nd Initial, etc.)
+ * @param {string} originalGrade - The original grade value
+ * @param {string} updatedGrade - The updated grade value
+ * @param {string} remarks - Optional remarks
+ * @param {string} userEmail - The email of the user making the update
+ */
+function logUpdate(studentNumber, fullName, academicYear, subject, period, originalGrade, updatedGrade, remarks, userEmail) {
+  try {
+    const spreadsheet = getSpreadsheet();
+    let logSheet = spreadsheet.getSheetByName('UPDATE LOG');
+    
+    // If UPDATE LOG sheet doesn't exist, create it
+    if (!logSheet) {
+      logSheet = spreadsheet.insertSheet('UPDATE LOG');
+      // Add headers
+      const headers = ['Timestamp', 'Updated By', 'Student Number', 'Full Name', 'School Year', 'Subject', 'Period', 'Original Grade', 'Updated Grade', 'Remarks'];
+      logSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      logSheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+      logSheet.setFrozenRows(1);
+    }
+    
+    // Use the passed userEmail parameter (from API) instead of Session.getActiveUser()
+    const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
+    
+    // Prepare log entry
+    const timestamp = new Date();
+    const logEntry = [
+      timestamp,
+      actualUserEmail,
+      studentNumber,
+      fullName,
+      academicYear,
+      subject,
+      period,
+      originalGrade,
+      updatedGrade,
+      remarks || ''
+    ];
+    
+    // Find the next empty row and append the log entry
+    const lastRow = logSheet.getLastRow();
+    const nextRow = lastRow + 1;
+    
+    logSheet.getRange(nextRow, 1, 1, logEntry.length).setValues([logEntry]);
+    logSheet.getRange(nextRow, 1, 1, logEntry.length).setHorizontalAlignment('left');
+    
+    // Format timestamp column
+    logSheet.getRange(nextRow, 1).setNumberFormat('yyyy-MM-dd HH:mm:ss');
+    
+  } catch (error) {
+    console.error('Error logging update:', error);
+    // Don't throw error, just log it - the update itself was successful
   }
 }
 

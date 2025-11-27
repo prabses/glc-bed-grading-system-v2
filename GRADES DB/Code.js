@@ -11,6 +11,7 @@ function onOpen() {
 
   ui.createMenu("Upload")
     .addItem("Import Student Grades", "showImportGradesDialog")
+    .addItem("Update Student Grades", "showUpdateGradesDialog")
     .addToUi();
 
   ui.createMenu("Manual")
@@ -66,6 +67,147 @@ function importGrades(ogsTemplateUrl, academicYearSheet) {
     "Function importGrades executed by: " + Session.getActiveUser().getEmail()
   );
   return callApi("importGrades", { ogsTemplateUrl, academicYearSheet });
+}
+
+/**
+ * Shows the update grades dialog with HTML interface
+ */
+function showUpdateGradesDialog() {
+  const htmlOutput = HtmlService.createHtmlOutputFromFile("UpdateGradesDialog")
+    .setWidth(1200)
+    .setHeight(650)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Update Student Grades");
+}
+
+/**
+ * Gets unique student numbers from an academic year sheet
+ * @param {string} academicYearSheet - The academic year sheet name
+ * @return {Array} Array of unique student numbers
+ */
+function getStudentNumbers(academicYearSheet) {
+  try {
+    if (!academicYearSheet || academicYearSheet.toString().trim() === '') {
+      return [];
+    }
+    
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    const targetSheet = spreadsheet.getSheetByName(academicYearSheet);
+    
+    if (!targetSheet) {
+      return [];
+    }
+    
+    const lastRow = targetSheet.getLastRow();
+    if (lastRow < 2) {
+      return [];
+    }
+    
+    // Get all student numbers from column A (starting from row 2)
+    const studentNumberRange = targetSheet.getRange(2, 1, lastRow - 1, 1);
+    const studentNumbers = studentNumberRange.getValues();
+    
+    // Get unique student numbers
+    const uniqueNumbers = new Set();
+    for (let i = 0; i < studentNumbers.length; i++) {
+      const studentNum = String(studentNumbers[i][0] || '').trim();
+      if (studentNum) {
+        uniqueNumbers.add(studentNum);
+      }
+    }
+    
+    return Array.from(uniqueNumbers).sort();
+  } catch (error) {
+    console.error('Error getting student numbers:', error);
+    return [];
+  }
+}
+
+/**
+ * Gets unique subjects for a student in an academic year sheet
+ * @param {string} studentNumber - The student number
+ * @param {string} academicYearSheet - The academic year sheet name
+ * @return {Array} Array of unique subject names
+ */
+function getSubjects(studentNumber, academicYearSheet) {
+  try {
+    if (!studentNumber || studentNumber.toString().trim() === '') {
+      return [];
+    }
+    
+    if (!academicYearSheet || academicYearSheet.toString().trim() === '') {
+      return [];
+    }
+    
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    const targetSheet = spreadsheet.getSheetByName(academicYearSheet);
+    
+    if (!targetSheet) {
+      return [];
+    }
+    
+    const lastRow = targetSheet.getLastRow();
+    if (lastRow < 2) {
+      return [];
+    }
+    
+    // Get all data (Student Number is column A, Subject is column E)
+    const dataRange = targetSheet.getRange(2, 1, lastRow - 1, 5);
+    const data = dataRange.getValues();
+    
+    // Get unique subjects for this student
+    const uniqueSubjects = new Set();
+    for (let i = 0; i < data.length; i++) {
+      const studentNum = String(data[i][0] || '').trim();
+      const subject = String(data[i][4] || '').trim();
+      if (studentNum === studentNumber && subject) {
+        uniqueSubjects.add(subject);
+      }
+    }
+    
+    return Array.from(uniqueSubjects).sort();
+  } catch (error) {
+    console.error('Error getting subjects:', error);
+    return [];
+  }
+}
+
+/**
+ * Client-callable function to get grade information via API.
+ * @param {string} studentNumber - The student number
+ * @param {string} academicYearSheet - The academic year sheet name
+ * @param {string} subject - The subject name
+ * @return {Object} Result object with grade data or error
+ */
+function getGradeInfo(studentNumber, academicYearSheet, subject) {
+  console.log(
+    "Function getGradeInfo executed by: " + Session.getActiveUser().getEmail()
+  );
+  return callApi("getGradeInfo", { studentNumber, academicYearSheet, subject });
+}
+
+/**
+ * Client-callable function to update grades via API.
+ * @param {string} studentNumber - The student number
+ * @param {string} academicYearSheet - The academic year sheet name
+ * @param {string} subject - The subject name
+ * @param {Object} gradeUpdates - Object with period keys (1st Initial, 2nd Initial, etc.) and new values
+ * @param {string} remarks - Optional remarks about the update
+ * @return {Object} Result object with success status and message
+ */
+function updateGrades(studentNumber, academicYearSheet, subject, gradeUpdates, remarks) {
+  const userEmail = Session.getActiveUser().getEmail();
+  console.log("Function updateGrades executed by: " + userEmail);
+  
+  return callApi("updateGrades", {
+    studentNumber,
+    academicYearSheet,
+    subject,
+    gradeUpdates,
+    remarks,
+    userEmail
+  });
 }
 
 function showWorkingInstructions() {
