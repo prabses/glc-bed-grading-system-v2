@@ -183,9 +183,8 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     const ogsSheets = ogsSpreadsheet.getSheets();
     
     // Find subject sheets and info sheet
-    // Subject sheets typically don't have names like "Attendance", "Character", "Characters"
-    // MAPEH is included as a subject sheet but uses a different Final Grading column
-    const excludedSheetNames = ['Attendance', 'Character', 'Characters'];
+    // Subject sheets typically don't have names like "Attendance", "Character", "Characters", "MAPEH"
+    const excludedSheetNames = ['Attendance', 'Character', 'Characters', 'MAPEH'];
     let infoSheet = null;
     let attendanceSheet = null;
     let subjectSheets = [];
