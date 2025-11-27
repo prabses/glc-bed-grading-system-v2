@@ -183,9 +183,9 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     const ogsSheets = ogsSpreadsheet.getSheets();
     
     // Find subject sheets and info sheet
-    // Subject sheets typically don't have names like "Attendance", "Characters"
+    // Subject sheets typically don't have names like "Attendance", "Character", "Characters"
     // MAPEH is included as a subject sheet but uses a different Final Grading column
-    const excludedSheetNames = ['Attendance', 'Characters'];
+    const excludedSheetNames = ['Attendance', 'Character', 'Characters'];
     let infoSheet = null;
     let attendanceSheet = null;
     let subjectSheets = [];
@@ -194,6 +194,7 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
       const sheetName = ogsSheets[i].getName();
       if (sheetName === 'Attendance') {
         attendanceSheet = ogsSheets[i];
+        // Attendance sheet is only used for info extraction, not as a subject sheet
       } else if (!excludedSheetNames.includes(sheetName)) {
         if (!infoSheet) {
           infoSheet = ogsSheets[i]; // Use first subject sheet for info
@@ -256,10 +257,10 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     }
 
     // Validate extracted information
-    if (!advisorName || !schoolYear || !level || !section) {
+    if (!advisorName || !level || !section) {
       return { 
         success: false, 
-        message: 'Could not extract required information from OGS template. Please ensure the template has proper headers (Advisor Name, School Year, Level, Section).' 
+        message: 'Could not extract required information from OGS template. Please ensure the template has proper headers (Advisor Name, Level, Section).' 
       };
     }
 
@@ -279,31 +280,24 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
 
     // Get header row from target sheet (assuming row 1 has headers)
     const headerRow = targetSheet.getRange(1, 1, 1, targetSheet.getLastColumn()).getValues()[0];
+    const numColumns = headerRow.length;
     
-    // Find column indices
-    const columnMap = {};
-    for (let i = 0; i < headerRow.length; i++) {
-      const header = String(headerRow[i] || '').trim();
-      columnMap[header] = i;
+    // Expected column count (minimum)
+    const expectedColumnCount = 20;
+    
+    if (numColumns < expectedColumnCount) {
+      return { 
+        success: false, 
+        message: `Target sheet should have at least ${expectedColumnCount} columns. Found ${numColumns} columns.` 
+      };
     }
 
-    // Required columns
-    const requiredColumns = ['Student Number', 'Full Name', 'Grade Level', 'Section', 'Teacher', 'School Year'];
-    for (let i = 0; i < requiredColumns.length; i++) {
-      if (!columnMap.hasOwnProperty(requiredColumns[i])) {
-        return { 
-          success: false, 
-          message: `Required column "${requiredColumns[i]}" not found in target sheet. Please ensure the sheet has the correct structure.` 
-        };
-      }
+    const allRows = []; // Array of row data arrays
+    // Create a map to track subject order (preserve OGS template sheet order)
+    const subjectOrderMap = {};
+    for (let i = 0; i < subjectSheets.length; i++) {
+      subjectOrderMap[subjectSheets[i].name] = i;
     }
-
-    // Collect grades from all subject sheets
-    // Data starts at row 10 (after headers) for regular subjects, row 10 for MAPEH
-    // Student Number is column A (index 0)
-    // Student Name is column B (index 1)
-    // Final Grading: column AA (index 26) for regular subjects, column AF (index 30) for MAPEH
-    const studentGrades = {}; // Key: studentNumber, Value: { name, grades: { subject: grade } }
     
     for (let i = 0; i < subjectSheets.length; i++) {
       const subjectSheet = subjectSheets[i].sheet;
@@ -311,59 +305,129 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
       const isMAPEH = subjectSheets[i].isMAPEH || false;
       
       const lastRow = subjectSheet.getLastRow();
-      if (lastRow < 10) continue; // Skip if no data
+      if (lastRow < 9) continue; // Skip if no headers
       
-      // Determine Final Grading column based on sheet type
-      // Regular subjects: column AA (index 26, 1-based column 27)
-      // MAPEH: column AF (index 30, 1-based column 31)
-      const finalGradingColumnIndex = isMAPEH ? 30 : 26; // 0-based index
-      const numColumnsNeeded = isMAPEH ? 32 : 27; // MAPEH has 32 columns, regular subjects have 28
+      // Data starts at row 10 (row 9 is headers: "Student No", "Student Name", etc.)
+      const dataStartRow = 10;
+      if (lastRow < dataStartRow) continue; // Skip if no data
       
-      // Get student data starting from row 10
-      const dataRange = subjectSheet.getRange(10, 1, lastRow - 9, numColumnsNeeded);
-      const data = dataRange.getValues();
-      
-      for (let j = 0; j < data.length; j++) {
-        const row = data[j];
-        const studentNumber = String(row[0] || '').trim();
-        const studentName = String(row[1] || '').trim();
-        const finalGrade = row[finalGradingColumnIndex]; // Final Grading column (varies by sheet type)
+      if (isMAPEH) {
+        // MAPEH: Only use Final Grading (column AF, index 30) and Final EQ (column AG, index 31)
+        // For MAPEH, set grading periods to empty
+        const numColumnsNeeded = 32; // MAPEH has 32 columns
+        const dataRange = subjectSheet.getRange(dataStartRow, 1, lastRow - dataStartRow + 1, numColumnsNeeded);
+        const data = dataRange.getValues();
         
-        if (!studentNumber) continue; // Skip empty rows
-        
-        if (!studentGrades[studentNumber]) {
-          studentGrades[studentNumber] = {
-            name: studentName,
-            grades: {}
-          };
+        for (let j = 0; j < data.length; j++) {
+          const row = data[j];
+          const studentNumber = String(row[0] || '').trim();
+          const studentName = String(row[1] || '').trim();
+          
+          if (!studentNumber) continue; // Skip empty rows
+          
+          // Create row data in the expected format (linear columns)
+          const rowData = new Array(numColumns);
+          rowData[0] = studentNumber; // Student Number
+          rowData[1] = studentName; // Full Name
+          rowData[2] = normalizedGradeLevel; // Grade Level
+          rowData[3] = section; // Section
+          rowData[4] = subjectName; // Subject
+          rowData[5] = advisorName; // Teacher
+          // Grading periods (empty for MAPEH)
+          rowData[6] = ''; // 1st Initial
+          rowData[7] = ''; // 1st Transmuted
+          rowData[8] = ''; // 1st EQ
+          rowData[9] = ''; // 2nd Initial
+          rowData[10] = ''; // 2nd Transmuted
+          rowData[11] = ''; // 2nd EQ
+          rowData[12] = ''; // 3rd Initial
+          rowData[13] = ''; // 3rd Transmuted
+          rowData[14] = ''; // 3rd EQ
+          rowData[15] = ''; // 4th Initial
+          rowData[16] = ''; // 4th Transmuted
+          rowData[17] = ''; // 4th EQ
+          rowData[18] = row[30] || ''; // Final Grading (column AF, index 30)
+          rowData[19] = row[31] || ''; // Final EQ (column AG, index 31)
+          
+          allRows.push(rowData);
         }
+      } else {
+        const numColumnsNeeded = 28;
+        const dataRange = subjectSheet.getRange(dataStartRow, 1, lastRow - dataStartRow + 1, numColumnsNeeded);
+        const data = dataRange.getValues();
         
-        // Store the final grade for this subject
-        if (finalGrade !== null && finalGrade !== undefined && finalGrade !== '') {
-          studentGrades[studentNumber].grades[subjectName] = finalGrade;
+        for (let j = 0; j < data.length; j++) {
+          const row = data[j];
+          const studentNumber = String(row[0] || '').trim();
+          const studentName = String(row[1] || '').trim();
+          
+          if (!studentNumber) continue; // Skip empty rows
+          
+          // Create row data in the expected format (linear columns)
+          const rowData = new Array(numColumns);
+          rowData[0] = studentNumber; // Student Number
+          rowData[1] = studentName; // Full Name
+          rowData[2] = normalizedGradeLevel; // Grade Level
+          rowData[3] = section; // Section
+          rowData[4] = subjectName; // Subject
+          rowData[5] = advisorName; // Teacher
+          rowData[6] = row[5] || ''; // 1st Initial (column F, index 5)
+          rowData[7] = row[6] || ''; // 1st Transmuted (column G, index 6)
+          rowData[8] = row[7] || ''; // 1st EQ (column H, index 7)
+          rowData[9] = row[11] || ''; // 2nd Initial (column L, index 11)
+          rowData[10] = row[12] || ''; // 2nd Transmuted (column M, index 12)
+          rowData[11] = row[13] || ''; // 2nd EQ (column N, index 13)
+          rowData[12] = row[17] || ''; // 3rd Initial (column R, index 17)
+          rowData[13] = row[18] || ''; // 3rd Transmuted (column S, index 18)
+          rowData[14] = row[19] || ''; // 3rd EQ (column T, index 19)
+          rowData[15] = row[23] || ''; // 4th Initial (column X, index 23)
+          rowData[16] = row[24] || ''; // 4th Transmuted (column Y, index 24)
+          rowData[17] = row[25] || ''; // 4th EQ (column Z, index 25)
+          rowData[18] = row[26] || ''; // Final Grading (column AA, index 26)
+          rowData[19] = row[27] || ''; // Final EQ (column AB, index 27)
+          
+          allRows.push(rowData);
         }
       }
     }
 
-    if (Object.keys(studentGrades).length === 0) {
+    if (allRows.length === 0) {
       return { 
         success: false, 
         message: 'No student grades found in OGS template. Please ensure the template contains student data.' 
       };
     }
 
-    // Get existing data from target sheet to find existing students
+    // Sort rows by Subject order (as they appear in OGS template), then by Student Number
+    // This groups all students for the same subject together, preserving template order
+    allRows.sort(function(a, b) {
+      const subjectA = String(a[4] || '').trim();
+      const subjectB = String(b[4] || '').trim();
+      if (subjectA !== subjectB) {
+        // Use the order from OGS template (subjectOrderMap)
+        const orderA = subjectOrderMap.hasOwnProperty(subjectA) ? subjectOrderMap[subjectA] : 9999;
+        const orderB = subjectOrderMap.hasOwnProperty(subjectB) ? subjectOrderMap[subjectB] : 9999;
+        return orderA - orderB;
+      }
+      // If same subject, sort by student number
+      const studentNumA = String(a[0] || '').trim();
+      const studentNumB = String(b[0] || '').trim();
+      return studentNumA.localeCompare(studentNumB);
+    });
+
+    // Get existing data to check for duplicates (Student Number + Subject combination)
     const lastRow = targetSheet.getLastRow();
-    const existingData = {};
+    const existingKeys = new Map();
     
     if (lastRow > 1) {
-      const existingRange = targetSheet.getRange(2, 1, lastRow - 1, targetSheet.getLastColumn());
+      const existingRange = targetSheet.getRange(2, 1, lastRow - 1, numColumns);
       const existingValues = existingRange.getValues();
       
       for (let i = 0; i < existingValues.length; i++) {
-        const studentNum = String(existingValues[i][columnMap['Student Number']] || '').trim();
-        if (studentNum) {
-          existingData[studentNum] = i + 2; // Row number (1-based, +1 for header row)
+        const studentNum = String(existingValues[i][0] || '').trim();
+        const subject = String(existingValues[i][4] || '').trim();
+        if (studentNum && subject) {
+          existingKeys.set(`${studentNum}|${subject}`, i + 2);
         }
       }
     }
@@ -372,44 +436,16 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     const rowsToUpdate = [];
     const rowsToInsert = [];
     
-    for (const studentNumber in studentGrades) {
-      const studentData = studentGrades[studentNumber];
-      const rowData = new Array(headerRow.length);
+    for (let i = 0; i < allRows.length; i++) {
+      const rowData = allRows[i];
+      const studentNumber = String(rowData[0] || '').trim();
+      const subject = String(rowData[4] || '').trim();
+      const key = `${studentNumber}|${subject}`;
       
-      // Set required columns
-      rowData[columnMap['Student Number']] = studentNumber;
-      rowData[columnMap['Full Name']] = studentData.name;
-      rowData[columnMap['Grade Level']] = normalizedGradeLevel;
-      rowData[columnMap['Section']] = section;
-      rowData[columnMap['Teacher']] = advisorName;
-      rowData[columnMap['School Year']] = schoolYear;
-      
-      // Set subject grades
-      for (const subjectName in studentData.grades) {
-        if (columnMap.hasOwnProperty(subjectName)) {
-          rowData[columnMap[subjectName]] = studentData.grades[subjectName];
-        }
-      }
-      
-      // Calculate average grade if Average Grade column exists
-      if (columnMap.hasOwnProperty('Average Grade')) {
-        const grades = [];
-        for (const subjectName in studentData.grades) {
-          const grade = studentData.grades[subjectName];
-          if (grade !== null && grade !== undefined && grade !== '' && !isNaN(grade)) {
-            grades.push(parseFloat(grade));
-          }
-        }
-        if (grades.length > 0) {
-          const sum = grades.reduce((a, b) => a + b, 0);
-          rowData[columnMap['Average Grade']] = sum / grades.length;
-        }
-      }
-      
-      if (existingData.hasOwnProperty(studentNumber)) {
+      if (existingKeys.has(key)) {
         // Update existing row
         rowsToUpdate.push({
-          row: existingData[studentNumber],
+          row: existingKeys.get(key),
           data: rowData
         });
       } else {
@@ -419,7 +455,6 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     }
 
     // Perform updates
-    const numColumns = headerRow.length;
     for (let i = 0; i < rowsToUpdate.length; i++) {
       const update = rowsToUpdate[i];
       targetSheet.getRange(update.row, 1, 1, numColumns).setValues([update.data]);

@@ -9,40 +9,13 @@
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
 
-  ui.createMenu("Actions")
-    .addItem("Filter Student Data", "showStudentFilterDialog")
+  ui.createMenu("Upload")
     .addItem("Import Student Grades", "showImportGradesDialog")
     .addToUi();
 
   ui.createMenu("Manual")
     .addItem("Open Working Instruction", "showWorkingInstructions")
     .addToUi();
-}
-
-/**
- * Shows the student filter dialog with HTML interface
- * Only works on sheets containing "MAIN"
- */
-function showStudentFilterDialog() {
-  const activeSheet = SpreadsheetApp.getActiveSheet();
-  const sheetName = activeSheet.getName();
-  
-  // Check if current sheet contains "MAIN"
-  if (!sheetName.includes('MAIN')) {
-    SpreadsheetApp.getUi().alert(
-      'Access Denied',
-      'This function can only be used on sheets containing "MAIN" in the name.\n\nCurrent sheet: ' + sheetName,
-      SpreadsheetApp.getUi().ButtonSet.OK
-    );
-    return;
-  }
-  
-  const htmlOutput = HtmlService.createHtmlOutputFromFile("StudentFilterDialog")
-    .setWidth(500)
-    .setHeight(450)
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-
-  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Filter Student Data");
 }
 
 /**
