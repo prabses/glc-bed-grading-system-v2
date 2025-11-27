@@ -339,29 +339,27 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
           
           if (!studentNumber) continue; // Skip empty rows
           
-          // Create row data in the expected format (linear columns)
           const rowData = new Array(numColumns);
-          rowData[0] = studentNumber; // Student Number
-          rowData[1] = studentName; // Full Name
-          rowData[2] = normalizedGradeLevel; // Grade Level
-          rowData[3] = section; // Section
-          rowData[4] = subjectName; // Subject
-          rowData[5] = advisorName; // Teacher
-          // Grading periods (empty for MAPEH)
-          rowData[6] = ''; // 1st Initial
-          rowData[7] = ''; // 1st Transmuted
-          rowData[8] = ''; // 1st EQ
-          rowData[9] = ''; // 2nd Initial
-          rowData[10] = ''; // 2nd Transmuted
-          rowData[11] = ''; // 2nd EQ
-          rowData[12] = ''; // 3rd Initial
-          rowData[13] = ''; // 3rd Transmuted
-          rowData[14] = ''; // 3rd EQ
-          rowData[15] = ''; // 4th Initial
-          rowData[16] = ''; // 4th Transmuted
-          rowData[17] = ''; // 4th EQ
-          rowData[18] = row[30] || ''; // Final Grading (column AF, index 30)
-          rowData[19] = row[31] || ''; // Final EQ (column AG, index 31)
+          rowData[0] = studentNumber;
+          rowData[1] = studentName;
+          rowData[2] = normalizedGradeLevel;
+          rowData[3] = section;
+          rowData[4] = subjectName;
+          rowData[5] = advisorName;
+          rowData[6] = '';
+          rowData[7] = '';
+          rowData[8] = '';
+          rowData[9] = '';
+          rowData[10] = '';
+          rowData[11] = '';
+          rowData[12] = '';
+          rowData[13] = '';
+          rowData[14] = '';
+          rowData[15] = '';
+          rowData[16] = '';
+          rowData[17] = '';
+          rowData[18] = '';
+          rowData[19] = '';
           
           allRows.push(rowData);
         }
@@ -377,28 +375,27 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
           
           if (!studentNumber) continue; // Skip empty rows
           
-          // Create row data in the expected format (linear columns)
           const rowData = new Array(numColumns);
-          rowData[0] = studentNumber; // Student Number
-          rowData[1] = studentName; // Full Name
-          rowData[2] = normalizedGradeLevel; // Grade Level
-          rowData[3] = section; // Section
-          rowData[4] = subjectName; // Subject
-          rowData[5] = advisorName; // Teacher
-          rowData[6] = row[5] || ''; // 1st Initial (column F, index 5)
-          rowData[7] = row[6] || ''; // 1st Transmuted (column G, index 6)
-          rowData[8] = row[7] || ''; // 1st EQ (column H, index 7)
-          rowData[9] = row[11] || ''; // 2nd Initial (column L, index 11)
-          rowData[10] = row[12] || ''; // 2nd Transmuted (column M, index 12)
-          rowData[11] = row[13] || ''; // 2nd EQ (column N, index 13)
-          rowData[12] = row[17] || ''; // 3rd Initial (column R, index 17)
-          rowData[13] = row[18] || ''; // 3rd Transmuted (column S, index 18)
-          rowData[14] = row[19] || ''; // 3rd EQ (column T, index 19)
-          rowData[15] = row[23] || ''; // 4th Initial (column X, index 23)
-          rowData[16] = row[24] || ''; // 4th Transmuted (column Y, index 24)
-          rowData[17] = row[25] || ''; // 4th EQ (column Z, index 25)
-          rowData[18] = row[26] || ''; // Final Grading (column AA, index 26)
-          rowData[19] = row[27] || ''; // Final EQ (column AB, index 27)
+          rowData[0] = studentNumber;
+          rowData[1] = studentName;
+          rowData[2] = normalizedGradeLevel;
+          rowData[3] = section;
+          rowData[4] = subjectName;
+          rowData[5] = advisorName;
+          rowData[6] = row[5] || '';
+          rowData[7] = '';
+          rowData[8] = '';
+          rowData[9] = row[11] || '';
+          rowData[10] = '';
+          rowData[11] = '';
+          rowData[12] = row[17] || '';
+          rowData[13] = '';
+          rowData[14] = '';
+          rowData[15] = row[23] || '';
+          rowData[16] = '';
+          rowData[17] = '';
+          rowData[18] = '';
+          rowData[19] = '';
           
           allRows.push(rowData);
         }
