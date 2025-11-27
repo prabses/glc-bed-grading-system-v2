@@ -157,16 +157,18 @@ function getSubjects(studentNumber, academicYearSheet) {
     const data = dataRange.getValues();
     
     // Get unique subjects for this student
-    const uniqueSubjects = new Set();
+    const uniqueSubjects = [];
+    const seenSubjects = new Set();
     for (let i = 0; i < data.length; i++) {
       const studentNum = String(data[i][0] || '').trim();
       const subject = String(data[i][4] || '').trim();
-      if (studentNum === studentNumber && subject) {
-        uniqueSubjects.add(subject);
+      if (studentNum === studentNumber && subject && !seenSubjects.has(subject)) {
+        uniqueSubjects.push(subject);
+        seenSubjects.add(subject);
       }
     }
     
-    return Array.from(uniqueSubjects).sort();
+    return uniqueSubjects;
   } catch (error) {
     console.error('Error getting subjects:', error);
     return [];

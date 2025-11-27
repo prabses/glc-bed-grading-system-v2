@@ -646,13 +646,19 @@ function _updateGrades(studentNumber, academicYearSheet, subject, gradeUpdates, 
       '4th Initial': 15
     };
     
+    // Period order for chronological logging
+    const periodOrder = ['1st Initial', '2nd Initial', '3rd Initial', '4th Initial'];
+    
     const updatedPeriods = [];
     const rowIndex = gradeInfo.rowIndex;
+    const updatesToLog = []; // Collect updates to log in chronological order
     
-    // Update each grade period that was provided
-    for (const period in gradeUpdates) {
-      if (!columnMap.hasOwnProperty(period)) {
-        continue; // Skip invalid periods
+    // Process updates in chronological order
+    for (let i = 0; i < periodOrder.length; i++) {
+      const period = periodOrder[i];
+      
+      if (!gradeUpdates.hasOwnProperty(period) || !columnMap.hasOwnProperty(period)) {
+        continue; // Skip if not provided or invalid
       }
       
       const newValue = gradeUpdates[period];
@@ -668,22 +674,31 @@ function _updateGrades(studentNumber, academicYearSheet, subject, gradeUpdates, 
       // Update the cell
       const columnIndex = columnMap[period] + 1; // Convert to 1-based index
       targetSheet.getRange(rowIndex, columnIndex).setValue(trimmedNewValue);
-      targetSheet.getRange(rowIndex, columnIndex).setHorizontalAlignment('left');
       
-      // Log the update
+      // Store update for logging in chronological order
+      updatesToLog.push({
+        period: period,
+        oldValue: trimmedOldValue,
+        newValue: trimmedNewValue
+      });
+      
+      updatedPeriods.push(period);
+    }
+    
+    // Log updates in chronological order
+    for (let i = 0; i < updatesToLog.length; i++) {
+      const update = updatesToLog[i];
       logUpdate(
         studentNumber,
         gradeInfo.gradeData['Full Name'],
         academicYearSheet,
         subject,
-        period,
-        trimmedOldValue,
-        trimmedNewValue,
+        update.period,
+        update.oldValue,
+        update.newValue,
         remarks || '',
         userEmail
       );
-      
-      updatedPeriods.push(period);
     }
     
     if (updatedPeriods.length === 0) {
