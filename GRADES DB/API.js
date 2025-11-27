@@ -185,8 +185,10 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     
     // Open the OGS template spreadsheet
     let ogsSpreadsheet;
+    let ogsSpreadsheetName = '';
     try {
       ogsSpreadsheet = SpreadsheetApp.openById(spreadsheetId);
+      ogsSpreadsheetName = ogsSpreadsheet.getName();
     } catch (error) {
       return { 
         success: false, 
@@ -486,7 +488,35 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     // Perform inserts
     if (rowsToInsert.length > 0) {
       const insertRow = lastDataRow + 1;
-      targetSheet.getRange(insertRow, 1, rowsToInsert.length, numColumns).setValues(rowsToInsert);
+      
+      // Add divider row with imported file link before the new data
+      const linkLabel = ogsSpreadsheetName || 'OGS Template';
+      const dividerRow = new Array(numColumns);
+      dividerRow[0] = '';
+      for (let i = 1; i < numColumns; i++) {
+        dividerRow[i] = '';
+      }
+      
+      // Insert divider row
+      targetSheet.getRange(insertRow, 1, 1, numColumns).setValues([dividerRow]);
+      targetSheet.getRange(insertRow, 1, 1, numColumns).merge();
+      
+      // Set hyperlink formula in the merged cell
+      const hyperlinkFormula = `=HYPERLINK("${ogsTemplateUrl}","${linkLabel}")`;
+      targetSheet.getRange(insertRow, 1).setFormula(hyperlinkFormula);
+      
+      // Style the divider row
+      targetSheet.getRange(insertRow, 1).setBackground('#d9d9d9');
+      targetSheet.getRange(insertRow, 1).setFontStyle('italic');
+      targetSheet.getRange(insertRow, 1).setFontColor('#1155cc');
+      targetSheet.getRange(insertRow, 1).setFontSize(10);
+      targetSheet.getRange(insertRow, 1).setHorizontalAlignment('left');
+      targetSheet.getRange(insertRow, 1).setVerticalAlignment('middle');
+      targetSheet.setRowHeight(insertRow, 25);
+      
+      // Insert data rows after the divider
+      const dataInsertRow = insertRow + 1;
+      targetSheet.getRange(dataInsertRow, 1, rowsToInsert.length, numColumns).setValues(rowsToInsert);
     }
 
     const updatedCount = rowsToUpdate.length;
