@@ -1,0 +1,632 @@
+<!DOCTYPE html><html><head>
+      <title>GRADES DB - WORKING INSTRUCTIONS</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///c:\Users\Terenz\.cursor\extensions\shd101wyy.markdown-preview-enhanced-0.8.20-universal\crossnote\dependencies\katex\katex.min.css">
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script></head><body for="html-export">
+    
+    
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="grades-database---working-instructions">Grades Database - Working Instructions </h1>
+<h2 id="table-of-contents">Table of Contents </h2>
+<ol>
+<li><a href="#system-overview">System Overview</a></li>
+<li><a href="#academic-year-sheets">Academic Year Sheets</a></li>
+<li><a href="#import-student-grades-instructions">Import Student Grades Instructions</a></li>
+<li><a href="#update-student-grades-instructions">Update Student Grades Instructions</a></li>
+<li><a href="#data-management-instructions">Data Management Instructions</a></li>
+<li><a href="#troubleshooting-guide">Troubleshooting Guide</a></li>
+</ol>
+<hr>
+<h2 id="system-overview">System Overview </h2>
+<p>The Grades Database is a Google Apps Script application that manages student grades for multiple academic years. The system provides two main interfaces:</p>
+<ul>
+<li><strong>Import Student Grades Form</strong>: For importing grades from OGS (Official Grade Sheet) template Google Sheets into academic year sheets</li>
+<li><strong>Update Student Grades Form</strong>: For searching and modifying individual grade periods for specific students and subjects</li>
+</ul>
+<p>Both forms are accessible through the <strong>"Upload"</strong> menu in the Google Sheets interface and feature secure API architecture for data operations.</p>
+<hr>
+<h2 id="academic-year-sheets">Academic Year Sheets </h2>
+<p>Before importing or updating student grades, ensure that your spreadsheet contains sheets named with the school year format (e.g., "2024-2025", "2023-2024"). These sheet names serve as the basis for the Academic Year dropdown selection in both the import and update forms. The dropdown only displays sheets that already exist and match the "YYYY-YYYY" format, so you must create the academic year sheet manually before importing data.</p>
+<hr>
+<h2 id="import-student-grades-instructions">Import Student Grades Instructions </h2>
+<h3 id="accessing-the-import-student-grades-form">Accessing the Import Student Grades Form </h3>
+<ol>
+<li>Open the main Google Sheets document containing the Grades Database</li>
+<li>Click on the <strong>"Upload"</strong> menu in the top menu bar</li>
+<li>Select <strong>"Import Student Grades"</strong> from the dropdown menu</li>
+<li>The Import Student Grades Form will open in a modal dialog window</li>
+</ol>
+<h3 id="understanding-the-import-student-grades-form-interface">Understanding the Import Student Grades Form Interface </h3>
+<p>The form contains the following fields:</p>
+<ul>
+<li><strong>Academic Year Dropdown</strong>: Select the target academic year sheet (e.g., "2024-2025")</li>
+<li><strong>Google Sheet Link Textarea</strong>: Paste the URL of the OGS template Google Sheet</li>
+<li><strong>Action Buttons</strong>: Cancel and Import Student Grades buttons</li>
+</ul>
+<h3 id="importing-grades-from-ogs-template">Importing Grades from OGS Template </h3>
+<ol>
+<li>
+<p><strong>Select Academic Year</strong></p>
+<ul>
+<li>Click on the <strong>Academic Year</strong> dropdown</li>
+<li>Select the academic year sheet where you want to import grades</li>
+<li>The academic year sheet must already exist in your spreadsheet</li>
+</ul>
+</li>
+<li>
+<p><strong>Get OGS Template Link</strong></p>
+<ul>
+<li>Open the OGS template Google Sheet that contains the grades you want to import</li>
+<li>Copy the URL from the browser address bar</li>
+<li>The URL should look like: <code>https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit</code></li>
+</ul>
+</li>
+<li>
+<p><strong>Paste the Google Sheet Link</strong></p>
+<ul>
+<li>Click in the <strong>Google Sheet Link</strong> textarea</li>
+<li>Paste the copied URL</li>
+<li>Ensure the URL is complete and includes <code>docs.google.com/spreadsheets</code></li>
+</ul>
+</li>
+<li>
+<p><strong>Import the Grades</strong></p>
+<ul>
+<li>Click the <strong>"Import Student Grades"</strong> button</li>
+<li>The button will show "Importing..." during the process</li>
+<li>Wait for the success confirmation message</li>
+<li>The form will automatically close upon successful import</li>
+</ul>
+</li>
+<li>
+<p><strong>Verify the Import</strong></p>
+<ul>
+<li>Navigate to the selected academic year sheet in your spreadsheet</li>
+<li>Verify that grade data appears starting from row 2 (row 1 contains headers)</li>
+<li>Check that all subjects from the OGS template have been imported</li>
+<li>Verify that student grades are correctly populated</li>
+</ul>
+</li>
+</ol>
+<h3 id="import-process-details">Import Process Details </h3>
+<p>The import process:</p>
+<ul>
+<li><strong>Extracts Information</strong>: Automatically extracts advisor name, school year, level, and section from the OGS template</li>
+<li><strong>Processes All Subjects</strong>: Imports grades from all subject sheets in the OGS template (excluding Attendance, Character, Characters, and MAPEH sheets)</li>
+<li><strong>Handles MAPEH</strong>: For MAPEH subjects, only Final Grading and Final EQ are imported (grading periods are left empty)</li>
+<li><strong>Updates Existing Records</strong>: If a student-subject combination already exists, it updates the existing row</li>
+<li><strong>Inserts New Records</strong>: If a student-subject combination doesn't exist, it creates a new row</li>
+<li><strong>Preserves Order</strong>: Maintains the subject order from the OGS template</li>
+</ul>
+<h3 id="import-student-grades-form-error-handling">Import Student Grades Form Error Handling </h3>
+<ol>
+<li>
+<p><strong>Missing Academic Year</strong></p>
+<ul>
+<li>If you don't select an academic year, an alert will prompt you to select one</li>
+<li>Select an academic year from the dropdown before importing</li>
+</ul>
+</li>
+<li>
+<p><strong>Invalid Google Sheet URL</strong></p>
+<ul>
+<li>If the URL doesn't contain <code>docs.google.com/spreadsheets</code>, an error will appear</li>
+<li>Ensure you're using a valid Google Sheets URL</li>
+<li>Copy the URL directly from the browser address bar</li>
+</ul>
+</li>
+<li>
+<p><strong>Cannot Access OGS Template</strong></p>
+<ul>
+<li>If the system cannot access the OGS template, an error will show</li>
+<li>Ensure you have access permissions to the OGS template spreadsheet</li>
+<li>Verify the URL is correct and the spreadsheet exists</li>
+</ul>
+</li>
+<li>
+<p><strong>No Subject Sheets Found</strong></p>
+<ul>
+<li>If no subject sheets are found in the OGS template, an error will appear</li>
+<li>Ensure the OGS template contains at least one subject sheet with grades</li>
+<li>Check that subject sheets are not named "Attendance", "Character", "Characters", or "MAPEH" (these are excluded)</li>
+</ul>
+</li>
+<li>
+<p><strong>No Student Grades Found</strong></p>
+<ul>
+<li>If no student data is found in the OGS template, an error will show</li>
+<li>Ensure the OGS template contains student grade data</li>
+<li>Check that data rows start from row 10 in subject sheets</li>
+</ul>
+</li>
+<li>
+<p><strong>Academic Year Sheet Not Found</strong></p>
+<ul>
+<li>If the selected academic year sheet doesn't exist, an error will appear</li>
+<li>Create the academic year sheet manually before importing</li>
+<li>Ensure the sheet name follows the "YYYY-YYYY" format</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="update-student-grades-instructions">Update Student Grades Instructions </h2>
+<h3 id="accessing-the-update-student-grades-form">Accessing the Update Student Grades Form </h3>
+<ol>
+<li>Open the main Google Sheets document containing the Grades Database</li>
+<li>Click on the <strong>"Upload"</strong> menu in the top menu bar</li>
+<li>Select <strong>"Update Student Grades"</strong> from the dropdown menu</li>
+<li>The Update Student Grades Form will open in a modal dialog window</li>
+</ol>
+<h3 id="understanding-the-update-student-grades-form-interface">Understanding the Update Student Grades Form Interface </h3>
+<p>The form contains the following fields:</p>
+<ul>
+<li><strong>Academic Year Dropdown</strong>: Select the academic year sheet to search</li>
+<li><strong>Student Number Input</strong>: Text field with autocomplete for searching student numbers</li>
+<li><strong>Subject Dropdown</strong>: Select the subject (populated after entering student number)</li>
+<li><strong>Load Grades Button</strong>: Button to load grade information</li>
+<li><strong>Current Grade Information Panel</strong>: Shows all current grade data in a grid layout (appears after loading)
+<ul>
+<li>Displays: Student Number, Full Name, Grade Level, Section, Subject, Teacher, 1st Initial, 2nd Initial, 3rd Initial, 4th Initial</li>
+</ul>
+</li>
+<li><strong>Update Initial Grades Section</strong>: Shows current grades and input fields for updating
+<ul>
+<li>Current Grades Display: Shows all four initial grades</li>
+<li>1st Initial Input: Enter new grade for 1st grading period</li>
+<li>2nd Initial Input: Enter new grade for 2nd grading period</li>
+<li>3rd Initial Input: Enter new grade for 3rd grading period</li>
+<li>4th Initial Input: Enter new grade for 4th grading period</li>
+</ul>
+</li>
+<li><strong>Remarks Input</strong>: Optional field for notes about the update</li>
+<li><strong>Action Buttons</strong>: Cancel and Update Grades buttons</li>
+</ul>
+<h3 id="searching-for-grade-information">Searching for Grade Information </h3>
+<ol>
+<li>
+<p><strong>Select Academic Year</strong></p>
+<ul>
+<li>Click on the <strong>Academic Year</strong> dropdown</li>
+<li>Select the academic year sheet where the student is enrolled</li>
+<li>The student number autocomplete will populate based on the selected academic year</li>
+</ul>
+</li>
+<li>
+<p><strong>Enter Student Number</strong></p>
+<ul>
+<li>Type the student number in the <strong>Student Number</strong> field</li>
+<li>As you type, matching student numbers will appear in a dropdown</li>
+<li>You can click on a suggestion or continue typing</li>
+<li>Use arrow keys to navigate suggestions and Enter to select</li>
+<li>After selecting a student number, the Subject dropdown will automatically populate</li>
+</ul>
+</li>
+<li>
+<p><strong>Select Subject</strong></p>
+<ul>
+<li>After entering a student number, the <strong>Subject</strong> dropdown will become enabled</li>
+<li>Select the subject for which you want to update grades</li>
+<li>Only subjects that have grade records for the selected student will appear</li>
+</ul>
+</li>
+<li>
+<p><strong>Load Grade Information</strong></p>
+<ul>
+<li>Click the <strong>"Load Grades"</strong> button</li>
+<li>The button will show "Loading..." during the process</li>
+<li>If found, grade information will appear in the Current Grade Information panel</li>
+<li>The Update Section will become visible</li>
+</ul>
+</li>
+<li>
+<p><strong>Search Results - Grades Found</strong></p>
+<ul>
+<li>All grade information will be displayed in the information panel</li>
+<li>Current grades for all four periods will be shown</li>
+<li>The Update Section will appear with pre-filled input fields</li>
+<li>You can now modify the grades</li>
+</ul>
+</li>
+<li>
+<p><strong>Search Results - Grades Not Found</strong></p>
+<ul>
+<li>An alert message will inform you that the grade record was not found</li>
+<li>Verify the student number, academic year, and subject selection</li>
+<li>Ensure the student has grade records for the selected subject</li>
+</ul>
+</li>
+</ol>
+<h3 id="updating-student-grades">Updating Student Grades </h3>
+<ol>
+<li>
+<p><strong>Prerequisites for Update</strong></p>
+<ul>
+<li>A student and subject must first be found using the search function (see previous section)</li>
+<li>The form must be in "Update" mode with grade information displayed</li>
+<li>The Update Section must be visible</li>
+</ul>
+</li>
+<li>
+<p><strong>Review Current Grades</strong></p>
+<ul>
+<li>The current grades for all four periods are displayed at the top of the Update Section</li>
+<li>Review the current values before making changes</li>
+<li>Input fields are pre-filled with current values</li>
+</ul>
+</li>
+<li>
+<p><strong>Enter New Grades</strong></p>
+<ul>
+<li>Modify the grades in the input fields for the periods you want to update</li>
+<li>You can update one or more periods at once</li>
+<li>Leave fields empty if you don't want to change that period's grade</li>
+<li>Only fields with values will be updated</li>
+</ul>
+</li>
+<li>
+<p><strong>Add Remarks (Optional)</strong></p>
+<ul>
+<li>Enter any notes or reasons for the update in the <strong>Remarks</strong> field</li>
+<li>This information will be logged in the UPDATE LOG sheet</li>
+<li>Remarks are optional but recommended for audit purposes</li>
+</ul>
+</li>
+<li>
+<p><strong>Save Changes</strong></p>
+<ul>
+<li>Click <strong>"Update Grades"</strong> to save your changes</li>
+<li>The button will show "Updating..." during the process</li>
+<li>Only the periods with new values will be updated in the database</li>
+<li>Wait for the success confirmation message</li>
+</ul>
+</li>
+<li>
+<p><strong>After Successful Update</strong></p>
+<ul>
+<li>A success message will show which periods were updated</li>
+<li>Each updated period will be logged separately in the UPDATE LOG sheet</li>
+<li>The form will automatically close</li>
+<li>You can verify the changes in the academic year sheet</li>
+</ul>
+</li>
+</ol>
+<h3 id="update-student-grades-form-error-handling">Update Student Grades Form Error Handling </h3>
+<ol>
+<li>
+<p><strong>Required Field Validation</strong></p>
+<ul>
+<li>If you try to update without selecting academic year, student number, or subject, an alert will prompt you</li>
+<li>Ensure all required fields are filled before loading grades</li>
+<li>Ensure at least one grade field has a value before updating</li>
+</ul>
+</li>
+<li>
+<p><strong>No Grades to Update</strong></p>
+<ul>
+<li>If all entered grades are the same as current values, an error will be shown</li>
+<li>Enter different values to proceed with the update</li>
+</ul>
+</li>
+<li>
+<p><strong>Grades Not Loaded</strong></p>
+<ul>
+<li>If you try to update without loading grade information first, an alert will appear</li>
+<li>Load grade information using the search function before updating</li>
+</ul>
+</li>
+<li>
+<p><strong>Search Errors</strong></p>
+<ul>
+<li>If search fails, verify the student number format</li>
+<li>Check that the correct academic year is selected</li>
+<li>Ensure the student has grade records for the selected subject</li>
+<li>Verify the subject exists in the dropdown</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="data-management-instructions">Data Management Instructions </h2>
+<h3 id="academic-year-sheets-1">Academic Year Sheets </h3>
+<ol>
+<li>
+<p><strong>Sheet Naming Convention</strong></p>
+<ul>
+<li>Academic year sheets must follow the format "YYYY-YYYY" (e.g., "2024-2025")</li>
+<li>Sheets are not automatically created - you must create them manually</li>
+<li>Only sheets matching this format will appear in the Academic Year dropdown</li>
+</ul>
+</li>
+<li>
+<p><strong>Sheet Structure</strong></p>
+<ul>
+<li>Row 1: Header row with column names</li>
+<li>Row 2 onwards: Grade data rows</li>
+<li>Expected columns (minimum 20):
+<ul>
+<li>Student Number (Column A)</li>
+<li>Full Name (Column B)</li>
+<li>Grade Level (Column C)</li>
+<li>Section (Column D)</li>
+<li>Subject (Column E)</li>
+<li>Teacher (Column F)</li>
+<li>1st Initial (Column G)</li>
+<li>1st Transmuted (Column H)</li>
+<li>1st EQ (Column I)</li>
+<li>2nd Initial (Column J)</li>
+<li>2nd Transmuted (Column K)</li>
+<li>2nd EQ (Column L)</li>
+<li>3rd Initial (Column M)</li>
+<li>3rd Transmuted (Column N)</li>
+<li>3rd EQ (Column O)</li>
+<li>4th Initial (Column P)</li>
+<li>4th Transmuted (Column Q)</li>
+<li>4th EQ (Column R)</li>
+<li>Final Grading (Column S)</li>
+<li>Final EQ (Column T)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Data Organization</strong></p>
+<ul>
+<li>Each academic year has its own sheet</li>
+<li>Grade data is organized by academic year</li>
+<li>Each row represents one student-subject combination</li>
+<li>Student Number + Subject combination must be unique within each academic year</li>
+</ul>
+</li>
+</ol>
+<h3 id="update-log-sheet">UPDATE LOG Sheet </h3>
+<ol>
+<li>
+<p><strong>Automatic Logging</strong></p>
+<ul>
+<li>All grade updates are automatically logged</li>
+<li>The UPDATE LOG sheet is created automatically if it doesn't exist</li>
+<li>Each updated period creates a separate log entry</li>
+</ul>
+</li>
+<li>
+<p><strong>Log Entry Information</strong></p>
+<ul>
+<li>Timestamp: When the update was made</li>
+<li>Updated By: Email of the user who made the update</li>
+<li>Student Number: The student's identification number</li>
+<li>Full Name: The student's full name</li>
+<li>School Year: The academic year sheet where the update was made</li>
+<li>Subject: Which subject was updated</li>
+<li>Period: Which grading period was updated (1st Initial, 2nd Initial, etc.)</li>
+<li>Original Grade: The previous grade value</li>
+<li>Updated Grade: The new grade value</li>
+<li>Remarks: Any notes provided during the update</li>
+</ul>
+</li>
+<li>
+<p><strong>Viewing Update Log</strong></p>
+<ul>
+<li>Navigate to the "UPDATE LOG" sheet in your spreadsheet</li>
+<li>All updates are listed chronologically</li>
+<li>Each period update is logged separately</li>
+<li>Use filters to search for specific students, subjects, or time periods</li>
+</ul>
+</li>
+</ol>
+<h3 id="data-validation">Data Validation </h3>
+<ol>
+<li>
+<p><strong>Student-Subject Uniqueness</strong></p>
+<ul>
+<li>Each Student Number + Subject combination must be unique within each academic year</li>
+<li>The system updates existing records if the combination already exists during import</li>
+<li>Updates only modify the Initial grades (1st, 2nd, 3rd, 4th Initial)</li>
+</ul>
+</li>
+<li>
+<p><strong>Grade Updates</strong></p>
+<ul>
+<li>Only Initial grades can be updated through the Update form</li>
+<li>Transmuted grades, EQ grades, and Final grades are not updated through this interface</li>
+<li>Updates are logged chronologically by period</li>
+</ul>
+</li>
+<li>
+<p><strong>Data Format</strong></p>
+<ul>
+<li>Grades are stored as text/numbers</li>
+<li>Empty values are allowed for grades</li>
+<li>The system preserves the exact format from the OGS template during import</li>
+</ul>
+</li>
+</ol>
+<h3 id="ogs-template-requirements">OGS Template Requirements </h3>
+<ol>
+<li>
+<p><strong>Template Structure</strong></p>
+<ul>
+<li>OGS templates should contain multiple subject sheets</li>
+<li>Each subject sheet should have student grade data starting from row 10</li>
+<li>Header information (Teacher, School Year, Level, Section) should be in rows 2-5 for subject sheets</li>
+<li>For Attendance sheet, header information is in rows 1-4</li>
+</ul>
+</li>
+<li>
+<p><strong>Subject Sheet Format</strong></p>
+<ul>
+<li>Row 9: Column headers (Student No, Student Name, etc.)</li>
+<li>Row 10 onwards: Student data</li>
+<li>Columns for regular subjects:
+<ul>
+<li>Column F (index 5): 1st Initial</li>
+<li>Column G (index 6): 1st Transmuted</li>
+<li>Column H (index 7): 1st EQ</li>
+<li>Column L (index 11): 2nd Initial</li>
+<li>Column M (index 12): 2nd Transmuted</li>
+<li>Column N (index 13): 2nd EQ</li>
+<li>Column R (index 17): 3rd Initial</li>
+<li>Column S (index 18): 3rd Transmuted</li>
+<li>Column T (index 19): 3rd EQ</li>
+<li>Column X (index 23): 4th Initial</li>
+<li>Column Y (index 24): 4th Transmuted</li>
+<li>Column Z (index 25): 4th EQ</li>
+<li>Column AA (index 26): Final Grading</li>
+<li>Column AB (index 27): Final EQ</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>MAPEH Subject Handling</strong></p>
+<ul>
+<li>MAPEH subjects are handled specially</li>
+<li>Only Final Grading (column AF, index 30) and Final EQ (column AG, index 31) are imported</li>
+<li>Grading periods (1st-4th Initial) are left empty for MAPEH</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="troubleshooting-guide">Troubleshooting Guide </h2>
+<h3 id="import-form-loading-problems">Import Form Loading Problems </h3>
+<p><strong>Issue</strong>: Import form doesn't open or shows errors<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Check your internet connection</li>
+<li>Refresh the browser page</li>
+<li>Close and reopen the form from the Google Sheets menu</li>
+<li>Ensure you have proper permissions to access the spreadsheet</li>
+<li>Check that the script is properly deployed</li>
+</ol>
+<h3 id="ogs-template-import-failures">OGS Template Import Failures </h3>
+<p><strong>Issue</strong>: OGS template doesn't import or shows errors<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Verify the Google Sheet URL is correct and complete</li>
+<li>Ensure you have access permissions to the OGS template spreadsheet</li>
+<li>Check that the OGS template contains at least one subject sheet</li>
+<li>Verify subject sheets have data starting from row 10</li>
+<li>Ensure header information (Teacher, Level, Section) is present in rows 2-5</li>
+<li>Check that the template is not corrupted or protected</li>
+</ol>
+<h3 id="update-form-not-finding-grades">Update Form Not Finding Grades </h3>
+<p><strong>Issue</strong>: Grade search doesn't return results<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Verify the student number is correct</li>
+<li>Check that the correct academic year is selected</li>
+<li>Ensure the student has grade records for the selected subject</li>
+<li>Try typing the full student number without spaces</li>
+<li>Check the academic year sheet directly to confirm the grade record exists</li>
+</ol>
+<h3 id="update-failures">Update Failures </h3>
+<p><strong>Issue</strong>: Student grades don't update or shows errors<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Ensure all required fields are filled (academic year, student number, subject)</li>
+<li>Check that at least one grade field has a new value</li>
+<li>Verify you have write permissions to the spreadsheet</li>
+<li>Ensure your internet connection is stable</li>
+<li>Try refreshing the form and updating again</li>
+<li>Check the UPDATE LOG to see if the update was recorded</li>
+</ol>
+<h3 id="academic-year-sheet-not-appearing">Academic Year Sheet Not Appearing </h3>
+<p><strong>Issue</strong>: Academic year doesn't appear in the dropdown<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Verify the sheet name follows the format "YYYY-YYYY" (e.g., "2024-2025")</li>
+<li>Check that the sheet exists in the spreadsheet</li>
+<li>Ensure there are no extra spaces in the sheet name</li>
+<li>Create the sheet manually if needed (following the naming convention)</li>
+<li>Refresh the form to reload available sheets</li>
+</ol>
+<h3 id="permission-errors">Permission Errors </h3>
+<p><strong>Issue</strong>: "Access denied" or permission-related error messages<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Verify you're logged into the correct Google account</li>
+<li>Check with your administrator about access permissions</li>
+<li>Ensure you have edit access to the spreadsheet</li>
+<li>Verify you have access to the OGS template spreadsheet (for imports)</li>
+<li>Try logging out and back into Google</li>
+<li>Contact your systems administrator for permission updates</li>
+</ol>
+<h3 id="update-log-not-appearing">UPDATE LOG Not Appearing </h3>
+<p><strong>Issue</strong>: UPDATE LOG sheet doesn't exist or updates aren't logged<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>The UPDATE LOG sheet is created automatically on first update</li>
+<li>Check if the sheet exists in your spreadsheet</li>
+<li>Verify updates are being saved (check the academic year sheet)</li>
+<li>Check script execution logs for errors</li>
+<li>The log may be in a different location if the sheet was renamed</li>
+</ol>
+<h3 id="data-formatting-issues">Data Formatting Issues </h3>
+<p><strong>Issue</strong>: Imported grades appear incorrectly formatted<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Check the OGS template structure matches expected format</li>
+<li>Verify column positions in the OGS template</li>
+<li>Review the source OGS template for formatting issues</li>
+<li>Re-import if necessary after fixing the OGS template</li>
+</ol>
+<h3 id="script-execution-errors">Script Execution Errors </h3>
+<p><strong>Issue</strong>: Scripts fail to execute or timeout<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Check Tools → Script editor → Executions for error details</li>
+<li>Ensure the Web App URL is properly configured in Config.js</li>
+<li>Verify the API key is correct</li>
+<li>Check that the script is deployed as a web app</li>
+<li>Try running the script again after a few minutes</li>
+<li>Contact your systems developer if problems persist</li>
+</ol>
+<h3 id="mapeh-grades-not-importing">MAPEH Grades Not Importing </h3>
+<p><strong>Issue</strong>: MAPEH grades don't appear after import<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>Verify the MAPEH sheet exists in the OGS template</li>
+<li>Check that Final Grading and Final EQ columns are populated</li>
+<li>Ensure the MAPEH sheet is not excluded (it should be included)</li>
+<li>Verify column positions (AF for Final Grading, AG for Final EQ)</li>
+<li>Check that student data exists in the MAPEH sheet</li>
+</ol>
+<h3 id="duplicate-records">Duplicate Records </h3>
+<p><strong>Issue</strong>: Duplicate student-subject combinations appear<br>
+<strong>Solutions</strong>:</p>
+<ol>
+<li>The system should automatically update existing records during import</li>
+<li>Check for duplicate rows manually in the academic year sheet</li>
+<li>Remove duplicates manually if they exist</li>
+<li>Re-import the OGS template to update existing records</li>
+<li>Verify the Student Number + Subject combination is unique</li>
+</ol>
+<p><em>This working instruction document covers the complete functionality of the Grades Database system. For additional support or system modifications, contact your systems developer.</em></p>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>
