@@ -33,8 +33,8 @@ function onOpen() {
  */
 function showOGSTemplateDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("OGSTemplateDialog")
-    .setWidth(800)
-    .setHeight(650)
+    .setWidth(1200)
+    .setHeight(700)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Generate OGS Template");
