@@ -271,10 +271,6 @@
         document.getElementById('gradeLevel').addEventListener('change', function() {
           loadSections(this.value);
         });
-        
-        document.getElementById('teacher').addEventListener('change', function() {
-          loadAdvisories();
-        });
       });
 
       function loadInitialData() {
@@ -301,10 +297,16 @@
               .withSuccessHandler(function(teacherList) {
                 allTeachers = teacherList || [];
                 setupTeacherAutocomplete();
+                // If teacher input already has a value, load advisories
+                const teacherInput = document.getElementById('teacher');
+                if (teacherInput && teacherInput.value.trim()) {
+                  loadAdvisories();
+                }
               })
               .withFailureHandler(function(error) {
                 console.error('Error loading teachers:', error);
                 allTeachers = [];
+                setupTeacherAutocomplete();
               })
               .getTeachers();
           })
@@ -318,13 +320,23 @@
       function setupTeacherAutocomplete() {
         const teacherInput = document.getElementById('teacher');
         const teacherDropdown = document.getElementById('teacherDropdown');
+        let lastSelectedTeacher = '';
 
         teacherInput.addEventListener('input', function() {
           const searchTerm = this.value.toLowerCase().trim();
           highlightedIndex = -1;
           
+          if (this.value === lastSelectedTeacher) {
+            teacherDropdown.style.display = 'none';
+            return;
+          }
+          
           if (searchTerm === '' || allTeachers.length === 0) {
             teacherDropdown.style.display = 'none';
+            if (this.value.trim() === '') {
+              document.getElementById('advisoriesContainer').style.display = 'none';
+              document.getElementById('advisoriesPlaceholder').style.display = 'block';
+            }
             return;
           }
 
@@ -350,8 +362,11 @@
             item.textContent = teacher;
             item.addEventListener('click', function() {
               teacherInput.value = teacher;
+              lastSelectedTeacher = teacher;
               teacherDropdown.style.display = 'none';
               highlightedIndex = -1;
+              document.getElementById('advisoriesContainer').style.display = 'block';
+              document.getElementById('advisoriesPlaceholder').style.display = 'none';
               loadAdvisories();
             });
             fragment.appendChild(item);
@@ -384,7 +399,14 @@
             items[highlightedIndex].scrollIntoView({ block: 'nearest' });
           } else if (e.key === 'Enter' && highlightedIndex >= 0) {
             e.preventDefault();
-            items[highlightedIndex].click();
+            const selectedTeacher = items[highlightedIndex].textContent;
+            teacherInput.value = selectedTeacher;
+            lastSelectedTeacher = selectedTeacher;
+            teacherDropdown.style.display = 'none';
+            highlightedIndex = -1;
+            document.getElementById('advisoriesContainer').style.display = 'block';
+            document.getElementById('advisoriesPlaceholder').style.display = 'none';
+            loadAdvisories();
           } else if (e.key === 'Escape') {
             teacherDropdown.style.display = 'none';
             highlightedIndex = -1;
@@ -466,6 +488,11 @@
 
       function displayAdvisories(advisories) {
         const list = document.getElementById('advisoriesList');
+        const container = document.getElementById('advisoriesContainer');
+        const placeholder = document.getElementById('advisoriesPlaceholder');
+        
+        if (container) container.style.display = 'block';
+        if (placeholder) placeholder.style.display = 'none';
         
         if (!advisories || advisories.length === 0) {
           list.innerHTML = '<p style="text-align: center; color: #6c757d;">No advisories found</p>';
@@ -504,6 +531,9 @@
         
         list.innerHTML = '';
         list.appendChild(advisoryItem);
+        
+        if (container) container.style.display = 'block';
+        if (placeholder) placeholder.style.display = 'none';
       }
 
       function deleteAdvisory(teacher, gradeLevel, section) {
