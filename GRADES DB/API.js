@@ -54,7 +54,8 @@ function doPost(e) {
       case "importGrades":
         return response(200, _importGrades(
           payload.ogsTemplateUrl,
-          payload.academicYearSheet
+          payload.academicYearSheet,
+          payload.userEmail
         ));
       case "getGradeInfo":
         return response(200, _getGradeInfo(
@@ -167,9 +168,10 @@ function normalizeGradeLevel(gradeLevel) {
  * Internal function to import grades from OGS template
  * @param {string} ogsTemplateUrl - The URL of the OGS template Google Sheet
  * @param {string} academicYearSheet - The name of the target academic year sheet
+ * @param {string} userEmail - The email of the user making the import
  * @return {Object} Result object with success status and message
  */
-function _importGrades(ogsTemplateUrl, academicYearSheet) {
+function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
   try {
     // Validate inputs
     if (!ogsTemplateUrl || ogsTemplateUrl.toString().trim() === '') {
@@ -443,23 +445,84 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     }
     
     const existingKeys = new Map();
+    const existingDataMap = new Map();
+    
+    // Check if this OGS template was already imported (check for existing divider with same URL)
+    let isReImport = false;
+    let existingDividerRow = null;
+    let existingImportEndRow = null;
     
     if (lastDataRow > 1) {
       const existingRange = targetSheet.getRange(2, 1, lastDataRow - 1, numColumns);
       const existingValues = existingRange.getValues();
+      const existingFormulas = targetSheet.getRange(2, 1, lastDataRow - 1, 1).getFormulas();
       
+      // Check for existing divider with same URL
+      // Normalize URLs for comparison (remove trailing slashes, fragments, etc.)
+      const normalizedImportUrl = ogsTemplateUrl.trim().split('#')[0].replace(/\/$/, '').toLowerCase();
+      
+      for (let i = 0; i < existingFormulas.length; i++) {
+        const formula = existingFormulas[i][0];
+        if (formula && typeof formula === 'string' && formula.includes('HYPERLINK')) {
+          // Try multiple regex patterns to extract URL
+          let urlMatch = formula.match(/HYPERLINK\("([^"]+)"/);
+          if (!urlMatch) {
+            urlMatch = formula.match(/HYPERLINK\('([^']+)'/);
+          }
+          if (!urlMatch) {
+            urlMatch = formula.match(/HYPERLINK\(([^,]+)/);
+          }
+          if (urlMatch && urlMatch[1]) {
+            let extractedUrl = urlMatch[1].trim();
+            // Remove quotes if present
+            extractedUrl = extractedUrl.replace(/^["']|["']$/g, '');
+            const normalizedExistingUrl = extractedUrl.split('#')[0].replace(/\/$/, '').toLowerCase();
+            
+            // Compare URLs (handle both full URLs and spreadsheet IDs)
+            const importSpreadsheetId = extractSpreadsheetId(ogsTemplateUrl);
+            const existingSpreadsheetId = extractSpreadsheetId(extractedUrl);
+            const urlMatches = normalizedExistingUrl === normalizedImportUrl || 
+                              (importSpreadsheetId && existingSpreadsheetId && importSpreadsheetId === existingSpreadsheetId);
+            
+            if (urlMatches) {
+              isReImport = true;
+              existingDividerRow = i + 2;
+              // Find the end of this import block (next divider or end of data)
+              existingImportEndRow = lastDataRow + 1;
+              for (let j = i + 1; j < existingFormulas.length; j++) {
+                const nextFormula = existingFormulas[j][0];
+                if (nextFormula && typeof nextFormula === 'string' && nextFormula.includes('HYPERLINK')) {
+                  // Found next divider, so this import ends at row j+1 (before the next divider)
+                  existingImportEndRow = j + 2;
+                  break;
+                }
+              }
+              break;
+            }
+          }
+        }
+      }
+      
+      // Build maps of existing data
       for (let i = 0; i < existingValues.length; i++) {
         const studentNum = String(existingValues[i][0] || '').trim();
         const subject = String(existingValues[i][4] || '').trim();
         if (studentNum && subject) {
-          existingKeys.set(`${studentNum}|${subject}`, i + 2);
+          const key = `${studentNum}|${subject}`;
+          existingKeys.set(key, i + 2);
+          existingDataMap.set(key, existingValues[i]);
         }
       }
     }
 
+    // Use the passed userEmail parameter (from API) instead of Session.getActiveUser()
+    // doPost runs as script owner, so Session.getActiveUser() would return owner's email
+    const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
+
     // Prepare data for import/update
     const rowsToUpdate = [];
     const rowsToInsert = [];
+    const gradeChangesToLog = [];
     
     for (let i = 0; i < allRows.length; i++) {
       const rowData = allRows[i];
@@ -468,11 +531,75 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
       const key = `${studentNumber}|${subject}`;
       
       if (existingKeys.has(key)) {
-        // Update existing row
-        rowsToUpdate.push({
-          row: existingKeys.get(key),
-          data: rowData
-        });
+        const existingRowNum = existingKeys.get(key);
+        const existingRow = existingDataMap.get(key);
+        
+        // Check if this is a re-import of the same OGS template
+        const isFromSameImport = isReImport && existingDividerRow && existingImportEndRow &&
+                                 existingRowNum > existingDividerRow && 
+                                 existingRowNum < existingImportEndRow;
+        
+        // Always compare grades before updating (even if not from same import, to avoid unnecessary overwrites)
+        const gradeColumns = [6, 9, 12, 15];
+        const periodNames = ['1st Initial', '2nd Initial', '3rd Initial', '4th Initial'];
+        let hasChanges = false;
+        const changes = [];
+        
+        for (let j = 0; j < gradeColumns.length; j++) {
+          const colIndex = gradeColumns[j];
+          const oldValueRaw = existingRow[colIndex];
+          const newValueRaw = rowData[colIndex];
+          const oldValue = oldValueRaw !== null && oldValueRaw !== undefined ? String(oldValueRaw).trim() : '';
+          const newValue = newValueRaw !== null && newValueRaw !== undefined ? String(newValueRaw).trim() : '';
+          
+          // Compare values (handle numbers and strings)
+          // Convert to numbers if possible, otherwise compare as strings
+          let valuesDifferent = false;
+          if (oldValue && newValue) {
+            const oldNum = parseFloat(oldValue);
+            const newNum = parseFloat(newValue);
+            if (!isNaN(oldNum) && !isNaN(newNum)) {
+              valuesDifferent = Math.abs(oldNum - newNum) > 0.0001;
+            } else {
+              valuesDifferent = oldValue !== newValue;
+            }
+          } else if (oldValue !== newValue) {
+            valuesDifferent = true;
+          }
+          
+          if (valuesDifferent) {
+            hasChanges = true;
+            if (isFromSameImport) {
+              changes.push({
+                period: periodNames[j],
+                oldValue: oldValue || '',
+                newValue: newValue || ''
+              });
+            }
+          }
+        }
+        
+        if (hasChanges) {
+          rowsToUpdate.push({
+            row: existingRowNum,
+            data: rowData
+          });
+          
+          // Only log if it's from the same import (re-import scenario)
+          if (isFromSameImport && changes.length > 0) {
+            const fullName = String(rowData[1] || '').trim();
+            for (let k = 0; k < changes.length; k++) {
+              gradeChangesToLog.push({
+                studentNumber: studentNumber,
+                fullName: fullName,
+                subject: subject,
+                period: changes[k].period,
+                oldValue: changes[k].oldValue,
+                newValue: changes[k].newValue
+              });
+            }
+          }
+        }
       } else {
         // Insert new row
         rowsToInsert.push(rowData);
@@ -483,6 +610,22 @@ function _importGrades(ogsTemplateUrl, academicYearSheet) {
     for (let i = 0; i < rowsToUpdate.length; i++) {
       const update = rowsToUpdate[i];
       targetSheet.getRange(update.row, 1, 1, numColumns).setValues([update.data]);
+    }
+    
+    // Log grade changes from re-import
+    for (let i = 0; i < gradeChangesToLog.length; i++) {
+      const change = gradeChangesToLog[i];
+      logUpdate(
+        change.studentNumber,
+        change.fullName,
+        academicYearSheet,
+        change.subject,
+        change.period,
+        change.oldValue,
+        change.newValue,
+        `Re-imported from: ${ogsSpreadsheetName || 'OGS Template'}`,
+        actualUserEmail
+      );
     }
 
     // Perform inserts
