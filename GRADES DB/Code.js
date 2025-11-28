@@ -75,8 +75,8 @@ function importGrades(ogsTemplateUrl, academicYearSheet) {
  */
 function showUpdateGradesDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("UpdateGradesDialog")
-    .setWidth(1200)
-    .setHeight(650)
+    .setWidth(1400)
+    .setHeight(700)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Update Student Grades");
