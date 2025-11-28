@@ -108,10 +108,17 @@ function getStudentNumbers(academicYearSheet) {
     // Get all student numbers from column A (starting from row 2)
     const studentNumberRange = targetSheet.getRange(2, 1, lastRow - 1, 1);
     const studentNumbers = studentNumberRange.getValues();
+    const formulas = targetSheet.getRange(2, 1, lastRow - 1, 1).getFormulas();
     
-    // Get unique student numbers
+    // Get unique student numbers, excluding divider rows (rows with HYPERLINK formulas)
     const uniqueNumbers = new Set();
     for (let i = 0; i < studentNumbers.length; i++) {
+      const formula = formulas[i][0];
+      // Skip divider rows (rows with HYPERLINK formulas)
+      if (formula && typeof formula === 'string' && formula.includes('HYPERLINK')) {
+        continue;
+      }
+      
       const studentNum = String(studentNumbers[i][0] || '').trim();
       if (studentNum) {
         uniqueNumbers.add(studentNum);
