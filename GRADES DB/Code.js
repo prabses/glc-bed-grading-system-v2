@@ -63,10 +63,11 @@ function showImportGradesDialog() {
  * @return {Object} Result object with success status and message
  */
 function importGrades(ogsTemplateUrl, academicYearSheet) {
+  const userEmail = Session.getActiveUser().getEmail();
   console.log(
-    "Function importGrades executed by: " + Session.getActiveUser().getEmail()
+    "Function importGrades executed by: " + userEmail
   );
-  return callApi("importGrades", { ogsTemplateUrl, academicYearSheet });
+  return callApi("importGrades", { ogsTemplateUrl, academicYearSheet, userEmail });
 }
 
 /**
