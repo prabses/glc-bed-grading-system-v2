@@ -1,9 +1,9 @@
 <!DOCTYPE html><html><head>
-      <title>GRADES DB - WORKING INSTRUCTIONS</title>
+      <title>NEW_GradesDB_Working_Instructions</title>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       
-      <link rel="stylesheet" href="file:///c:\Users\Terenz\.cursor\extensions\shd101wyy.markdown-preview-enhanced-0.8.20-universal\crossnote\dependencies\katex\katex.min.css">
+      <link rel="stylesheet" href="file:///c:\Users\Ghie\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.20\crossnote\dependencies\katex\katex.min.css">
       
       
       
@@ -14,614 +14,671 @@
 /* Please visit the URL below for more information: */
 /*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
 
+#backToTop {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #08c;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-decoration: none;
+  display: none;
+  cursor: pointer;
+  z-index: 9999;
+}
+
+#backToTop:hover {
+  background: #00a3f5;
+}
+
       </style>
       <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
   document.addEventListener("DOMContentLoaded", function () {
     // your code here
   });
 </script></head><body for="html-export">
-    
+    <a id="top"></a>
     
       <div class="crossnote markdown-preview  ">
       
-<h1 id="grades-database---working-instructions">Grades Database - Working Instructions </h1>
-<h2 id="table-of-contents">Table of Contents </h2>
+<h2 id="grades-database---working-instructions">Grades Database - Working Instructions </h2>
+<h3 id="table-of-contents">Table of Contents </h3>
 <ol>
-<li><a href="#system-overview">System Overview</a></li>
-<li><a href="#academic-year-sheets">Academic Year Sheets</a></li>
-<li><a href="#import-student-grades-instructions">Import Student Grades Instructions</a></li>
-<li><a href="#update-student-grades-instructions">Update Student Grades Instructions</a></li>
-<li><a href="#data-management-instructions">Data Management Instructions</a></li>
-<li><a href="#troubleshooting-guide">Troubleshooting Guide</a></li>
-</ol>
-<hr>
-<h2 id="system-overview">System Overview </h2>
-<p>The Grades Database is a Google Apps Script application that manages student grades for multiple academic years. The system provides two main interfaces:</p>
+<li><a href="#1-system-overview">System Overview</a>
 <ul>
-<li><strong>Import Student Grades Form</strong>: For importing grades from OGS (Official Grade Sheet) template Google Sheets into academic year sheets</li>
-<li><strong>Update Student Grades Form</strong>: For searching and modifying individual grade periods for specific students and subjects</li>
-</ul>
-<p>Both forms are accessible through the <strong>"Upload"</strong> menu in the Google Sheets interface and feature secure API architecture for data operations.</p>
-<hr>
-<h2 id="academic-year-sheets">Academic Year Sheets </h2>
-<p>Before importing or updating student grades, ensure that your spreadsheet contains sheets named with the school year format (e.g., "2024-2025", "2023-2024"). These sheet names serve as the basis for the Academic Year dropdown selection in both the import and update forms. The dropdown only displays sheets that already exist and match the "YYYY-YYYY" format, so you must create the academic year sheet manually before importing data.</p>
-<hr>
-<h2 id="import-student-grades-instructions">Import Student Grades Instructions </h2>
-<h3 id="accessing-the-import-student-grades-form">Accessing the Import Student Grades Form </h3>
-<ol>
-<li>Open the main Google Sheets document containing the Grades Database</li>
-<li>Click on the <strong>"Upload"</strong> menu in the top menu bar</li>
-<li>Select <strong>"Import Student Grades"</strong> from the dropdown menu</li>
-<li>The Import Student Grades Form will open in a modal dialog window</li>
-</ol>
-<h3 id="understanding-the-import-student-grades-form-interface">Understanding the Import Student Grades Form Interface </h3>
-<p>The form contains the following fields:</p>
-<ul>
-<li><strong>Academic Year Dropdown</strong>: Select the target academic year sheet (e.g., "2024-2025")</li>
-<li><strong>Google Sheet Link Textarea</strong>: Paste the URL of the OGS template Google Sheet</li>
-<li><strong>Action Buttons</strong>: Cancel and Import Student Grades buttons</li>
-</ul>
-<h3 id="importing-grades-from-ogs-template">Importing Grades from OGS Template </h3>
-<ol>
-<li>
-<p><strong>Select Academic Year</strong></p>
-<ul>
-<li>Click on the <strong>Academic Year</strong> dropdown</li>
-<li>Select the academic year sheet where you want to import grades</li>
-<li>The academic year sheet must already exist in your spreadsheet</li>
+<li>1.1 <a href="#11-what-is-the-grades-database">What is the Grades Database?</a></li>
+<li>1.2 <a href="#12-quick-start-guide">Quick Start Guide</a></li>
 </ul>
 </li>
-<li>
-<p><strong>Get OGS Template Link</strong></p>
+<li><a href="#2-import-student-grades-instructions">Import Student Grades Instructions</a>
 <ul>
-<li>Open the OGS template Google Sheet that contains the grades you want to import</li>
-<li>Copy the URL from the browser address bar</li>
-<li>The URL should look like: <code>https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit</code></li>
+<li>2.1 <a href="#21-opening-the-import-student-grades-form">Opening the Import Student Grades Form</a></li>
+<li>2.2 <a href="#22-importing-grades-from-ogs-template">Importing Grades from OGS Template</a></li>
+<li>2.3 <a href="#23-what-happens-during-import">What Happens During Import</a></li>
+<li>2.4 <a href="#24-error-messages-and-solutions">Error Messages and Solutions</a></li>
 </ul>
 </li>
-<li>
-<p><strong>Paste the Google Sheet Link</strong></p>
+<li><a href="#3-update-student-grades-instructions">Update Student Grades Instructions</a>
 <ul>
-<li>Click in the <strong>Google Sheet Link</strong> textarea</li>
-<li>Paste the copied URL</li>
-<li>Ensure the URL is complete and includes <code>docs.google.com/spreadsheets</code></li>
+<li>3.1 <a href="#31-opening-the-update-student-grades-form">Opening the Update Student Grades Form</a></li>
+<li>3.2 <a href="#32-finding-a-students-grades">Finding a Student's Grades</a></li>
+<li>3.3 <a href="#33-changing-student-grades">Changing Student Grades</a></li>
+<li>3.4 <a href="#34-error-messages-and-solutions">Error Messages and Solutions</a></li>
 </ul>
 </li>
-<li>
-<p><strong>Import the Grades</strong></p>
+<li><a href="#4-managing-your-data">Managing Your Data</a>
 <ul>
-<li>Click the <strong>"Import Student Grades"</strong> button</li>
-<li>The button will show "Importing..." during the process</li>
-<li>Wait for the success confirmation message</li>
-<li>The form will automatically close upon successful import</li>
+<li>4.1 <a href="#41-academic-year-sheets">Academic Year Sheets</a></li>
+<li>4.2 <a href="#42-update-log-sheet">UPDATE LOG Sheet</a></li>
+<li>4.3 <a href="#43-important-rules-about-data">Important Rules About Data</a></li>
 </ul>
 </li>
-<li>
-<p><strong>Verify the Import</strong></p>
+<li><a href="#5-troubleshooting-guide">Troubleshooting Guide</a>
 <ul>
-<li>Navigate to the selected academic year sheet in your spreadsheet</li>
-<li>Verify that grade data appears starting from row 2 (row 1 contains headers)</li>
-<li>Check that all subjects from the OGS template have been imported</li>
-<li>Verify that student grades are correctly populated</li>
-</ul>
-</li>
-</ol>
-<h3 id="import-process-details">Import Process Details </h3>
-<p>The import process:</p>
-<ul>
-<li><strong>Extracts Information</strong>: Automatically extracts advisor name, school year, level, and section from the OGS template</li>
-<li><strong>Processes All Subjects</strong>: Imports grades from all subject sheets in the OGS template (excluding Attendance, Character, Characters, and MAPEH sheets)</li>
-<li><strong>Handles MAPEH</strong>: For MAPEH subjects, only Final Grading and Final EQ are imported (grading periods are left empty)</li>
-<li><strong>Updates Existing Records</strong>: If a student-subject combination already exists, it updates the existing row</li>
-<li><strong>Inserts New Records</strong>: If a student-subject combination doesn't exist, it creates a new row</li>
-<li><strong>Preserves Order</strong>: Maintains the subject order from the OGS template</li>
-</ul>
-<h3 id="import-student-grades-form-error-handling">Import Student Grades Form Error Handling </h3>
-<ol>
-<li>
-<p><strong>Missing Academic Year</strong></p>
-<ul>
-<li>If you don't select an academic year, an alert will prompt you to select one</li>
-<li>Select an academic year from the dropdown before importing</li>
-</ul>
-</li>
-<li>
-<p><strong>Invalid Google Sheet URL</strong></p>
-<ul>
-<li>If the URL doesn't contain <code>docs.google.com/spreadsheets</code>, an error will appear</li>
-<li>Ensure you're using a valid Google Sheets URL</li>
-<li>Copy the URL directly from the browser address bar</li>
-</ul>
-</li>
-<li>
-<p><strong>Cannot Access OGS Template</strong></p>
-<ul>
-<li>If the system cannot access the OGS template, an error will show</li>
-<li>Ensure you have access permissions to the OGS template spreadsheet</li>
-<li>Verify the URL is correct and the spreadsheet exists</li>
-</ul>
-</li>
-<li>
-<p><strong>No Subject Sheets Found</strong></p>
-<ul>
-<li>If no subject sheets are found in the OGS template, an error will appear</li>
-<li>Ensure the OGS template contains at least one subject sheet with grades</li>
-<li>Check that subject sheets are not named "Attendance", "Character", "Characters", or "MAPEH" (these are excluded)</li>
-</ul>
-</li>
-<li>
-<p><strong>No Student Grades Found</strong></p>
-<ul>
-<li>If no student data is found in the OGS template, an error will show</li>
-<li>Ensure the OGS template contains student grade data</li>
-<li>Check that data rows start from row 10 in subject sheets</li>
-</ul>
-</li>
-<li>
-<p><strong>Academic Year Sheet Not Found</strong></p>
-<ul>
-<li>If the selected academic year sheet doesn't exist, an error will appear</li>
-<li>Create the academic year sheet manually before importing</li>
-<li>Ensure the sheet name follows the "YYYY-YYYY" format</li>
+<li>5.1 <a href="#51-forms-wont-open">Forms Won't Open</a></li>
+<li>5.2 <a href="#52-cant-import-grades">Can't Import Grades</a></li>
+<li>5.3 <a href="#53-cant-find-student-grades">Can't Find Student Grades</a></li>
+<li>5.4 <a href="#54-changes-wont-save">Changes Won't Save</a></li>
+<li>5.5 <a href="#55-academic-year-not-showing">Academic Year Not Showing</a></li>
+<li>5.6 <a href="#56-access-denied-messages">"Access Denied" Messages</a></li>
+<li>5.7 <a href="#57-update-log-is-missing">Update Log is Missing</a></li>
+<li>5.8 <a href="#58-grades-look-wrong">Grades Look Wrong</a></li>
+<li>5.9 <a href="#59-system-wont-work">System Won't Work</a></li>
+<li>5.10 <a href="#510-mapeh-grades-missing">MAPEH Grades Missing</a></li>
+<li>5.11 <a href="#511-seeing-duplicate-records">Seeing Duplicate Records</a></li>
 </ul>
 </li>
 </ol>
 <hr>
-<h2 id="update-student-grades-instructions">Update Student Grades Instructions </h2>
-<h3 id="accessing-the-update-student-grades-form">Accessing the Update Student Grades Form </h3>
+<h3 id="1-system-overview">1. System Overview </h3>
+<h4 id="11-what-is-the-grades-database">1.1 What is the Grades Database? </h4>
+<p>The Grades Database is a tool built into Google Sheets that helps you manage student grades for multiple school years. Think of it as a digital filing cabinet where you can:</p>
+<ul>
+<li>Import grades from teacher's grade sheets into your main database</li>
+<li>Search for and update individual student grades when needed</li>
+<li>Keep track of who changed what and when</li>
+</ul>
+<p>The system does most of the work for you, you just need to use simple forms to import or update grades.</p>
+<hr>
+<h4 id="12-quick-start-guide">1.2 Quick Start Guide </h4>
+<p><strong>To import grades from a teacher's grade sheet:</strong></p>
 <ol>
-<li>Open the main Google Sheets document containing the Grades Database</li>
-<li>Click on the <strong>"Upload"</strong> menu in the top menu bar</li>
-<li>Select <strong>"Update Student Grades"</strong> from the dropdown menu</li>
-<li>The Update Student Grades Form will open in a modal dialog window</li>
+<li>Open your spreadsheet → Click <strong>Upload</strong> at the top → Choose <strong>Import Student Grades</strong></li>
+<li>Pick the school year, paste the link to the teacher's grade sheet</li>
+<li>Click <strong>Import Student Grades</strong> and wait for it to finish</li>
 </ol>
-<h3 id="understanding-the-update-student-grades-form-interface">Understanding the Update Student Grades Form Interface </h3>
-<p>The form contains the following fields:</p>
-<ul>
-<li><strong>Academic Year Dropdown</strong>: Select the academic year sheet to search</li>
-<li><strong>Student Number Input</strong>: Text field with autocomplete for searching student numbers</li>
-<li><strong>Subject Dropdown</strong>: Select the subject (populated after entering student number)</li>
-<li><strong>Load Grades Button</strong>: Button to load grade information</li>
-<li><strong>Current Grade Information Panel</strong>: Shows all current grade data in a grid layout (appears after loading)
-<ul>
-<li>Displays: Student Number, Full Name, Grade Level, Section, Subject, Teacher, 1st Initial, 2nd Initial, 3rd Initial, 4th Initial</li>
-</ul>
-</li>
-<li><strong>Update Initial Grades Section</strong>: Shows current grades and input fields for updating
-<ul>
-<li>Current Grades Display: Shows all four initial grades</li>
-<li>1st Initial Input: Enter new grade for 1st grading period</li>
-<li>2nd Initial Input: Enter new grade for 2nd grading period</li>
-<li>3rd Initial Input: Enter new grade for 3rd grading period</li>
-<li>4th Initial Input: Enter new grade for 4th grading period</li>
-</ul>
-</li>
-<li><strong>Remarks Input</strong>: Optional field for notes about the update</li>
-<li><strong>Action Buttons</strong>: Cancel and Update Grades buttons</li>
-</ul>
-<h3 id="searching-for-grade-information">Searching for Grade Information </h3>
+<p><strong>To update a student's grade:</strong></p>
 <ol>
-<li>
-<p><strong>Select Academic Year</strong></p>
-<ul>
-<li>Click on the <strong>Academic Year</strong> dropdown</li>
-<li>Select the academic year sheet where the student is enrolled</li>
-<li>The student number autocomplete will populate based on the selected academic year</li>
-</ul>
-</li>
-<li>
-<p><strong>Enter Student Number</strong></p>
-<ul>
-<li>Type the student number in the <strong>Student Number</strong> field</li>
-<li>As you type, matching student numbers will appear in a dropdown</li>
-<li>You can click on a suggestion or continue typing</li>
-<li>Use arrow keys to navigate suggestions and Enter to select</li>
-<li>After selecting a student number, the Subject dropdown will automatically populate</li>
-</ul>
-</li>
-<li>
-<p><strong>Select Subject</strong></p>
-<ul>
-<li>After entering a student number, the <strong>Subject</strong> dropdown will become enabled</li>
-<li>Select the subject for which you want to update grades</li>
-<li>Only subjects that have grade records for the selected student will appear</li>
-</ul>
-</li>
-<li>
-<p><strong>Load Grade Information</strong></p>
-<ul>
-<li>Click the <strong>"Load Grades"</strong> button</li>
-<li>The button will show "Loading..." during the process</li>
-<li>If found, grade information will appear in the Current Grade Information panel</li>
-<li>The Update Section will become visible</li>
-</ul>
-</li>
-<li>
-<p><strong>Search Results - Grades Found</strong></p>
-<ul>
-<li>All grade information will be displayed in the information panel</li>
-<li>Current grades for all four periods will be shown</li>
-<li>The Update Section will appear with pre-filled input fields</li>
-<li>You can now modify the grades</li>
-</ul>
-</li>
-<li>
-<p><strong>Search Results - Grades Not Found</strong></p>
-<ul>
-<li>An alert message will inform you that the grade record was not found</li>
-<li>Verify the student number, academic year, and subject selection</li>
-<li>Ensure the student has grade records for the selected subject</li>
-</ul>
-</li>
+<li>Open your spreadsheet → Click <strong>Upload</strong> at the top → Choose <strong>Update Student Grades</strong></li>
+<li>Pick the school year, type the student number, and pick the subject</li>
+<li>Click <strong>Load Grades</strong>, change the grades you need to update, and click <strong>Update Grades</strong></li>
 </ol>
-<h3 id="updating-student-grades">Updating Student Grades </h3>
+<p><strong>Before you start:</strong></p>
+<ul>
+<li>Make sure you've created a sheet for the school year (like "2024-2025")</li>
+<li>The sheet name must follow the format "YYYY-YYYY" with a hyphen in the middle</li>
+</ul>
+<hr>
+<h3 id="2-import-student-grades-instructions">2. Import Student Grades Instructions </h3>
+<h4 id="21-opening-the-import-student-grades-form">2.1 Opening the Import Student Grades Form </h4>
+<p><img src="assetsGradesDB/openImportStuGrades.jpg" alt="alt text"></p>
 <ol>
-<li>
-<p><strong>Prerequisites for Update</strong></p>
-<ul>
-<li>A student and subject must first be found using the search function (see previous section)</li>
-<li>The form must be in "Update" mode with grade information displayed</li>
-<li>The Update Section must be visible</li>
-</ul>
-</li>
-<li>
-<p><strong>Review Current Grades</strong></p>
-<ul>
-<li>The current grades for all four periods are displayed at the top of the Update Section</li>
-<li>Review the current values before making changes</li>
-<li>Input fields are pre-filled with current values</li>
-</ul>
-</li>
-<li>
-<p><strong>Enter New Grades</strong></p>
-<ul>
-<li>Modify the grades in the input fields for the periods you want to update</li>
-<li>You can update one or more periods at once</li>
-<li>Leave fields empty if you don't want to change that period's grade</li>
-<li>Only fields with values will be updated</li>
-</ul>
-</li>
-<li>
-<p><strong>Add Remarks (Optional)</strong></p>
-<ul>
-<li>Enter any notes or reasons for the update in the <strong>Remarks</strong> field</li>
-<li>This information will be logged in the UPDATE LOG sheet</li>
-<li>Remarks are optional but recommended for audit purposes</li>
-</ul>
-</li>
-<li>
-<p><strong>Save Changes</strong></p>
-<ul>
-<li>Click <strong>"Update Grades"</strong> to save your changes</li>
-<li>The button will show "Updating..." during the process</li>
-<li>Only the periods with new values will be updated in the database</li>
-<li>Wait for the success confirmation message</li>
-</ul>
-</li>
-<li>
-<p><strong>After Successful Update</strong></p>
-<ul>
-<li>A success message will show which periods were updated</li>
-<li>Each updated period will be logged separately in the UPDATE LOG sheet</li>
-<li>The form will automatically close</li>
-<li>You can verify the changes in the academic year sheet</li>
-</ul>
-</li>
-</ol>
-<h3 id="update-student-grades-form-error-handling">Update Student Grades Form Error Handling </h3>
-<ol>
-<li>
-<p><strong>Required Field Validation</strong></p>
-<ul>
-<li>If you try to update without selecting academic year, student number, or subject, an alert will prompt you</li>
-<li>Ensure all required fields are filled before loading grades</li>
-<li>Ensure at least one grade field has a value before updating</li>
-</ul>
-</li>
-<li>
-<p><strong>No Grades to Update</strong></p>
-<ul>
-<li>If all entered grades are the same as current values, an error will be shown</li>
-<li>Enter different values to proceed with the update</li>
-</ul>
-</li>
-<li>
-<p><strong>Grades Not Loaded</strong></p>
-<ul>
-<li>If you try to update without loading grade information first, an alert will appear</li>
-<li>Load grade information using the search function before updating</li>
-</ul>
-</li>
-<li>
-<p><strong>Search Errors</strong></p>
-<ul>
-<li>If search fails, verify the student number format</li>
-<li>Check that the correct academic year is selected</li>
-<li>Ensure the student has grade records for the selected subject</li>
-<li>Verify the subject exists in the dropdown</li>
-</ul>
-</li>
+<li>Open the Google Sheets file for your Grades Database</li>
+<li>Look at the top of the screen and click on <strong>Upload</strong></li>
+<li>Click <strong>Import Student Grades</strong> from the list that appears</li>
+<li>A pop-up window will appear with the form</li>
 </ol>
 <hr>
-<h2 id="data-management-instructions">Data Management Instructions </h2>
-<h3 id="academic-year-sheets-1">Academic Year Sheets </h3>
+<h4 id="22-importing-grades-from-ogs-template">2.2 Importing Grades from OGS Template </h4>
+<h3 id="step-1-choose-the-school-year"><strong>Step 1: Choose the School Year</strong> </h3>
+<p><img src="assetsGradesDB/importAcadYear.jpg" alt="alt text"></p>
 <ol>
-<li>
-<p><strong>Sheet Naming Convention</strong></p>
-<ul>
-<li>Academic year sheets must follow the format "YYYY-YYYY" (e.g., "2024-2025")</li>
-<li>Sheets are not automatically created - you must create them manually</li>
-<li>Only sheets matching this format will appear in the Academic Year dropdown</li>
-</ul>
-</li>
-<li>
-<p><strong>Sheet Structure</strong></p>
-<ul>
-<li>Row 1: Header row with column names</li>
-<li>Row 2 onwards: Grade data rows</li>
-<li>Expected columns (minimum 20):
-<ul>
-<li>Student Number (Column A)</li>
-<li>Full Name (Column B)</li>
-<li>Grade Level (Column C)</li>
-<li>Section (Column D)</li>
-<li>Subject (Column E)</li>
-<li>Teacher (Column F)</li>
-<li>1st Initial (Column G)</li>
-<li>1st Transmuted (Column H)</li>
-<li>1st EQ (Column I)</li>
-<li>2nd Initial (Column J)</li>
-<li>2nd Transmuted (Column K)</li>
-<li>2nd EQ (Column L)</li>
-<li>3rd Initial (Column M)</li>
-<li>3rd Transmuted (Column N)</li>
-<li>3rd EQ (Column O)</li>
-<li>4th Initial (Column P)</li>
-<li>4th Transmuted (Column Q)</li>
-<li>4th EQ (Column R)</li>
-<li>Final Grading (Column S)</li>
-<li>Final EQ (Column T)</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p><strong>Data Organization</strong></p>
-<ul>
-<li>Each academic year has its own sheet</li>
-<li>Grade data is organized by academic year</li>
-<li>Each row represents one student-subject combination</li>
-<li>Student Number + Subject combination must be unique within each academic year</li>
-</ul>
-</li>
+<li>Click on the box labeled <strong>Academic Year</strong></li>
+<li>A list will drop down click on the school year you want (like 2024-2025, etc.)</li>
 </ol>
-<h3 id="update-log-sheet">UPDATE LOG Sheet </h3>
+<blockquote>
+<p><strong>Important</strong>: The school year sheet must already exist in your spreadsheet. If you don't see your school year in the list, you need to create the sheet first.</p>
+</blockquote>
+<hr>
+<h3 id="step-2-get-the-teachers-grade-sheet-link"><strong>Step 2: Get the Teacher's Grade Sheet Link</strong> </h3>
+<p><img src="assetsGradesDB/openDrive.jpg" alt="alt text"><br>
+<img src="assetsGradesDB/importGrades.jpg" alt="alt text"></p>
 <ol>
-<li>
-<p><strong>Automatic Logging</strong></p>
-<ul>
-<li>All grade updates are automatically logged</li>
-<li>The UPDATE LOG sheet is created automatically if it doesn't exist</li>
-<li>Each updated period creates a separate log entry</li>
-</ul>
-</li>
-<li>
-<p><strong>Log Entry Information</strong></p>
-<ul>
-<li>Timestamp: When the update was made</li>
-<li>Updated By: Email of the user who made the update</li>
-<li>Student Number: The student's identification number</li>
-<li>Full Name: The student's full name</li>
-<li>School Year: The academic year sheet where the update was made</li>
-<li>Subject: Which subject was updated</li>
-<li>Period: Which grading period was updated (1st Initial, 2nd Initial, etc.)</li>
-<li>Original Grade: The previous grade value</li>
-<li>Updated Grade: The new grade value</li>
-<li>Remarks: Any notes provided during the update</li>
-</ul>
-</li>
-<li>
-<p><strong>Viewing Update Log</strong></p>
-<ul>
-<li>Navigate to the "UPDATE LOG" sheet in your spreadsheet</li>
-<li>All updates are listed chronologically</li>
-<li>Each period update is logged separately</li>
-<li>Use filters to search for specific students, subjects, or time periods</li>
-</ul>
-</li>
+<li>Open the teacher's grade sheet (OGS template) in Google Sheets</li>
+<li>Look at the top of your browser where the web address is shown</li>
+<li>Click once to select all the text in the address bar</li>
+<li>Copy it (press Ctrl+C on Windows or Command+C on Mac)</li>
 </ol>
-<h3 id="data-validation">Data Validation </h3>
+<blockquote>
+<p><strong>What the link looks like</strong>: It should start with <code>https://docs.google.com/spreadsheets/d/</code> followed by a bunch of letters and numbers.</p>
+</blockquote>
+<hr>
+<h3 id="step-3-paste-the-link"><strong>Step 3: Paste the Link</strong> </h3>
+<p><img src="assetsGradesDB/importLIink.jpg" alt="alt text"></p>
 <ol>
-<li>
-<p><strong>Student-Subject Uniqueness</strong></p>
-<ul>
-<li>Each Student Number + Subject combination must be unique within each academic year</li>
-<li>The system updates existing records if the combination already exists during import</li>
-<li>Updates only modify the Initial grades (1st, 2nd, 3rd, 4th Initial)</li>
-</ul>
-</li>
-<li>
-<p><strong>Grade Updates</strong></p>
-<ul>
-<li>Only Initial grades can be updated through the Update form</li>
-<li>Transmuted grades, EQ grades, and Final grades are not updated through this interface</li>
-<li>Updates are logged chronologically by period</li>
-</ul>
-</li>
-<li>
-<p><strong>Data Format</strong></p>
-<ul>
-<li>Grades are stored as text/numbers</li>
-<li>Empty values are allowed for grades</li>
-<li>The system preserves the exact format from the OGS template during import</li>
-</ul>
-</li>
-</ol>
-<h3 id="ogs-template-requirements">OGS Template Requirements </h3>
-<ol>
-<li>
-<p><strong>Template Structure</strong></p>
-<ul>
-<li>OGS templates should contain multiple subject sheets</li>
-<li>Each subject sheet should have student grade data starting from row 10</li>
-<li>Header information (Teacher, School Year, Level, Section) should be in rows 2-5 for subject sheets</li>
-<li>For Attendance sheet, header information is in rows 1-4</li>
-</ul>
-</li>
-<li>
-<p><strong>Subject Sheet Format</strong></p>
-<ul>
-<li>Row 9: Column headers (Student No, Student Name, etc.)</li>
-<li>Row 10 onwards: Student data</li>
-<li>Columns for regular subjects:
-<ul>
-<li>Column F (index 5): 1st Initial</li>
-<li>Column G (index 6): 1st Transmuted</li>
-<li>Column H (index 7): 1st EQ</li>
-<li>Column L (index 11): 2nd Initial</li>
-<li>Column M (index 12): 2nd Transmuted</li>
-<li>Column N (index 13): 2nd EQ</li>
-<li>Column R (index 17): 3rd Initial</li>
-<li>Column S (index 18): 3rd Transmuted</li>
-<li>Column T (index 19): 3rd EQ</li>
-<li>Column X (index 23): 4th Initial</li>
-<li>Column Y (index 24): 4th Transmuted</li>
-<li>Column Z (index 25): 4th EQ</li>
-<li>Column AA (index 26): Final Grading</li>
-<li>Column AB (index 27): Final EQ</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p><strong>MAPEH Subject Handling</strong></p>
-<ul>
-<li>MAPEH subjects are handled specially</li>
-<li>Only Final Grading (column AF, index 30) and Final EQ (column AG, index 31) are imported</li>
-<li>Grading periods (1st-4th Initial) are left empty for MAPEH</li>
-</ul>
-</li>
+<li>Click inside the <strong>Google Sheet Link</strong> box in the form</li>
+<li>Paste the link you copied (press Ctrl+V on Windows or Command+V on Mac)</li>
+<li>Make sure the whole link is there and nothing is cut off</li>
 </ol>
 <hr>
-<h2 id="troubleshooting-guide">Troubleshooting Guide </h2>
-<h3 id="import-form-loading-problems">Import Form Loading Problems </h3>
-<p><strong>Issue</strong>: Import form doesn't open or shows errors<br>
-<strong>Solutions</strong>:</p>
+<h3 id="step-4-import-the-grades"><strong>Step 4: Import the Grades</strong> </h3>
+<p><img src="assetsGradesDB/importSave.jpg" alt="alt text"></p>
 <ol>
-<li>Check your internet connection</li>
-<li>Refresh the browser page</li>
-<li>Close and reopen the form from the Google Sheets menu</li>
-<li>Ensure you have proper permissions to access the spreadsheet</li>
-<li>Check that the script is properly deployed</li>
+<li>Click the blue <strong>Import Student Grades</strong> button at the bottom</li>
+<li>The button will change to say <strong>Importing...</strong> - this means the system is working</li>
+<li>Wait patiently, this might take a minute or two depending on how many grades there are</li>
+<li>When it's done, you'll see a message saying it was successful</li>
+<li>The form will close automatically</li>
 </ol>
-<h3 id="ogs-template-import-failures">OGS Template Import Failures </h3>
-<p><strong>Issue</strong>: OGS template doesn't import or shows errors<br>
-<strong>Solutions</strong>:</p>
+<hr>
+<h3 id="step-5-check-that-it-worked"><strong>Step 5: Check That It Worked</strong> </h3>
+<p><img src="assetsGradesDB/grades.jpg" alt="alt text"></p>
 <ol>
-<li>Verify the Google Sheet URL is correct and complete</li>
-<li>Ensure you have access permissions to the OGS template spreadsheet</li>
-<li>Check that the OGS template contains at least one subject sheet</li>
-<li>Verify subject sheets have data starting from row 10</li>
-<li>Ensure header information (Teacher, Level, Section) is present in rows 2-5</li>
-<li>Check that the template is not corrupted or protected</li>
+<li>Look at the bottom of your spreadsheet where the sheet tabs are</li>
+<li>Click on the school year sheet you selected (like "2024-2025")</li>
+<li>You should see the student grades starting from row 2</li>
+<li>Check that all the subjects are there</li>
+<li>Make sure the student names and grades look correct</li>
 </ol>
-<h3 id="update-form-not-finding-grades">Update Form Not Finding Grades </h3>
-<p><strong>Issue</strong>: Grade search doesn't return results<br>
-<strong>Solutions</strong>:</p>
+<hr>
+<h4 id="23-what-happens-during-import">2.3 What Happens During Import </h4>
+<p>When you import grades, the system automatically:</p>
+<ul>
+<li><strong>Reads the teacher's information</strong>: Gets the teacher's name, school year, grade level, and section from the grade sheet</li>
+<li><strong>Imports all subjects</strong>: Copies grades from every subject in the grade sheet (except Attendance, Character, and some other special sheets)</li>
+<li><strong>Handles MAPEH differently</strong>: For MAPEH subjects, it only brings in the Final Grading and Final EQ scores</li>
+<li><strong>Updates or adds records</strong>: If a student already has a grade for that subject, it updates it. If not, it adds a new row</li>
+<li><strong>Keeps everything organized</strong>: Maintains the same order of subjects as in the original grade sheet</li>
+</ul>
+<hr>
+<h4 id="24-error-messages-and-solutions">2.4 Error Messages and Solutions </h4>
+<h5 id="missing-school-year">Missing School Year </h5>
+<p><img src="assetsGradesDB/errorAcadYear.jpg" alt="alt text"></p>
+<p><strong>What this means:</strong> You forgot to pick a school year before clicking the import button.</p>
+<p><strong>How to fix it:</strong></p>
 <ol>
-<li>Verify the student number is correct</li>
-<li>Check that the correct academic year is selected</li>
-<li>Ensure the student has grade records for the selected subject</li>
-<li>Try typing the full student number without spaces</li>
-<li>Check the academic year sheet directly to confirm the grade record exists</li>
+<li>Click on the <strong>Academic Year</strong> dropdown at the top of the form</li>
+<li>Choose a school year from the list</li>
+<li>Then click <strong>Import Student Grades</strong> again</li>
 </ol>
-<h3 id="update-failures">Update Failures </h3>
-<p><strong>Issue</strong>: Student grades don't update or shows errors<br>
-<strong>Solutions</strong>:</p>
+<hr>
+<h5 id="invalid-link">Invalid Link </h5>
+<p><img src="assetsGradesDB/errorInvalid.jpg" alt="alt text"></p>
+<p><strong>What this means:</strong> The link you pasted isn't a valid Google Sheets link, or something is missing.</p>
+<p><strong>How to fix it:</strong></p>
 <ol>
-<li>Ensure all required fields are filled (academic year, student number, subject)</li>
-<li>Check that at least one grade field has a new value</li>
-<li>Verify you have write permissions to the spreadsheet</li>
-<li>Ensure your internet connection is stable</li>
-<li>Try refreshing the form and updating again</li>
-<li>Check the UPDATE LOG to see if the update was recorded</li>
+<li>Go back to the teacher's grade sheet</li>
+<li>Make sure you're copying from the address bar at the very top of your browser</li>
+<li>Copy the entire link, don't miss any part of it</li>
+<li>The link should start with <code>https://docs.google.com/spreadsheets/</code></li>
+<li>Paste it carefully into the form and try again</li>
 </ol>
-<h3 id="academic-year-sheet-not-appearing">Academic Year Sheet Not Appearing </h3>
-<p><strong>Issue</strong>: Academic year doesn't appear in the dropdown<br>
-<strong>Solutions</strong>:</p>
+<hr>
+<h5 id="cant-open-the-grade-sheet">Can't Open the Grade Sheet </h5>
+<p><img src="assetsGradesDB/errorInvalid.jpg" alt="alt text"></p>
+<p><strong>What this means:</strong> The system can't open the teacher's grade sheet you're trying to import from.</p>
+<p><strong>How to fix it:</strong></p>
 <ol>
-<li>Verify the sheet name follows the format "YYYY-YYYY" (e.g., "2024-2025")</li>
-<li>Check that the sheet exists in the spreadsheet</li>
-<li>Ensure there are no extra spaces in the sheet name</li>
-<li>Create the sheet manually if needed (following the naming convention)</li>
-<li>Refresh the form to reload available sheets</li>
+<li>Make sure you have permission to view the teacher's grade sheet</li>
+<li>Try opening the link in a new browser tab to see if you can access it</li>
+<li>If you can't open it, ask the teacher to share it with you</li>
+<li>Check that the link is correct and the grade sheet still exists</li>
 </ol>
-<h3 id="permission-errors">Permission Errors </h3>
-<p><strong>Issue</strong>: "Access denied" or permission-related error messages<br>
-<strong>Solutions</strong>:</p>
+<hr>
+<h5 id="no-subjects-found">No Subjects Found </h5>
+<p><strong>What this means:</strong> The teacher's grade sheet doesn't have any subject sheets that can be imported.</p>
+<p><strong>How to fix it:</strong></p>
 <ol>
-<li>Verify you're logged into the correct Google account</li>
-<li>Check with your administrator about access permissions</li>
-<li>Ensure you have edit access to the spreadsheet</li>
-<li>Verify you have access to the OGS template spreadsheet (for imports)</li>
-<li>Try logging out and back into Google</li>
-<li>Contact your systems administrator for permission updates</li>
+<li>Open the teacher's grade sheet and look at the sheet tabs at the bottom</li>
+<li>Make sure there are subject sheets (like Math, Science, English, etc.)</li>
+<li>Check that the sheets aren't named "Attendance", "Character", "Characters", or "MAPEH" by themselves (these are skipped during import)</li>
+<li>Make sure the grade sheet is set up correctly</li>
 </ol>
-<h3 id="update-log-not-appearing">UPDATE LOG Not Appearing </h3>
-<p><strong>Issue</strong>: UPDATE LOG sheet doesn't exist or updates aren't logged<br>
-<strong>Solutions</strong>:</p>
+<hr>
+<h5 id="no-student-grades-found">No Student Grades Found </h5>
+<p><strong>What this means:</strong> The teacher's grade sheet doesn't have any student data that can be imported.</p>
+<p><strong>How to fix it:</strong></p>
 <ol>
-<li>The UPDATE LOG sheet is created automatically on first update</li>
-<li>Check if the sheet exists in your spreadsheet</li>
-<li>Verify updates are being saved (check the academic year sheet)</li>
-<li>Check script execution logs for errors</li>
-<li>The log may be in a different location if the sheet was renamed</li>
+<li>Open the teacher's grade sheet</li>
+<li>Check that the subject sheets have student information filled in</li>
+<li>Look for student names and grades starting around row 10</li>
+<li>If the grades aren't there, the teacher needs to fill them in first</li>
 </ol>
-<h3 id="data-formatting-issues">Data Formatting Issues </h3>
-<p><strong>Issue</strong>: Imported grades appear incorrectly formatted<br>
-<strong>Solutions</strong>:</p>
+<hr>
+<h5 id="school-year-sheet-doesnt-exist">School Year Sheet Doesn't Exist </h5>
+<p><strong>What this means:</strong> The school year you picked doesn't actually exist as a sheet in your spreadsheet.</p>
+<p><strong>How to fix it:</strong></p>
 <ol>
-<li>Check the OGS template structure matches expected format</li>
-<li>Verify column positions in the OGS template</li>
-<li>Review the source OGS template for formatting issues</li>
-<li>Re-import if necessary after fixing the OGS template</li>
+<li>Look at the bottom of your spreadsheet at the sheet tabs</li>
+<li>Check if there's a sheet named exactly like the school year (example: "2024-2025")</li>
+<li>If not, create a new sheet and name it following this format: "YYYY-YYYY" with a hyphen</li>
+<li>After creating the sheet, refresh the form and try again</li>
 </ol>
-<h3 id="script-execution-errors">Script Execution Errors </h3>
-<p><strong>Issue</strong>: Scripts fail to execute or timeout<br>
-<strong>Solutions</strong>:</p>
+<hr>
+<h3 id="3-update-student-grades-instructions">3. Update Student Grades Instructions </h3>
+<h4 id="31-opening-the-update-student-grades-form">3.1 Opening the Update Student Grades Form </h4>
+<p><img src="assetsGradesDB/updateOpenForm.jpg" alt="alt text"></p>
 <ol>
-<li>Check Tools → Script editor → Executions for error details</li>
-<li>Ensure the Web App URL is properly configured in Config.js</li>
-<li>Verify the API key is correct</li>
-<li>Check that the script is deployed as a web app</li>
-<li>Try running the script again after a few minutes</li>
-<li>Contact your systems developer if problems persist</li>
+<li>Open the Google Sheets file for your Grades Database</li>
+<li>Look at the top of the screen and click on <strong>Upload</strong></li>
+<li>Click <strong>Update Student Grades</strong> from the list that appears</li>
+<li>A pop-up window will appear with the form</li>
 </ol>
-<h3 id="mapeh-grades-not-importing">MAPEH Grades Not Importing </h3>
-<p><strong>Issue</strong>: MAPEH grades don't appear after import<br>
-<strong>Solutions</strong>:</p>
+<hr>
+<h4 id="32-finding-a-students-grades">3.2 Finding a Student's Grades </h4>
+<h3 id="step-1-choose-the-school-year-1"><strong>Step 1: Choose the School Year</strong> </h3>
+<p><img src="assetsGradesDB/updateAcademic.jpg" alt="alt text"></p>
 <ol>
-<li>Verify the MAPEH sheet exists in the OGS template</li>
-<li>Check that Final Grading and Final EQ columns are populated</li>
-<li>Ensure the MAPEH sheet is not excluded (it should be included)</li>
-<li>Verify column positions (AF for Final Grading, AG for Final EQ)</li>
-<li>Check that student data exists in the MAPEH sheet</li>
+<li>Click on the box labeled <strong>Academic Year</strong></li>
+<li>A list will drop down - click on the school year (like 2024-2025, etc.)</li>
+<li>After you pick this, the system will be ready to help you find student numbers</li>
 </ol>
-<h3 id="duplicate-records">Duplicate Records </h3>
-<p><strong>Issue</strong>: Duplicate student-subject combinations appear<br>
-<strong>Solutions</strong>:</p>
+<hr>
+<h3 id="step-2-type-the-student-number"><strong>Step 2: Type the Student Number</strong> </h3>
+<p><img src="assetsGradesDB/updateStudent.jpg" alt="alt text"></p>
 <ol>
-<li>The system should automatically update existing records during import</li>
-<li>Check for duplicate rows manually in the academic year sheet</li>
-<li>Remove duplicates manually if they exist</li>
-<li>Re-import the OGS template to update existing records</li>
-<li>Verify the Student Number + Subject combination is unique</li>
+<li>Click inside the <strong>Student Number</strong> box</li>
+<li>Start typing the student's number</li>
+<li>As you type, you'll see matching student numbers appear below - this helps you find the right one quickly</li>
+<li>You can click on a suggestion from the list, or just keep typing the full number</li>
+<li>You can also use the up and down arrow keys on your keyboard to move through the suggestions, then press Enter to select one</li>
 </ol>
-<p><em>This working instruction document covers the complete functionality of the Grades Database system. For additional support or system modifications, contact your systems developer.</em></p>
+<hr>
+<h3 id="step-3-choose-the-subject"><strong>Step 3: Choose the Subject</strong> </h3>
+<p><img src="assetsGradesDB/updateSubject.jpg" alt="alt text"></p>
+<ol>
+<li>After you type the student number, the <strong>Subject</strong> dropdown will become clickable</li>
+<li>Click on it and choose which subject you want to update (like Math, Science, etc.)</li>
+<li>You'll only see subjects that this student actually has grades for</li>
+</ol>
+<hr>
+<h3 id="step-4-load-the-grade-information"><strong>Step 4: Load the Grade Information</strong> </h3>
+<p><img src="assetsGradesDB/updateClick.jpg" alt="alt text"></p>
+<ol>
+<li>Click the blue <strong>Load Grades</strong> button</li>
+<li>The button will change to say <strong>Loading...</strong> while it searches</li>
+<li>Wait a moment - it usually only takes a few seconds</li>
+<li>If the student and subject are found, you'll see all their grade information appear on the screen</li>
+<li>The update section will appear so you can make changes</li>
+</ol>
+<hr>
+<h3 id="step-5-review-what-you-found"><strong>Step 5: Review What You Found</strong> </h3>
+<p><img src="assetsGradesDB/updateResult.jpg" alt="alt text"></p>
+<ol>
+<li>You'll see the student's full name, grade level, section, and teacher</li>
+<li>All four grading periods will be displayed with their current grades</li>
+<li>The boxes below will be ready for you to type in new grades</li>
+<li>You can now proceed to update the grades</li>
+</ol>
+<hr>
+<h4 id="33-changing-student-grades">3.3 Changing Student Grades </h4>
+<h3 id="step-1-make-sure-everything-is-loaded"><strong>Step 1: Make Sure Everything is Loaded</strong> </h3>
+<p>Before you can update grades:</p>
+<ol>
+<li>You must have completed the search steps above</li>
+<li>The student's grade information must be showing on the screen</li>
+<li>The update section with the input boxes must be visible</li>
+</ol>
+<hr>
+<h3 id="step-2-look-at-the-current-grades"><strong>Step 2: Look at the Current Grades</strong> </h3>
+<p><img src="assetsGradesDB/updateReview.jpg" alt="alt text"></p>
+<ol>
+<li>At the top of the update section, you'll see all the current grades for each grading period</li>
+<li>Take a moment to review these before making changes</li>
+<li>The input boxes below are already filled in with these current values</li>
+</ol>
+<hr>
+<h3 id="step-3-type-the-new-grades"><strong>Step 3: Type the New Grades</strong> </h3>
+<p><img src="assetsGradesDB/updateInitialGrades.jpg" alt="alt text"></p>
+<ol>
+<li>Click in the box for the grading period you want to change</li>
+<li>Type the new grade</li>
+<li>You can change one period or multiple periods at the same time</li>
+<li>If you don't want to change a period, just leave that box alone - it won't be updated</li>
+</ol>
+<blockquote>
+<p><strong>Tip</strong>: You only need to change the periods that are wrong or need updating. Any box you don't touch will stay the same.</p>
+</blockquote>
+<hr>
+<h3 id="step-4-add-a-note-optional-but-helpful"><strong>Step 4: Add a Note (Optional but Helpful)</strong> </h3>
+<p><img src="assetsGradesDB/updateRemarks.jpg" alt="alt text"></p>
+<ol>
+<li>Scroll down to the <strong>Remarks</strong> box</li>
+<li>Type a note about why you're making this change</li>
+<li>For example: "Corrected data entry error" or "Updated per teacher request"</li>
+<li>This helps keep track of why grades were changed</li>
+</ol>
+<blockquote>
+<p><strong>Why this matters</strong>: These notes are saved in a log, so if anyone asks later why a grade was changed, you'll have a record.</p>
+</blockquote>
+<hr>
+<h3 id="step-5-save-your-changes"><strong>Step 5: Save Your Changes</strong> </h3>
+<p><img src="assetsGradesDB/updateSave.jpg" alt="alt text"></p>
+<ol>
+<li>When you're ready, click the green <strong>Update Grades</strong> button</li>
+<li>The button will change to say <strong>Updating...</strong> while the system saves your changes</li>
+<li>Wait for the success message - don't close the form yet</li>
+<li>Only the periods you changed will be updated</li>
+</ol>
+<hr>
+<h3 id="step-6-what-happens-next"><strong>Step 6: What Happens Next</strong> </h3>
+<p><img src="assetsGradesDB/updateSuccess.jpg" alt="alt text"></p>
+<p>After you save:</p>
+<ol>
+<li>A message will appear telling you which periods were successfully updated</li>
+<li>Each change you made is automatically recorded in a special log sheet</li>
+<li>The form will close by itself</li>
+<li>You can check the school year sheet to see your changes</li>
+<li>You can also check the UPDATE LOG sheet to see the record of your change</li>
+</ol>
+<hr>
+<h4 id="34-error-messages-and-solutions">3.4 Error Messages and Solutions </h4>
+<h5 id="missing-information">Missing Information </h5>
+<p><img src="assetsGradesDB/errorUpdateAcad.jpg" alt="alt text"></p>
+<p><strong>What this means:</strong> You tried to search for grades or save changes without filling in all the required information.</p>
+<p><strong>How to fix it:</strong></p>
+<ol>
+<li>Make sure you picked a school year</li>
+<li>Make sure you typed a student number</li>
+<li>Make sure you picked a subject</li>
+<li>When updating, make sure you changed at least one grade to a new value</li>
+<li>Fill in any missing information and try again</li>
+</ol>
+<hr>
+<h5 id="nothing-to-update">Nothing to Update </h5>
+<p><img src="assetsGradesDB/errorUpdateNoGrade.jpg" alt="alt text"></p>
+<p><strong>What this means:</strong> All the grades you typed are exactly the same as what's already in the system, so there's nothing to change.</p>
+<p><strong>How to fix it:</strong></p>
+<ol>
+<li>Look at the current grades shown above the input boxes</li>
+<li>Make sure you're changing at least one grade to a different number</li>
+<li>Type in the new grades</li>
+<li>Then click <strong>Update Grades</strong> again</li>
+</ol>
+<hr>
+<h5 id="havent-loaded-grades-yet">Haven't Loaded Grades Yet </h5>
+<p><strong>What this means:</strong> You're trying to update grades without first loading the student's information.</p>
+<p><strong>How to fix it:</strong></p>
+<ol>
+<li>Fill in the school year, student number, and subject at the top</li>
+<li>Click the <strong>Load Grades</strong> button</li>
+<li>Wait for the student's information to appear</li>
+<li>Then you can make your changes and update</li>
+</ol>
+<hr>
+<h5 id="cant-find-the-student">Can't Find the Student </h5>
+<p><strong>What this means:</strong> The system couldn't find any grades for the student number and subject you entered.</p>
+<p><strong>How to fix it:</strong></p>
+<ol>
+<li>Double-check that you typed the student number correctly</li>
+<li>Make sure you picked the right school year</li>
+<li>Check that the subject you selected is correct</li>
+<li>Look at the school year sheet directly to see if this student has a record for this subject</li>
+<li>The student might not have grades for that subject yet</li>
+</ol>
+<hr>
+<h3 id="4-managing-your-data">4. Managing Your Data </h3>
+<h4 id="41-academic-year-sheets">4.1 Academic Year Sheets </h4>
+<h3 id="how-to-name-your-sheets"><strong>How to Name Your Sheets</strong> </h3>
+<ol>
+<li>Each school year needs its own sheet in your spreadsheet</li>
+<li>The sheet name must follow this exact format: "YYYY-YYYY"</li>
+<li>For example: "2024-2025" or "2023-2024"</li>
+<li>Use a hyphen (-) between the two years</li>
+<li>You must create these sheets yourself - the system doesn't create them automatically</li>
+<li>Only sheets with this exact format will show up in the dropdown lists</li>
+</ol>
+<hr>
+<h3 id="how-your-sheets-are-organized"><strong>How Your Sheets Are Organized</strong> </h3>
+<p><img src="assetsGradesDB/grades.jpg" alt="alt text"></p>
+<p><strong>Row 1</strong> - Headers (column names):</p>
+<ul>
+<li>Student Number, Full Name, Grade Level, Section, Subject, Teacher</li>
+<li>1st Initial, 1st Transmuted, 1st EQ</li>
+<li>2nd Initial, 2nd Transmuted, 2nd EQ</li>
+<li>3rd Initial, 3rd Transmuted, 3rd EQ</li>
+<li>4th Initial, 4th Transmuted, 4th EQ</li>
+<li>Final Grading, Final EQ</li>
+</ul>
+<p><strong>Row 2 onwards</strong> - Student grade records:</p>
+<ul>
+<li>Each row is one student's grades for one subject</li>
+<li>Each student will have multiple rows (one for each subject they take)</li>
+</ul>
+<hr>
+<h3 id="understanding-the-data"><strong>Understanding the Data</strong> </h3>
+<ol>
+<li>Each school year has its own separate sheet</li>
+<li>Each row shows one student's grades for one specific subject</li>
+<li>A student cannot have two rows for the same subject in the same school year</li>
+<li>When you import grades, the system automatically updates existing rows or adds new ones</li>
+</ol>
+<hr>
+<h4 id="42-update-log-sheet">4.2 UPDATE LOG Sheet </h4>
+<h3 id="what-this-sheet-does"><strong>What This Sheet Does</strong> </h3>
+<ol>
+<li>Every time you update a grade using the Update form, it gets recorded here automatically</li>
+<li>This sheet is created by itself the first time you update a grade</li>
+<li>Each grading period you change gets its own separate log entry</li>
+<li>Think of this as a history book that shows every change that was made</li>
+</ol>
+<hr>
+<h3 id="what-information-is-saved"><strong>What Information is Saved</strong> </h3>
+<p><img src="assetsGradesDB/updateSuccess.jpg" alt="Update Log"></p>
+<p>For each change, the log saves:</p>
+<ul>
+<li><strong>When</strong>: Date and time the change was made</li>
+<li><strong>Who</strong>: Email address of the person who made the change</li>
+<li><strong>Student Info</strong>: Student number and full name</li>
+<li><strong>Where</strong>: Which school year sheet was changed</li>
+<li><strong>What Subject</strong>: Which subject was updated</li>
+<li><strong>Which Period</strong>: Which grading period (1st, 2nd, 3rd, or 4th)</li>
+<li><strong>Old Grade</strong>: What the grade was before</li>
+<li><strong>New Grade</strong>: What the grade was changed to</li>
+<li><strong>Why</strong>: Any notes you wrote in the Remarks box</li>
+</ul>
+<hr>
+<h3 id="how-to-use-the-log"><strong>How to Use the Log</strong> </h3>
+<ol>
+<li>Click on the "UPDATE LOG" tab at the bottom of your spreadsheet</li>
+<li>You'll see a list of all changes, with the newest ones at the bottom</li>
+<li>Each row shows one change to one grading period</li>
+<li>If you changed multiple periods at once, each one gets its own row</li>
+<li>You can use the filter buttons at the top to search for specific students or dates</li>
+</ol>
+<hr>
+<h4 id="43-important-rules-about-data">4.3 Important Rules About Data </h4>
+<h3 id="one-student-one-subject-one-record"><strong>One Student, One Subject, One Record</strong> </h3>
+<ol>
+<li>In each school year sheet, a student can only have ONE row for each subject</li>
+<li>For example, Student 12345 can only have ONE row for Math in the 2024-2025 sheet</li>
+<li>If you import grades for a student-subject combination that already exists, the system updates that row instead of creating a new one</li>
+<li>This prevents duplicate records and keeps everything organized</li>
+</ol>
+<hr>
+<h3 id="what-can-be-updated"><strong>What Can Be Updated</strong> </h3>
+<ol>
+<li>The Update form only changes the "Initial" grades (1st Initial, 2nd Initial, 3rd Initial, 4th Initial)</li>
+<li>The system doesn't update Transmuted grades, EQ grades, or Final grades through this form</li>
+<li>Each change is recorded in the log with the date and who made the change</li>
+</ol>
+<hr>
+<h3 id="how-grades-are-stored"><strong>How Grades Are Stored</strong> </h3>
+<ol>
+<li>Grades can be numbers or text</li>
+<li>Empty grades (blank cells) are allowed</li>
+<li>When importing, the system keeps grades exactly as they appear in the teacher's grade sheet</li>
+<li>The system doesn't change or round the grades - they stay exactly as imported</li>
+</ol>
+<hr>
+<h3 id="5-troubleshooting-guide">5. Troubleshooting Guide </h3>
+<h4 id="51-forms-wont-open">5.1 Forms Won't Open </h4>
+<p><strong>Problem:</strong> When you click on the menu, the form doesn't show up or you see an error.</p>
+<p><strong>Try these solutions:</strong></p>
+<ol>
+<li><strong>Check internet</strong>: Make sure you're connected to the internet</li>
+<li><strong>Refresh the page</strong>: Press F5 on your keyboard or click the circular arrow button in your browser</li>
+<li><strong>Close and reopen</strong>: If the form is stuck halfway, close it and try opening it again from the menu</li>
+<li><strong>Check permissions</strong>: Ask your administrator if you're allowed to edit this spreadsheet</li>
+<li><strong>Wait a moment</strong>: Sometimes it just needs a few seconds to load - be patient</li>
+<li><strong>Contact help</strong>: If none of this works, contact your systems person for help</li>
+</ol>
+<hr>
+<h4 id="52-cant-import-grades">5.2 Can't Import Grades </h4>
+<p><strong>Problem:</strong> You tried to import grades but it didn't work or showed an error message.</p>
+<p><strong>Try these solutions:</strong></p>
+<ol>
+<li><strong>Check the link</strong>: Make sure you copied the entire web address from the teacher's grade sheet - nothing should be cut off</li>
+<li><strong>Check access</strong>: Try opening the teacher's grade sheet link in a new browser tab - if you can't open it, you need to ask the teacher to share it with you</li>
+<li><strong>Check subjects</strong>: Open the teacher's grade sheet and make sure there are subject sheets with student grades filled in</li>
+<li><strong>Check school year</strong>: Make sure the school year sheet exists in your database (look at the tabs at the bottom)</li>
+<li><strong>Try again</strong>: Sometimes it just needs another try - close the form and start over</li>
+<li><strong>Check format</strong>: Make sure the teacher's grade sheet is in the correct format with grades starting around row 10</li>
+</ol>
+<hr>
+<h4 id="53-cant-find-student-grades">5.3 Can't Find Student Grades </h4>
+<p><strong>Problem:</strong> When you search for a student, it says it can't find them.</p>
+<p><strong>Try these solutions:</strong></p>
+<ol>
+<li><strong>Check student number</strong>: Make sure you typed the student number exactly right - no extra spaces or missing numbers</li>
+<li><strong>Check school year</strong>: Make sure you picked the correct school year from the dropdown</li>
+<li><strong>Check subject</strong>: Make sure you picked a subject the student actually takes</li>
+<li><strong>Look manually</strong>: Open the school year sheet and look for the student yourself to confirm they have a record</li>
+<li><strong>Check spelling</strong>: If you're using autocomplete, make sure you selected the right student number from the suggestions</li>
+<li><strong>Verify enrollment</strong>: The student might not have grades for that subject yet</li>
+</ol>
+<hr>
+<h4 id="54-changes-wont-save">5.4 Changes Won't Save </h4>
+<p><strong>Problem:</strong> You made changes but they didn't save or disappeared.</p>
+<p><strong>Try these solutions:</strong></p>
+<ol>
+<li><strong>Check internet</strong>: A bad internet connection can prevent saving - make sure you're connected</li>
+<li><strong>Try again</strong>: Close the form, refresh your browser page (F5), and try updating again</li>
+<li><strong>Check permissions</strong>: Make sure you have permission to edit the spreadsheet (not just view it)</li>
+<li><strong>Check different grades</strong>: Make sure you actually changed at least one grade to a different number</li>
+<li><strong>Wait</strong>: Sometimes it takes a few seconds - be patient and watch for the success message</li>
+<li><strong>Look at the sheet</strong>: Check the school year sheet directly to see if the change actually saved</li>
+<li><strong>Check log</strong>: Look at the UPDATE LOG sheet to see if your change was recorded there</li>
+</ol>
+<hr>
+<h4 id="55-academic-year-not-showing">5.5 Academic Year Not Showing </h4>
+<p><strong>Problem:</strong> The school year you need isn't in the dropdown list.</p>
+<p><strong>Try these solutions:</strong></p>
+<ol>
+<li><strong>Check the name</strong>: Look at your spreadsheet's tabs at the bottom - is there a sheet named exactly "YYYY-YYYY" like "2024-2025"?</li>
+<li><strong>Check the format</strong>: The name must have four numbers, a hyphen, then four more numbers (2024-2025) - no spaces, no other characters</li>
+<li><strong>Create it</strong>: If the sheet doesn't exist, create a new sheet and name it correctly</li>
+<li><strong>Check spelling</strong>: Make sure there are no typos or extra spaces in the sheet name</li>
+<li><strong>Refresh</strong>: After creating or fixing the sheet name, close the form and open it again</li>
+<li><strong>Use a hyphen</strong>: Make sure you're using a hyphen (-) not an underscore (_) or other dash</li>
+</ol>
+<hr>
+<h4 id="56-access-denied-messages">5.6 "Access Denied" Messages </h4>
+<p><strong>Problem:</strong> You see messages saying you don't have permission or access is denied.</p>
+<p><strong>Try these solutions:</strong></p>
+<ol>
+<li><strong>Check your account</strong>: Make sure you're logged into the right Google account (usually your school email)</li>
+<li><strong>Ask for access</strong>: Contact your administrator and ask them to give you edit permission</li>
+<li><strong>Check grade sheet access</strong>: For imports, make sure the teacher shared their grade sheet with you</li>
+<li><strong>Log out and in</strong>: Try signing out of Google completely, then signing back in</li>
+<li><strong>Check sharing</strong>: The spreadsheet owner needs to share it with you with "Editor" access, not just "Viewer"</li>
+<li><strong>Contact admin</strong>: If you're supposed to have access but don't, ask your systems administrator for help</li>
+</ol>
+<hr>
+<h4 id="57-update-log-is-missing">5.7 Update Log is Missing </h4>
+<p><strong>Problem:</strong> You can't find the UPDATE LOG sheet or your changes aren't being logged.</p>
+<p><strong>Try these solutions:</strong></p>
+<ol>
+<li><strong>Look at the tabs</strong>: The UPDATE LOG sheet appears at the bottom of your spreadsheet - look at all the tabs</li>
+<li><strong>Make an update</strong>: The log is created automatically the first time someone updates a grade - if it doesn't exist yet, try updating a grade</li>
+<li><strong>Check the sheet</strong>: Open the school year sheet to see if your update actually saved there</li>
+<li><strong>Check for renaming</strong>: Someone might have renamed the UPDATE LOG sheet - look for a sheet with update records</li>
+<li><strong>Wait for it</strong>: The sheet is created automatically when needed - just keep using the system normally</li>
+<li><strong>Contact help</strong>: If updates are saving but not logging, contact your systems person</li>
+</ol>
+<hr>
+<h4 id="58-grades-look-wrong">5.8 Grades Look Wrong </h4>
+<p><strong>Problem:</strong> After importing, the grades don't look correct or are in the wrong format.</p>
+<p><strong>Try these solutions:</strong></p>
+<ol>
+<li><strong>Check source</strong>: Open the teacher's grade sheet and check if the grades are correct there</li>
+<li><strong>Check columns</strong>: Make sure the columns in the teacher's grade sheet are in the right order</li>
+<li><strong>Re-import</strong>: Try importing again - sometimes it just needs a fresh try</li>
+<li><strong>Check numbers</strong>: Make sure grades are entered as numbers (85) not text ("eighty-five")</li>
+<li><strong>Look at headers</strong>: The teacher's grade sheet should have the standard headers and layout</li>
+<li><strong>Compare</strong>: Look at both sheets side by side to see what's different</li>
+</ol>
+<hr>
+<h4 id="59-system-wont-work">5.9 System Won't Work </h4>
+<p><strong>Problem:</strong> Nothing seems to work, forms won't run, or you keep getting errors.</p>
+<p><strong>Try these solutions:</strong></p>
+<ol>
+<li><strong>Refresh everything</strong>: Close your browser completely and open it again</li>
+<li><strong>Check Google</strong>: Sometimes Google services have problems - try again later</li>
+<li><strong>Try different browser</strong>: If you're using Chrome, try Firefox or vice versa</li>
+<li><strong>Check internet</strong>: Make sure your internet connection is stable</li>
+<li><strong>Wait</strong>: Give it a few minutes and try again</li>
+<li><strong>Clear browser</strong>: Clear your browser's cache and cookies (ask your IT person how)</li>
+<li><strong>Contact help</strong>: If it's completely broken, contact your systems developer - they might need to fix something</li>
+</ol>
+<hr>
+<h4 id="510-mapeh-grades-missing">5.10 MAPEH Grades Missing </h4>
+<p><strong>Problem:</strong> When you import grades, MAPEH grades don't show up.</p>
+<p><strong>Try these solutions:</strong></p>
+<ol>
+<li><strong>Check MAPEH sheet</strong>: Open the teacher's grade sheet and make sure there's a MAPEH sheet</li>
+<li><strong>Check Final grades</strong>: Look at the MAPEH sheet and make sure the Final Grading and Final EQ columns have numbers in them</li>
+<li><strong>Right columns</strong>: The system looks for grades in specific columns (AF for Final Grading, AG for Final EQ)</li>
+<li><strong>Check students</strong>: Make sure there are student names and data in the MAPEH sheet</li>
+<li><strong>Open and check</strong>: Look at the MAPEH sheet yourself to verify the grades are actually there</li>
+<li><strong>Try re-import</strong>: Sometimes re-importing fixes the problem</li>
+</ol>
+<blockquote>
+<p><strong>Note</strong>: MAPEH is handled differently - only Final Grading and Final EQ are imported, not the individual quarter grades.</p>
+</blockquote>
+<hr>
+<h4 id="511-seeing-duplicate-records">5.11 Seeing Duplicate Records </h4>
+<p><strong>Problem:</strong> You see the same student with the same subject listed multiple times.</p>
+<p><strong>Try these solutions:</strong></p>
+<ol>
+<li><strong>Check carefully</strong>: Make sure they're actually duplicates - look at all the columns to see if they're really identical</li>
+<li><strong>Delete manually</strong>: Select the duplicate rows and delete them (right-click and choose "Delete rows")</li>
+<li><strong>Re-import</strong>: After deleting duplicates, re-import from the teacher's grade sheet - the system should update the remaining row</li>
+<li><strong>Check unique combo</strong>: Each student should only have ONE row per subject in each school year</li>
+<li><strong>Avoid multiple imports</strong>: Don't import the same teacher's grade sheet multiple times unless you need to update it</li>
+<li><strong>Prevention</strong>: The system tries to prevent duplicates, but if you manually add rows they might duplicate</li>
+</ol>
+<hr>
+<p><em>This guide covers everything you need to know to use the Grades Database. If you need additional help, please contact your systems developer.</em></p>
 
       </div>
       
-      
+      <a id="backToTop" href="#top" style="display:none">Back to Top</a>
+
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+  const btn = document.getElementById('backToTop');
+  if (!btn) return;
+
+  // show/hide on scroll
+  function toggleButton() {
+    btn.style.display = window.scrollY > 300 ? 'block' : 'none';
+  }
+  document.addEventListener('scroll', toggleButton);
+  toggleButton(); // initial state
+
+  // smooth scroll without the browser instant-jump
+  btn.addEventListener('click', function (e) {
+    e.preventDefault(); // IMPORTANT: stop the instant anchor jump
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+});
+</script>  
     
     
     
