@@ -889,9 +889,35 @@ function _findOrCreateFolder(parentFolder, folderName) {
 }
 
 /**
+ * Helper function to extract spreadsheet ID from a Google Sheets URL
+ * @param {string} url - The Google Sheets URL or spreadsheet ID
+ * @return {string} The spreadsheet ID
+ */
+function _extractSpreadsheetId(url) {
+  if (!url || !url.trim()) {
+    throw new Error('STUDENTS_DB_URL is not configured');
+  }
+  
+  const trimmedUrl = url.trim();
+  
+  // If it's already just an ID (no slashes), return it
+  if (!trimmedUrl.includes('/')) {
+    return trimmedUrl;
+  }
+  
+  // Extract ID from URL pattern: https://docs.google.com/spreadsheets/d/ID/edit...
+  const match = trimmedUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (match && match[1]) {
+    return match[1];
+  }
+  
+  throw new Error('Invalid STUDENTS_DB_URL format. Expected a Google Sheets URL or spreadsheet ID');
+}
+
+/**
  * OPTIMIZED function to fetch students from STUDENTS DB spreadsheet
  * Retrieves students for a specific grade level and section from the academic year sheet
- * Opens STUDENTS_DB by name from the same folder as Template Masterfile
+ * Opens STUDENTS_DB by URL from CONFIG
  * @param {string} schoolYear - The school year (e.g., "2024-2025")
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
@@ -899,28 +925,13 @@ function _findOrCreateFolder(parentFolder, folderName) {
  */
 function _getStudentsFromDB(schoolYear, gradeLevel, section) {
   try {
-    // Get the current spreadsheet's folder
-    const currentSpreadsheet = getSpreadsheet();
-    const currentFile = DriveApp.getFileById(currentSpreadsheet.getId());
-    const parentFolders = currentFile.getParents();
-    
-    if (!parentFolders.hasNext()) {
-      console.warn('Unable to find parent folder. Returning empty student list.');
+    if (!CONFIG.STUDENTS_DB_URL || !CONFIG.STUDENTS_DB_URL.trim()) {
+      console.warn('STUDENTS_DB_URL is not configured. Returning empty student list.');
       return [];
     }
     
-    const parentFolder = parentFolders.next();
-    
-    // Search for STUDENTS_DB spreadsheet in the same folder
-    const studentsDbFiles = parentFolder.getFilesByName(CONFIG.STUDENTS_DB_NAME);
-    
-    if (!studentsDbFiles.hasNext()) {
-      console.warn(`STUDENTS_DB spreadsheet not found in folder. Looking for: "${CONFIG.STUDENTS_DB_NAME}". Returning empty student list.`);
-      return [];
-    }
-    
-    const studentsDbFile = studentsDbFiles.next();
-    const studentsSpreadsheet = SpreadsheetApp.openById(studentsDbFile.getId());
+    const spreadsheetId = _extractSpreadsheetId(CONFIG.STUDENTS_DB_URL);
+    const studentsSpreadsheet = SpreadsheetApp.openById(spreadsheetId);
     
     // Use school year directly as the sheet name (e.g., "2024-2025")
     const academicYearSheet = schoolYear;
@@ -989,28 +1000,13 @@ function _getStudentsFromDB(schoolYear, gradeLevel, section) {
  */
 function _getSchoolYears() {
   try {
-    // Get the current spreadsheet's folder
-    const currentSpreadsheet = getSpreadsheet();
-    const currentFile = DriveApp.getFileById(currentSpreadsheet.getId());
-    const parentFolders = currentFile.getParents();
-    
-    if (!parentFolders.hasNext()) {
-      console.warn('Unable to find parent folder. Returning empty school years list.');
+    if (!CONFIG.STUDENTS_DB_URL || !CONFIG.STUDENTS_DB_URL.trim()) {
+      console.warn('STUDENTS_DB_URL is not configured. Returning empty school years list.');
       return [];
     }
     
-    const parentFolder = parentFolders.next();
-    
-    // Search for STUDENTS_DB spreadsheet in the same folder
-    const studentsDbFiles = parentFolder.getFilesByName(CONFIG.STUDENTS_DB_NAME);
-    
-    if (!studentsDbFiles.hasNext()) {
-      console.warn(`STUDENTS_DB spreadsheet not found in folder. Looking for: "${CONFIG.STUDENTS_DB_NAME}". Returning empty school years list.`);
-      return [];
-    }
-    
-    const studentsDbFile = studentsDbFiles.next();
-    const studentsSpreadsheet = SpreadsheetApp.openById(studentsDbFile.getId());
+    const spreadsheetId = _extractSpreadsheetId(CONFIG.STUDENTS_DB_URL);
+    const studentsSpreadsheet = SpreadsheetApp.openById(spreadsheetId);
     const sheets = studentsSpreadsheet.getSheets();
     const schoolYears = [];
     

@@ -7,7 +7,7 @@ const CONFIG = {
   // Web App URL - Update this after deploying the script as a web app
   // To deploy: Deploy > New deployment > Select type: Web app > Execute as: Me > Who has access: Anyone
   // Then copy the Web App URL (the one ending with /exec) and paste it below
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbzaNA9GXlzlO_NoydV9JZ9F93UXj03FZzK7sQdnNbOc4vdThsRc8UBV6jlY1EeaIMIB/exec", // Replace with your /exec URL after deployment
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwl2NbVxTOs57jjZY82uXLpDSPI8-3avAM_0xByU6aA0f4GfsOnvssxNP03wRsFrItv/exec", // Replace with your /exec URL after deployment
   
   // API Key for securing the API - This is a unique identifier
   // Keep this secret and don't share it publicly
@@ -19,8 +19,8 @@ const CONFIG = {
     return SpreadsheetApp.getActiveSpreadsheet().getId();
   },
   
-  // STUDENTS DB Spreadsheet Name - Located in the same folder as Template Masterfile
-  STUDENTS_DB_NAME: "STUDENTS DB - GRADE 1-3",
+  // STUDENTS DB Spreadsheet URL - Full URL to the students database spreadsheet
+  STUDENTS_DB_URL: "https://docs.google.com/spreadsheets/d/1x4dcYyafykjj3MVXRwMIyn8vMLslOV-iSB7bhMnhJ3c/edit?gid=1882876298#gid=1882876298",
   
   // Sheet names
   SHEET_NAMES: {
