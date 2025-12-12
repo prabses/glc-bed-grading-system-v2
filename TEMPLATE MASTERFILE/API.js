@@ -651,16 +651,17 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     // OPTIMIZATION: Set formulas and format in combined operations to reduce API calls
     // Formula columns: F (6), G (7), H (8), L (12), M (13), N (14), R (18), S (19), T (20), X (24), Y (25), Z (26), AA (27), AB (28)
     const formulaColsList = [6, 7, 8, 12, 13, 14, 18, 19, 20, 24, 25, 26, 27, 28];
-    const eqCols = [8, 14, 20, 26, 28]; // EQ columns that need right alignment
     
     formulaColsList.forEach(col => {
       const range = sheet.getRange(startRow, col, numStudentRows, 1);
       range.setFormulas(formulaColumns[col]);
       range.setBackground(CONFIG.COLORS.MEDIUM_GRAY);
-      // Right-align EQ columns
-      if (eqCols.includes(col)) {
-        range.setHorizontalAlignment('right');
-      }
+      range.setHorizontalAlignment('center');
+    });
+    
+    const gradeInputColsForAlignment = [3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23];
+    gradeInputColsForAlignment.forEach(col => {
+      sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('center');
     });
     
     // PROTECTION: Required for sharing with others (teachers/staff)
@@ -1338,10 +1339,16 @@ function _setupMAPEHSheet(sheet, templateSpreadsheet, schoolYear, gradeLevel, se
     sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.MEDIUM_GRAY);
   });
   
-  // Right align EQ columns (AVE EQ and Final EQ)
+  // Center align all grade columns (Music, Arts, PE, Health, AVE, Final Grading)
+  const gradeCols = [3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 27];
+  gradeCols.forEach(col => {
+    sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('center');
+  });
+  
+  // Center align EQ columns (AVE EQ and Final EQ)
   const eqCols = [8, 14, 20, 26, 28]; // 1st AVE EQ, 2nd AVE EQ, 3rd AVE EQ, 4th AVE EQ, Final EQ
   eqCols.forEach(col => {
-    sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('right');
+    sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('center');
   });
   
   // Number format for numeric columns (Music, Arts, PE, Health, AVE, Final Grading)
@@ -1678,13 +1685,31 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     
     if (schoolDaysCols.length > 0) {
       schoolDaysCols.forEach(col => {
-        sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
+        const range = sheet.getRange(startRow, col, numStudentRows, 1);
+        range.setBackground(CONFIG.COLORS.LIGHT_GRAY);
+        range.setHorizontalAlignment('center');
       });
     }
     
     if (absentFormulaCols.length > 0) {
       absentFormulaCols.forEach(col => {
-        sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+        const range = sheet.getRange(startRow, col, numStudentRows, 1);
+        range.setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+        range.setHorizontalAlignment('center');
+      });
+    }
+    
+    colIndex = 3;
+    const daysPresentColsForAlignment = [];
+    monthsToUse.forEach(() => {
+      const daysPresentCol = colIndex + 1;
+      daysPresentColsForAlignment.push(daysPresentCol);
+      colIndex += 3;
+    });
+    
+    if (daysPresentColsForAlignment.length > 0) {
+      daysPresentColsForAlignment.forEach(col => {
+        sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('center');
       });
     }
     
@@ -1781,13 +1806,31 @@ function _setupAttendanceSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     
     if (schoolDaysCols.length > 0) {
       schoolDaysCols.forEach(col => {
-        sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
+        const range = sheet.getRange(startRow, col, numStudentRows, 1);
+        range.setBackground(CONFIG.COLORS.LIGHT_GRAY);
+        range.setHorizontalAlignment('center');
       });
     }
     
     if (absentFormulaCols.length > 0) {
       absentFormulaCols.forEach(col => {
-        sheet.getRange(startRow, col, numStudentRows, 1).setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+        const range = sheet.getRange(startRow, col, numStudentRows, 1);
+        range.setBackground(CONFIG.COLORS.MEDIUM_GRAY);
+        range.setHorizontalAlignment('center');
+      });
+    }
+    
+    colIndex = 3;
+    const daysPresentColsForAlignment = [];
+    monthsToUse.forEach(() => {
+      const daysPresentCol = colIndex + 1;
+      daysPresentColsForAlignment.push(daysPresentCol);
+      colIndex += 3;
+    });
+    
+    if (daysPresentColsForAlignment.length > 0) {
+      daysPresentColsForAlignment.forEach(col => {
+        sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('center');
       });
     }
     
@@ -2286,11 +2329,16 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulas.map(f => [f]));
     });
     
+    const gradeCols = [4, 6, 8, 10, 12];
+    gradeCols.forEach((col) => {
+      sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('center');
+    });
+    
     // OPTIMIZATION: Batch formatting operations for EQ columns
     eqCols.forEach((col) => {
       const range = sheet.getRange(startRow, col, numStudentRows, 1);
       range.setBackground(CONFIG.COLORS.MEDIUM_GRAY);
-      range.setHorizontalAlignment('right');
+      range.setHorizontalAlignment('center');
     });
     
     // Auto-resize TRAITS column (column 3) based on content
@@ -2342,11 +2390,16 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulas.map(f => [f]));
     });
     
+    const gradeCols = [4, 6, 8, 10, 12];
+    gradeCols.forEach((col) => {
+      sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('center');
+    });
+    
     // OPTIMIZATION: Batch formatting operations for EQ columns
     eqCols.forEach((col) => {
       const range = sheet.getRange(startRow, col, numStudentRows, 1);
       range.setBackground(CONFIG.COLORS.MEDIUM_GRAY);
-      range.setHorizontalAlignment('right');
+      range.setHorizontalAlignment('center');
     });
     
     // Format borders for student data (matching subject sheet format)
