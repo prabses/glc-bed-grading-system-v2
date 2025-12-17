@@ -115,6 +115,28 @@ function doPost(e) {
         ));
       case "getSchoolYears":
         return response(200, _getSchoolYears());
+      case "getGradeLevels":
+        return response(200, _getGradeLevels());
+      case "getActiveItems":
+        return response(200, _getActiveItems(
+          payload.sheetName,
+          payload.columnIndex || 0
+        ));
+      case "getSectionsForGrade":
+        return response(200, _getSectionsForGrade(
+          payload.gradeLevel
+        ));
+      case "getAssignedTeachers":
+        return response(200, _getAssignedTeachers(
+          payload.gradeLevel,
+          payload.section
+        ));
+      case "getAssignedSubjects":
+        return response(200, _getAssignedSubjects(
+          payload.gradeLevel,
+          payload.section,
+          payload.teacher
+        ));
       default:
         return response(400, "Bad Request: Invalid action.");
     }
@@ -199,26 +221,49 @@ function callApi(action, payload) {
  * @return {Array} Array of active items
  */
 function _getActiveItems(sheetName, columnIndex = 0) {
-  const sheet = getSheet(sheetName);
-  if (!sheet) {
-    throw new Error(`${sheetName} sheet not found`);
-  }
-  
-  const data = sheet.getDataRange().getValues();
-  const items = [];
-  
-  // Skip 2 header rows (parent header + column headers)
-  for (let i = CONFIG.HEADER_ROWS; i < data.length; i++) {
-    const row = data[i];
-    const activeValue = row[row.length - 1]; // Last column is Active
-    // Handle both checkboxes (TRUE/FALSE) and checkmarks (✓)
-    const isActive = activeValue === true || activeValue === '✓' || activeValue === 'TRUE';
-    if (isActive && row[columnIndex]) {
-      items.push(row[columnIndex]);
+  try {
+    const sheet = getSheet(sheetName);
+    if (!sheet) {
+      console.warn(`${sheetName} sheet not found`);
+      return [];
     }
+    
+    const lastRow = sheet.getLastRow();
+    const lastCol = sheet.getLastColumn();
+    
+    if (lastRow <= CONFIG.HEADER_ROWS || lastCol === 0) {
+      return [];
+    }
+    
+    // OPTIMIZATION 1: Only read 2 columns - target column and Active column
+    const maxRows = Math.min(lastRow, CONFIG.HEADER_ROWS + 1000);
+    const startRow = CONFIG.HEADER_ROWS + 1;
+    const numRows = maxRows - CONFIG.HEADER_ROWS;
+    
+    // Read target column (columnIndex + 1) and Active column (lastCol)
+    const targetColData = sheet.getRange(startRow, columnIndex + 1, numRows, 1).getValues();
+    const activeColData = sheet.getRange(startRow, lastCol, numRows, 1).getValues();
+    
+    const items = [];
+    
+    // OPTIMIZATION 2: Parallel array processing
+    for (let i = 0; i < targetColData.length; i++) {
+      const activeValue = activeColData[i][0];
+      
+      // OPTIMIZATION 3: Simplified active check
+      if ((activeValue === true || activeValue === '✓' || activeValue === 'TRUE') && targetColData[i][0]) {
+        const item = String(targetColData[i][0]).trim();
+        if (item) {
+          items.push(item);
+        }
+      }
+    }
+    
+    return items;
+  } catch (error) {
+    console.error(`Error in _getActiveItems for ${sheetName}:`, error);
+    return [];
   }
-  
-  return items;
 }
 
 /**
@@ -247,6 +292,193 @@ function _formatGradeLevel(gradeLevel) {
   if (!gradeLevel) return '';
   const normalized = _normalizeGradeLevel(gradeLevel);
   return normalized ? `Grade ${normalized}` : gradeLevel;
+}
+
+/**
+ * Internal function to get unique grade levels from SECTIONS_REF sheet
+ * OPTIMIZED: Uses Set for O(1) duplicate detection and minimal data retrieval
+ * Returns in the order they appear in the sheet (unsorted)
+ * Sheet stores only numbers (1, 2, 3, 4), but returns formatted with "Grade " prefix for display
+ * @return {Array} Array of unique grade levels formatted as "Grade 1", "Grade 2", etc.
+ */
+function _getGradeLevels() {
+  try {
+    const sheet = getSheet(CONFIG.SHEET_NAMES.SECTIONS_REF);
+    if (!sheet) {
+      console.warn('SECTIONS_REF sheet not found');
+      return [];
+    }
+    
+    const startRow = CONFIG.HEADER_ROWS + 1;
+    const maxRows = 1000;
+    const data = sheet.getRange(startRow, 2, maxRows, 1).getValues();
+    
+    // OPTIMIZATION 2: Use Set for O(1) duplicate detection
+    const gradeLevelSet = new Set();
+    const gradeLevels = []; // Preserve order
+    
+    // Process data - sheet stores just numbers, format for display
+    for (let i = 0; i < data.length; i++) {
+      const rawGradeLevel = String(data[i][0]).trim();
+      if (!rawGradeLevel) continue;
+      
+      // Normalize to just the number
+      const normalized = _normalizeGradeLevel(rawGradeLevel);
+      
+      if (!normalized || normalized === '') continue;
+      
+      const normalizedStr = String(normalized);
+      if (!gradeLevelSet.has(normalizedStr)) {
+        gradeLevelSet.add(normalizedStr);
+        gradeLevels.push(_formatGradeLevel(normalizedStr));
+      }
+    }
+    
+    return gradeLevels;
+  } catch (error) {
+    console.error('Error in _getGradeLevels:', error);
+    return [];
+  }
+}
+
+/**
+ * Internal function to get sections for a specific grade level
+ * OPTIMIZED: Minimal data retrieval and efficient filtering
+ * @param {string} gradeLevel - The grade level to filter by
+ * @return {Array} Array of section names for the specified grade level
+ */
+function _getSectionsForGrade(gradeLevel) {
+  try {
+    // OPTIMIZATION: Early return if gradeLevel is empty
+    if (!gradeLevel || gradeLevel.trim() === '') {
+      return [];
+    }
+    
+    // Normalize the input grade level for comparison (sheet stores just numbers)
+    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
+    const sheet = getSheet(CONFIG.SHEET_NAMES.SECTIONS_REF);
+    if (!sheet) {
+      console.warn('SECTIONS_REF sheet not found');
+      return [];
+    }
+    
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= CONFIG.HEADER_ROWS) {
+      return [];
+    }
+    
+    // OPTIMIZATION 1: Only read columns B-C (Grade Level, Section)
+    const startRow = CONFIG.HEADER_ROWS + 1;
+    const numRows = lastRow - CONFIG.HEADER_ROWS;
+    const data = sheet.getRange(startRow, 2, numRows, 2).getValues();
+    
+    // OPTIMIZATION 2: Use Set for O(1) duplicate detection and faster lookups
+    const sectionSet = new Set();
+    const sections = [];
+    
+    // OPTIMIZATION 3: Single pass with efficient condition and duplicate prevention
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const rowGradeLevel = _normalizeGradeLevel(String(row[0] || '').trim());
+      const section = String(row[1] || '').trim();
+      
+      // Match grade level (both normalized) and ensure section exists and not already added
+      if (rowGradeLevel === normalizedGradeLevel && section && !sectionSet.has(section)) {
+        sectionSet.add(section);
+        sections.push(section);
+      }
+    }
+    
+    return sections;
+  } catch (error) {
+    console.error('Error in _getSectionsForGrade:', error);
+    return [];
+  }
+}
+
+/**
+ * Internal function to get teachers assigned to a specific grade level and section
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @return {Array} Array of teacher names
+ */
+function _getAssignedTeachers(gradeLevel, section) {
+  try {
+    // Normalize grade level for comparison (sheet stores just numbers)
+    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
+    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
+    if (!sheet) {
+      return []; // Return empty if sheet doesn't exist
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const teachers = [];
+    const teacherSet = new Set(); // Use Set for O(1) duplicate detection
+    
+    // Skip header row (row 1)
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      if (rowGradeLevel === normalizedGradeLevel &&
+          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+          row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
+        const teacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
+        if (teacher && !teacherSet.has(teacher)) {
+          teacherSet.add(teacher);
+          teachers.push(teacher);
+        }
+      }
+    }
+    
+    return teachers;
+  } catch (error) {
+    console.error('Error getting assigned teachers:', error);
+    return [];
+  }
+}
+
+/**
+ * Internal function to get subjects assigned to a specific teacher, grade level, and section
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @param {string} teacher - The teacher name
+ * @return {Array} Array of subject names
+ */
+function _getAssignedSubjects(gradeLevel, section, teacher) {
+  try {
+    // Normalize grade level for comparison (sheet stores just numbers)
+    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
+    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
+    if (!sheet) {
+      return []; // Return empty if sheet doesn't exist
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const subjects = [];
+    
+    // Skip header row (row 1)
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      if (rowGradeLevel === normalizedGradeLevel &&
+          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+          row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
+          row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
+        const subject = row[CONFIG.SUBJECTS_COLUMNS.SUBJECT];
+        if (subject) {
+          subjects.push(subject);
+        }
+      }
+    }
+    
+    return subjects;
+  } catch (error) {
+    console.error('Error getting assigned subjects:', error);
+    return [];
+  }
 }
 
 /**

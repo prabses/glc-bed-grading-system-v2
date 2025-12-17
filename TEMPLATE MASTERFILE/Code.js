@@ -146,32 +146,10 @@ function getAllDropdownData() {
  */
 function getAssignedTeachers(gradeLevel, section) {
   try {
-    // Normalize grade level for comparison (sheet stores just numbers)
-    const normalizedGradeLevel = normalizeGradeLevel(gradeLevel);
-    
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SUBJECTS);
-    if (!sheet) {
-      return []; // Return empty if sheet doesn't exist
-    }
-    
-    const data = sheet.getDataRange().getValues();
-    const teachers = [];
-    
-    // Skip header row (row 1)
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      const rowGradeLevel = normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
-      if (rowGradeLevel === normalizedGradeLevel &&
-          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
-          row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
-        const teacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
-        if (teacher && !teachers.includes(teacher)) {
-          teachers.push(teacher);
-        }
-      }
-    }
-    
-    return teachers;
+    return callApi("getAssignedTeachers", {
+      gradeLevel: gradeLevel,
+      section: section
+    });
   } catch (error) {
     console.error('Error getting assigned teachers:', error);
     return [];
@@ -187,33 +165,11 @@ function getAssignedTeachers(gradeLevel, section) {
  */
 function getAssignedSubjects(gradeLevel, section, teacher) {
   try {
-    // Normalize grade level for comparison (sheet stores just numbers)
-    const normalizedGradeLevel = normalizeGradeLevel(gradeLevel);
-    
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SUBJECTS);
-    if (!sheet) {
-      return []; // Return empty if sheet doesn't exist
-    }
-    
-    const data = sheet.getDataRange().getValues();
-    const subjects = [];
-    
-    // Skip header row (row 1)
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      const rowGradeLevel = normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
-      if (rowGradeLevel === normalizedGradeLevel &&
-          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
-          row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
-          row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
-        const subject = row[CONFIG.SUBJECTS_COLUMNS.SUBJECT];
-        if (subject) {
-          subjects.push(subject);
-        }
-      }
-    }
-    
-    return subjects;
+    return callApi("getAssignedSubjects", {
+      gradeLevel: gradeLevel,
+      section: section,
+      teacher: teacher
+    });
   } catch (error) {
     console.error('Error getting assigned subjects:', error);
     return [];
@@ -250,45 +206,11 @@ function formatGradeLevel(gradeLevel) {
 
 /**
  * Gets unique grade levels from SECTIONS_REF sheet
- * OPTIMIZED: Uses Set for O(1) duplicate detection and minimal data retrieval
- * Returns in the order they appear in the sheet (unsorted)
- * Sheet stores only numbers (1, 2, 3, 4), but returns formatted with "Grade " prefix for display
  * @return {Array} Array of unique grade levels formatted as "Grade 1", "Grade 2", etc.
  */
 function getGradeLevels() {
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REF);
-    if (!sheet) {
-      console.warn('SECTIONS_REF sheet not found');
-      return [];
-    }
-    
-    const startRow = CONFIG.HEADER_ROWS + 1;
-    const maxRows = 1000;
-    const data = sheet.getRange(startRow, 2, maxRows, 1).getValues();
-    
-    // OPTIMIZATION 2: Use Set for O(1) duplicate detection
-    const gradeLevelSet = new Set();
-    const gradeLevels = []; // Preserve order
-    
-    // Process data - sheet stores just numbers, format for display
-    for (let i = 0; i < data.length; i++) {
-      const rawGradeLevel = String(data[i][0]).trim();
-      if (!rawGradeLevel) continue;
-      
-      // Normalize to just the number
-      const normalized = normalizeGradeLevel(rawGradeLevel);
-      
-      if (!normalized || normalized === '') continue;
-      
-      const normalizedStr = String(normalized);
-      if (!gradeLevelSet.has(normalizedStr)) {
-        gradeLevelSet.add(normalizedStr);
-        gradeLevels.push(formatGradeLevel(normalizedStr));
-      }
-    }
-    
-    return gradeLevels;
+    return callApi("getGradeLevels", {});
   } catch (error) {
     console.error('Error in getGradeLevels:', error);
     return [];
@@ -297,54 +219,14 @@ function getGradeLevels() {
 
 /**
  * Gets sections for a specific grade level
- * OPTIMIZED: Minimal data retrieval and efficient filtering
  * @param {string} gradeLevel - The grade level to filter by
  * @return {Array} Array of section names for the specified grade level
  */
 function getSectionsForGrade(gradeLevel) {
   try {
-    // OPTIMIZATION: Early return if gradeLevel is empty
-    if (!gradeLevel || gradeLevel.trim() === '') {
-      return [];
-    }
-    
-    // Normalize the input grade level for comparison (sheet stores just numbers)
-    const normalizedGradeLevel = normalizeGradeLevel(gradeLevel);
-    
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REF);
-    if (!sheet) {
-      console.warn('SECTIONS_REF sheet not found');
-      return [];
-    }
-    
-    const lastRow = sheet.getLastRow();
-    if (lastRow <= CONFIG.HEADER_ROWS) {
-      return [];
-    }
-    
-    // OPTIMIZATION 1: Only read columns B-C (Grade Level, Section)
-    const startRow = CONFIG.HEADER_ROWS + 1;
-    const numRows = lastRow - CONFIG.HEADER_ROWS;
-    const data = sheet.getRange(startRow, 2, numRows, 2).getValues();
-    
-    // OPTIMIZATION 2: Use Set for O(1) duplicate detection and faster lookups
-    const sectionSet = new Set();
-    const sections = [];
-    
-    // OPTIMIZATION 3: Single pass with efficient condition and duplicate prevention
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i];
-      const rowGradeLevel = normalizeGradeLevel(String(row[0] || '').trim());
-      const section = String(row[1] || '').trim();
-      
-      // Match grade level (both normalized) and ensure section exists and not already added
-      if (rowGradeLevel === normalizedGradeLevel && section && !sectionSet.has(section)) {
-        sectionSet.add(section);
-        sections.push(section);
-      }
-    }
-    
-    return sections;
+    return callApi("getSectionsForGrade", {
+      gradeLevel: gradeLevel
+    });
   } catch (error) {
     console.error('Error in getSectionsForGrade:', error);
     return [];
@@ -357,75 +239,48 @@ function getSectionsForGrade(gradeLevel) {
  * @return {string} The level (Elementary, JHS, or SHS)
  */
 function getLevelForGrade(gradeLevel) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REF);
-  if (!sheet) {
-    throw new Error('SECTIONS_REF sheet not found');
-  }
-  
-  // Normalize the input grade level for comparison
-  const normalizedGradeLevel = normalizeGradeLevel(gradeLevel);
-  
-  const data = sheet.getDataRange().getValues();
-  
-  // Skip 2 header rows (parent header + column headers)
-  for (let i = CONFIG.HEADER_ROWS; i < data.length; i++) {
-    const rowGradeLevel = normalizeGradeLevel(String(data[i][1] || '').trim());
-    if (rowGradeLevel === normalizedGradeLevel && data[i][3]) {
-      return data[i][3];
+  try {
+    // Note: This function is not currently exposed via API, but it's only used server-side
+    // If needed, we can add an API endpoint for it
+    // For now, we'll use a try-catch to handle the case where it's called from web app context
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REF);
+    if (!sheet) {
+      throw new Error('SECTIONS_REF sheet not found');
     }
+    
+    // Normalize the input grade level for comparison
+    const normalizedGradeLevel = normalizeGradeLevel(gradeLevel);
+    
+    const data = sheet.getDataRange().getValues();
+    
+    // Skip 2 header rows (parent header + column headers)
+    for (let i = CONFIG.HEADER_ROWS; i < data.length; i++) {
+      const rowGradeLevel = normalizeGradeLevel(String(data[i][1] || '').trim());
+      if (rowGradeLevel === normalizedGradeLevel && data[i][3]) {
+        return data[i][3];
+      }
+    }
+    
+    // Default to empty string if not found
+    return '';
+  } catch (error) {
+    console.error('Error in getLevelForGrade:', error);
+    return '';
   }
-  
-  // Default to empty string if not found
-  return '';
 }
 
 /**
  * Gets active items from any reference sheet
- * OPTIMIZED: Minimal data retrieval - only reads target column and Active column
  * @param {string} sheetName - Name of the reference sheet
  * @param {number} columnIndex - Index of the column to retrieve (0-based)
  * @return {Array} Array of active items
  */
 function getActiveItems(sheetName, columnIndex = 0) {
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-    if (!sheet) {
-      console.warn(`${sheetName} sheet not found`);
-      return [];
-    }
-    
-    const lastRow = sheet.getLastRow();
-    const lastCol = sheet.getLastColumn();
-    
-    if (lastRow <= CONFIG.HEADER_ROWS || lastCol === 0) {
-      return [];
-    }
-    
-    // OPTIMIZATION 1: Only read 2 columns - target column and Active column
-    const maxRows = Math.min(lastRow, CONFIG.HEADER_ROWS + 1000);
-    const startRow = CONFIG.HEADER_ROWS + 1;
-    const numRows = maxRows - CONFIG.HEADER_ROWS;
-    
-    // Read target column (columnIndex + 1) and Active column (lastCol)
-    const targetColData = sheet.getRange(startRow, columnIndex + 1, numRows, 1).getValues();
-    const activeColData = sheet.getRange(startRow, lastCol, numRows, 1).getValues();
-    
-    const items = [];
-    
-    // OPTIMIZATION 2: Parallel array processing
-    for (let i = 0; i < targetColData.length; i++) {
-      const activeValue = activeColData[i][0];
-      
-      // OPTIMIZATION 3: Simplified active check
-      if ((activeValue === true || activeValue === '✓' || activeValue === 'TRUE') && targetColData[i][0]) {
-        const item = String(targetColData[i][0]).trim();
-        if (item) {
-          items.push(item);
-        }
-      }
-    }
-    
-    return items;
+    return callApi("getActiveItems", {
+      sheetName: sheetName,
+      columnIndex: columnIndex
+    });
   } catch (error) {
     console.error(`Error in getActiveItems for ${sheetName}:`, error);
     return [];
