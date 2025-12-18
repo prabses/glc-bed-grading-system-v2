@@ -313,6 +313,68 @@ function generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects)
 }
 
 /**
+ * Client-callable function to generate multiple OGS templates in batch.
+ * Generates templates sequentially to ensure MASTER_DATA rows are added chronologically.
+ * @param {string} schoolYear - The school year (e.g., "2024-2025")
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @param {Array} teachersWithSubjects - Array of objects with {teacher: string, subjects: Array}
+ * @return {Object} Result object with success status and message
+ */
+function generateOGSTemplatesBatch(schoolYear, gradeLevel, section, teachersWithSubjects) {
+  const userEmail = Session.getActiveUser().getEmail();
+  console.log("Function generateOGSTemplatesBatch executed by: " + userEmail);
+  
+  if (!teachersWithSubjects || teachersWithSubjects.length === 0) {
+    return {
+      success: false,
+      message: "No teachers selected"
+    };
+  }
+  
+  const results = [];
+  let successCount = 0;
+  let failureCount = 0;
+  
+  for (let i = 0; i < teachersWithSubjects.length; i++) {
+    const item = teachersWithSubjects[i];
+    const result = generateOGSTemplate(
+      schoolYear,
+      gradeLevel,
+      section,
+      item.teacher,
+      item.subjects
+    );
+    
+    results.push({
+      teacher: item.teacher,
+      result: result
+    });
+    
+    if (result.success) {
+      successCount++;
+    } else {
+      failureCount++;
+    }
+  }
+  
+  let message = '';
+  if (successCount > 0 && failureCount === 0) {
+    message = `Successfully generated ${successCount} template(s)`;
+  } else if (successCount > 0 && failureCount > 0) {
+    message = `Generated ${successCount} template(s), ${failureCount} failed`;
+  } else {
+    message = `Failed to generate templates: ${results.map(r => r.teacher).join(', ')}`;
+  }
+  
+  return {
+    success: failureCount === 0,
+    message: message,
+    results: results
+  };
+}
+
+/**
  * Client-callable function to add an assignment via API
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
