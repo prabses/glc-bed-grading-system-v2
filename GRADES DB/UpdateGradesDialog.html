@@ -55,7 +55,7 @@
 
       .header {
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
         flex-shrink: 0;
       }
 
@@ -72,64 +72,23 @@
         margin: 0;
       }
 
-      .form-group {
-        margin-bottom: 20px;
-      }
-
-      .search-section .form-group {
-        position: relative;
-        z-index: 1;
-      }
-
-      .search-section .form-group:last-of-type {
-        margin-bottom: 0;
-      }
-
-      .main-content {
-        display: flex;
-        gap: 30px;
-        flex: 1;
-        overflow: visible;
-        min-height: 0;
-        align-items: flex-start;
-        position: relative;
-        margin-bottom: 20px;
-      }
-
       .search-section {
-        flex: 0 0 680px;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        overflow: visible;
+        margin-bottom: 25px;
+        flex-shrink: 0;
       }
 
       .search-fields-row {
         display: flex;
         gap: 18px;
-        margin-bottom: 20px;
         align-items: flex-end;
+        margin-bottom: 20px;
       }
 
-      .search-fields-row .form-group {
-        flex: 1;
+      .form-group {
         margin-bottom: 0;
-      }
-
-      .student-info-section {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        margin-top: 20px;
-      }
-
-      .update-section-container {
         flex: 1;
-        display: flex;
-        flex-direction: column;
-        min-width: 450px;
-        max-width: 600px;
-        min-height: 0;
+        position: relative;
+        z-index: 1;
       }
 
       .form-label {
@@ -158,17 +117,191 @@
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
       }
 
-      .form-control:disabled {
-        background: #e9ecef;
-        color: #6c757d;
+      .btn-load {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        white-space: nowrap;
+        height: fit-content;
+      }
+
+      .btn-load:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-load:disabled {
+        opacity: 0.6;
         cursor: not-allowed;
+      }
+
+      .student-info-header {
+        background: #f8f9fa;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .student-info-header.visible {
+        display: block;
+      }
+
+      .student-info-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        font-size: 14px;
+      }
+
+      .student-info-item {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .student-info-label {
+        color: #6c757d;
+        font-weight: 500;
+        margin-bottom: 4px;
+        font-size: 12px;
+      }
+
+      .student-info-value {
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .subjects-container {
+        display: none;
+        flex-direction: column;
+        gap: 20px;
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+      }
+
+      .subjects-container.visible {
+        display: flex;
+      }
+
+      .subject-card {
+        background: #f8f9fa;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .subject-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e1e5e9;
+      }
+
+      .subject-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .subject-teacher {
+        font-size: 14px;
+        color: #6c757d;
+      }
+
+      .current-grades-display {
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 13px;
+        color: #856404;
+      }
+
+      .current-grades-display strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .grade-input-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .grade-input-group label {
+        flex: 0 0 120px;
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .grade-input-group input {
+        flex: 1;
+        padding: 10px 14px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+        background: #fafbfc;
+        transition: all 0.3s ease;
+      }
+
+      .grade-input-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .remarks-group {
+        margin-top: 5px;
+      }
+
+      .remarks-group label {
+        display: block;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .remarks-group input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+        background: #fafbfc;
+        transition: all 0.3s ease;
+      }
+
+      .remarks-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
       }
 
       .button-group {
         display: flex;
         gap: 12px;
-        margin-top: 20px;
-        padding-top: 0;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid #e1e5e9;
         flex-shrink: 0;
       }
 
@@ -194,7 +327,7 @@
         color: white;
       }
 
-      .btn-primary:hover {
+      .btn-primary:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
       }
@@ -205,145 +338,9 @@
         border: 2px solid #e9ecef;
       }
 
-      .btn-secondary:hover {
+      .btn-secondary:hover:not(:disabled) {
         background: #e9ecef;
         color: #495057;
-      }
-
-      .btn-load {
-        padding: 12px 24px;
-        border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        white-space: nowrap;
-        height: fit-content;
-        align-self: flex-end;
-      }
-
-      .btn-load:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-      }
-
-      .btn-load:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-
-      .student-info {
-        background: #f8f9fa;
-        border: 2px solid #e1e5e9;
-        border-radius: 8px;
-        padding: 20px;
-        display: none;
-        flex: 1;
-        overflow-y: auto;
-        min-height: 300px;
-        max-height: none;
-      }
-
-      .student-info.visible {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .student-info h4 {
-        margin: 0 0 10px 0;
-        color: #333;
-        font-size: 14px;
-        font-weight: 600;
-      }
-
-      .info-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        font-size: 14px;
-        flex: 1;
-      }
-
-      .info-item {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .info-label {
-        color: #6c757d;
-        font-weight: 500;
-        margin-bottom: 2px;
-      }
-
-      .info-value {
-        color: #333;
-        font-weight: 600;
-      }
-
-      .divider {
-        width: 1px;
-        background: #e1e5e9;
-        margin: 0 10px;
-        flex-shrink: 0;
-      }
-
-      .update-section {
-        display: none;
-        flex: 1;
-        overflow-y: auto;
-        min-height: 0;
-        max-height: none;
-      }
-
-      .update-section.visible {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .grade-input-group {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        margin-bottom: 15px;
-      }
-
-      .grade-input-group label {
-        flex: 0 0 140px;
-        color: #333;
-        font-weight: 600;
-        font-size: 14px;
-      }
-
-      .grade-input-group input {
-        flex: 1;
-        padding: 10px 14px;
-        border: 2px solid #e1e5e9;
-        border-radius: 8px;
-        font-size: 14px;
-        box-sizing: border-box;
-        background: #fafbfc;
-        transition: all 0.3s ease;
-      }
-
-      .grade-input-group input:focus {
-        outline: none;
-        border-color: #667eea;
-        background: white;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-      }
-
-      .current-value-display {
-        background: #fff3cd;
-        border: 2px solid #ffc107;
-        border-radius: 8px;
-        padding: 12px 16px;
-        font-size: 14px;
-        color: #856404;
-        font-weight: 500;
-        margin-bottom: 10px;
       }
 
       .autocomplete-dropdown {
@@ -394,143 +391,67 @@
     <div class="container">
       <div class="header">
         <h2>Update Student Grades</h2>
-        <p>Modify student grades and track changes</p>
+        <p>Modify student grades for multiple subjects</p>
       </div>
 
       <form id="updateForm">
-        <div class="main-content">
-          <!-- Left Section: Search and Student Info -->
-          <div class="search-section">
-            <!-- Search Fields Row -->
-            <div class="search-fields-row">
-              <div class="form-group">
-                <label class="form-label" for="academicYear">Academic Year</label>
-                <select id="academicYear" class="form-control" required>
-                  <option value="">Select academic year...</option>
-                </select>
-              </div>
-
-              <div class="form-group" style="position: relative; z-index: 100;">
-                <label class="form-label" for="studentNumber">Student Number</label>
-                <div style="position: relative;">
-                  <input
-                    type="text"
-                    id="studentNumber"
-                    class="form-control"
-                    placeholder="Type to search student number..."
-                    autocomplete="off"
-                    required
-                  />
-                  <div id="studentNumberDropdown" class="autocomplete-dropdown" style="display: none;"></div>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="subject">Subject</label>
-                <select id="subject" class="form-control" required disabled>
-                  <option value="">Select subject...</option>
-                </select>
-              </div>
-
-              <button type="button" class="btn-load" id="loadBtn">
-                Load Grades
-              </button>
+        <div class="search-section">
+          <div class="search-fields-row">
+            <div class="form-group">
+              <label class="form-label" for="academicYear">Academic Year</label>
+              <select id="academicYear" class="form-control" required>
+                <option value="">Select academic year...</option>
+              </select>
             </div>
 
-            <!-- Student Information Display -->
-            <div class="student-info-section">
-              <div class="student-info" id="studentInfo">
-                <h4>Current Grade Information</h4>
-                <div class="info-grid" id="gradeInfoGrid">
-                  <!-- Grade info will be populated here -->
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Vertical Divider -->
-          <div class="divider" id="divider1" style="display: none;"></div>
-
-          <!-- Update Section -->
-          <div class="update-section-container">
-            <div class="update-section" id="updateSection">
-              <div class="form-group">
-                <label class="form-label">Update Initial Grades</label>
-                <div class="current-value-display" id="currentValue">
-                  Load grades to see current values
-                </div>
-              </div>
-
-              <div class="grade-input-group">
-                <label for="firstInitial">1st Initial:</label>
+            <div class="form-group" style="position: relative; z-index: 100;">
+              <label class="form-label" for="studentNumber">Student Number</label>
+              <div style="position: relative;">
                 <input
                   type="text"
-                  id="firstInitial"
-                  placeholder="Enter new grade"
-                />
-              </div>
-
-              <div class="grade-input-group">
-                <label for="secondInitial">2nd Initial:</label>
-                <input
-                  type="text"
-                  id="secondInitial"
-                  placeholder="Enter new grade"
-                />
-              </div>
-
-              <div class="grade-input-group">
-                <label for="thirdInitial">3rd Initial:</label>
-                <input
-                  type="text"
-                  id="thirdInitial"
-                  placeholder="Enter new grade"
-                />
-              </div>
-
-              <div class="grade-input-group">
-                <label for="fourthInitial">4th Initial:</label>
-                <input
-                  type="text"
-                  id="fourthInitial"
-                  placeholder="Enter new grade"
-                />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="remarks">Remarks (Optional)</label>
-                <input
-                  type="text"
-                  id="remarks"
+                  id="studentNumber"
                   class="form-control"
-                  placeholder="Reason for update or additional notes"
+                  placeholder="Type to search student number..."
+                  autocomplete="off"
+                  required
                 />
-              </div>
-
-              <div class="button-group">
-                <button
-                  type="button"
-                  class="btn btn-secondary"
-                  onclick="google.script.host.close()"
-                >
-                  Cancel
-                </button>
-                <button type="submit" class="btn btn-primary" id="updateBtn">
-                  Update Grades
-                </button>
+                <div id="studentNumberDropdown" class="autocomplete-dropdown" style="display: none;"></div>
               </div>
             </div>
+
+            <button type="button" class="btn-load" id="loadBtn">
+              Load Grades
+            </button>
           </div>
+        </div>
+
+        <div class="student-info-header" id="studentInfoHeader">
+          <div class="student-info-grid" id="studentInfoGrid"></div>
+        </div>
+
+        <div class="subjects-container" id="subjectsContainer"></div>
+
+        <div class="button-group" id="buttonGroup" style="display: none;">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            onclick="google.script.host.close()"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" id="updateBtn">
+            Update All Grades
+          </button>
         </div>
       </form>
     </div>
 
     <script>
-      let currentGradeData = null;
       let allStudentNumbers = [];
       let highlightedIndex = -1;
+      let allGradeData = null;
+      let studentInfo = null;
 
-      // Populate academic year dropdown when page loads
       document.addEventListener("DOMContentLoaded", function () {
         google.script.run
           .withSuccessHandler(function (sheets) {
@@ -547,27 +468,22 @@
           })
           .getStudentSheets();
 
-        // Populate student numbers when academic year is selected
         document.getElementById("academicYear").addEventListener("change", function () {
           const academicYear = this.value;
           const studentNumberInput = document.getElementById("studentNumber");
-          const subjectSelect = document.getElementById("subject");
           const dropdown = document.getElementById("studentNumberDropdown");
           
-          // Clear inputs and dropdowns
           studentNumberInput.value = "";
-          subjectSelect.innerHTML = '<option value="">Select subject...</option>';
-          subjectSelect.disabled = true;
           dropdown.style.display = "none";
           allStudentNumbers = [];
           highlightedIndex = -1;
-          currentGradeData = null;
-          document.getElementById("studentInfo").classList.remove("visible");
-          document.getElementById("updateSection").classList.remove("visible");
-          document.getElementById("divider1").style.display = "none";
+          allGradeData = null;
+          studentInfo = null;
+          document.getElementById("studentInfoHeader").classList.remove("visible");
+          document.getElementById("subjectsContainer").classList.remove("visible");
+          document.getElementById("buttonGroup").style.display = "none";
           
           if (academicYear) {
-            // Get student numbers for the selected academic year
             google.script.run
               .withSuccessHandler(function (studentNumbers) {
                 allStudentNumbers = studentNumbers;
@@ -580,37 +496,6 @@
           }
         });
 
-        // Populate subjects when student number is entered
-        document.getElementById("studentNumber").addEventListener("blur", function() {
-          const academicYear = document.getElementById("academicYear").value;
-          const studentNumber = this.value.trim();
-          const subjectSelect = document.getElementById("subject");
-          
-          if (academicYear && studentNumber) {
-            subjectSelect.disabled = true;
-            subjectSelect.innerHTML = '<option value="">Loading subjects...</option>';
-            
-            google.script.run
-              .withSuccessHandler(function (subjects) {
-                subjectSelect.innerHTML = '<option value="">Select subject...</option>';
-                subjects.forEach(function (subject) {
-                  const option = document.createElement("option");
-                  option.value = subject;
-                  option.textContent = subject;
-                  subjectSelect.appendChild(option);
-                });
-                subjectSelect.disabled = false;
-              })
-              .withFailureHandler(function (error) {
-                console.error("Error loading subjects:", error);
-                subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
-                subjectSelect.disabled = true;
-              })
-              .getSubjects(studentNumber, academicYear);
-          }
-        });
-
-        // Autocomplete functionality for student number input
         const studentNumberInput = document.getElementById("studentNumber");
         const dropdown = document.getElementById("studentNumberDropdown");
 
@@ -623,19 +508,16 @@
             return;
           }
 
-          // Filter student numbers
           const filtered = allStudentNumbers.filter(function(num) {
             return num.toLowerCase().includes(searchTerm);
           });
 
-          // Display filtered results
           if (filtered.length === 0) {
             dropdown.innerHTML = '<div class="autocomplete-item empty">No matching student numbers found</div>';
             dropdown.style.display = "block";
             return;
           }
 
-          // Limit to 10 results for better UX
           const displayResults = filtered.slice(0, 10);
           dropdown.innerHTML = "";
           
@@ -647,8 +529,6 @@
               studentNumberInput.value = studentNumber;
               dropdown.style.display = "none";
               highlightedIndex = -1;
-              // Trigger blur to load subjects
-              studentNumberInput.dispatchEvent(new Event('blur'));
             });
             dropdown.appendChild(item);
           });
@@ -656,7 +536,6 @@
           dropdown.style.display = "block";
         });
 
-        // Handle keyboard navigation
         studentNumberInput.addEventListener("keydown", function(e) {
           const items = dropdown.querySelectorAll(".autocomplete-item:not(.empty)");
           
@@ -685,7 +564,6 @@
           }
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener("click", function(e) {
           if (!studentNumberInput.contains(e.target) && !dropdown.contains(e.target)) {
             dropdown.style.display = "none";
@@ -694,48 +572,41 @@
         });
       });
 
-      // Load grade information
       document.getElementById("loadBtn").addEventListener("click", function () {
         const academicYear = document.getElementById("academicYear").value;
         const studentNumber = document.getElementById("studentNumber").value.trim();
-        const subject = document.getElementById("subject").value;
 
         if (!academicYear) {
           alert("Please select an academic year.");
           return;
         }
 
-        if (!studentNumber || !studentNumber.trim()) {
+        if (!studentNumber) {
           alert("Please enter a student number.");
           return;
         }
 
-        if (!subject) {
-          alert("Please select a subject.");
-          return;
-        }
-
-        // Show loading state
         const loadBtn = document.getElementById("loadBtn");
         const originalText = loadBtn.textContent;
         loadBtn.textContent = "Loading...";
         loadBtn.disabled = true;
 
-        // Load grade information
         google.script.run
           .withSuccessHandler(function (result) {
             if (result.success) {
-              currentGradeData = result.gradeData;
-              displayGradeInfo(result.gradeData);
-              document.getElementById("studentInfo").classList.add("visible");
-              document.getElementById("updateSection").classList.add("visible");
-              document.getElementById("divider1").style.display = "block";
+              allGradeData = result.gradeData;
+              studentInfo = result.studentInfo;
+              displayAllGrades(result.studentInfo, result.gradeData);
+              document.getElementById("studentInfoHeader").classList.add("visible");
+              document.getElementById("subjectsContainer").classList.add("visible");
+              document.getElementById("buttonGroup").style.display = "flex";
             } else {
               alert("Error: " + result.message);
-              currentGradeData = null;
-              document.getElementById("studentInfo").classList.remove("visible");
-              document.getElementById("updateSection").classList.remove("visible");
-              document.getElementById("divider1").style.display = "none";
+              allGradeData = null;
+              studentInfo = null;
+              document.getElementById("studentInfoHeader").classList.remove("visible");
+              document.getElementById("subjectsContainer").classList.remove("visible");
+              document.getElementById("buttonGroup").style.display = "none";
             }
             loadBtn.textContent = originalText;
             loadBtn.disabled = false;
@@ -745,127 +616,187 @@
             loadBtn.textContent = originalText;
             loadBtn.disabled = false;
           })
-          .getGradeInfo(studentNumber, academicYear, subject);
+          .getAllGradeInfo(studentNumber, academicYear);
       });
 
-      // Display grade information
-      function displayGradeInfo(gradeData) {
-        const grid = document.getElementById("gradeInfoGrid");
-        grid.innerHTML = "";
+      function displayAllGrades(studentInfo, gradeData) {
+        const studentInfoGrid = document.getElementById("studentInfoGrid");
+        studentInfoGrid.innerHTML = "";
         
-        const fields = [
-          { label: "Student Number", value: gradeData["Student Number"] || "-" },
-          { label: "Full Name", value: gradeData["Full Name"] || "-" },
-          { label: "Grade Level", value: gradeData["Grade Level"] || "-" },
-          { label: "Section", value: gradeData["Section"] || "-" },
-          { label: "Subject", value: gradeData["Subject"] || "-" },
-          { label: "Teacher", value: gradeData["Teacher"] || "-" },
-          { label: "1st Initial", value: gradeData["1st Initial"] || "-" },
-          { label: "2nd Initial", value: gradeData["2nd Initial"] || "-" },
-          { label: "3rd Initial", value: gradeData["3rd Initial"] || "-" },
-          { label: "4th Initial", value: gradeData["4th Initial"] || "-" }
+        const infoFields = [
+          { label: "Student Number", value: studentInfo["Student Number"] || "-" },
+          { label: "Full Name", value: studentInfo["Full Name"] || "-" },
+          { label: "Grade Level", value: studentInfo["Grade Level"] || "-" },
+          { label: "Section", value: studentInfo["Section"] || "-" }
         ];
         
-        fields.forEach(function(field) {
+        infoFields.forEach(function(field) {
           const item = document.createElement("div");
-          item.className = "info-item";
+          item.className = "student-info-item";
           item.innerHTML = `
-            <span class="info-label">${field.label}</span>
-            <span class="info-value">${field.value}</span>
+            <span class="student-info-label">${field.label}</span>
+            <span class="student-info-value">${field.value}</span>
           `;
-          grid.appendChild(item);
+          studentInfoGrid.appendChild(item);
         });
-        
-        // Update current value display
-        const currentValueDisplay = document.getElementById("currentValue");
-        currentValueDisplay.innerHTML = `
-          <strong>Current Grades:</strong><br>
-          1st Initial: ${gradeData["1st Initial"] || "-"}<br>
-          2nd Initial: ${gradeData["2nd Initial"] || "-"}<br>
-          3rd Initial: ${gradeData["3rd Initial"] || "-"}<br>
-          4th Initial: ${gradeData["4th Initial"] || "-"}
-        `;
-        
-        // Pre-fill input fields with current values
-        document.getElementById("firstInitial").value = gradeData["1st Initial"] || "";
-        document.getElementById("secondInitial").value = gradeData["2nd Initial"] || "";
-        document.getElementById("thirdInitial").value = gradeData["3rd Initial"] || "";
-        document.getElementById("fourthInitial").value = gradeData["4th Initial"] || "";
+
+        const subjectsContainer = document.getElementById("subjectsContainer");
+        subjectsContainer.innerHTML = "";
+
+        gradeData.forEach(function(subjectData, index) {
+          const subjectCard = document.createElement("div");
+          subjectCard.className = "subject-card";
+          subjectCard.innerHTML = `
+            <div class="subject-header">
+              <div>
+                <div class="subject-title">${subjectData.Subject || "-"}</div>
+                <div class="subject-teacher">Teacher: ${subjectData.Teacher || "-"}</div>
+              </div>
+            </div>
+            <div class="current-grades-display">
+              <strong>Current Grades:</strong>
+              1st Initial: ${subjectData["1st Initial"] || "-"} | 
+              2nd Initial: ${subjectData["2nd Initial"] || "-"} | 
+              3rd Initial: ${subjectData["3rd Initial"] || "-"} | 
+              4th Initial: ${subjectData["4th Initial"] || "-"}
+            </div>
+            <div class="grade-input-group">
+              <label for="firstInitial_${index}">1st Initial:</label>
+              <input
+                type="text"
+                id="firstInitial_${index}"
+                data-subject="${subjectData.Subject}"
+                data-period="1st Initial"
+                placeholder="${subjectData["1st Initial"] || ""}"
+                value="${subjectData["1st Initial"] || ""}"
+              />
+            </div>
+            <div class="grade-input-group">
+              <label for="secondInitial_${index}">2nd Initial:</label>
+              <input
+                type="text"
+                id="secondInitial_${index}"
+                data-subject="${subjectData.Subject}"
+                data-period="2nd Initial"
+                placeholder="${subjectData["2nd Initial"] || ""}"
+                value="${subjectData["2nd Initial"] || ""}"
+              />
+            </div>
+            <div class="grade-input-group">
+              <label for="thirdInitial_${index}">3rd Initial:</label>
+              <input
+                type="text"
+                id="thirdInitial_${index}"
+                data-subject="${subjectData.Subject}"
+                data-period="3rd Initial"
+                placeholder="${subjectData["3rd Initial"] || ""}"
+                value="${subjectData["3rd Initial"] || ""}"
+              />
+            </div>
+            <div class="grade-input-group">
+              <label for="fourthInitial_${index}">4th Initial:</label>
+              <input
+                type="text"
+                id="fourthInitial_${index}"
+                data-subject="${subjectData.Subject}"
+                data-period="4th Initial"
+                placeholder="${subjectData["4th Initial"] || ""}"
+                value="${subjectData["4th Initial"] || ""}"
+              />
+            </div>
+            <div class="remarks-group">
+              <label for="remarks_${index}">Remarks (Optional)</label>
+              <input
+                type="text"
+                id="remarks_${index}"
+                data-subject="${subjectData.Subject}"
+                placeholder="Reason for update or additional notes"
+              />
+            </div>
+          `;
+          subjectsContainer.appendChild(subjectCard);
+        });
       }
 
-      // Handle form submission
-      document
-        .getElementById("updateForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
+      document.getElementById("updateForm").addEventListener("submit", function (e) {
+        e.preventDefault();
 
-          const academicYear = document.getElementById("academicYear").value;
-          const studentNumber = document.getElementById("studentNumber").value;
-          const subject = document.getElementById("subject").value;
-          const remarks = document.getElementById("remarks").value;
+        if (!allGradeData || !studentInfo) {
+          alert("Please load grade information first.");
+          return;
+        }
 
-          if (!currentGradeData) {
-            alert("Please load grade information first.");
-            return;
-          }
+        const academicYear = document.getElementById("academicYear").value;
+        const studentNumber = document.getElementById("studentNumber").value.trim();
 
-          // Collect grade updates (only include fields that have values)
+        const updates = [];
+        const subjectMap = {};
+
+        allGradeData.forEach(function(subjectData, index) {
+          const subject = subjectData.Subject;
+          const firstInitial = document.getElementById(`firstInitial_${index}`).value.trim();
+          const secondInitial = document.getElementById(`secondInitial_${index}`).value.trim();
+          const thirdInitial = document.getElementById(`thirdInitial_${index}`).value.trim();
+          const fourthInitial = document.getElementById(`fourthInitial_${index}`).value.trim();
+          const remarks = document.getElementById(`remarks_${index}`).value.trim();
+
           const gradeUpdates = {};
-          const firstInitial = document.getElementById("firstInitial").value.trim();
-          const secondInitial = document.getElementById("secondInitial").value.trim();
-          const thirdInitial = document.getElementById("thirdInitial").value.trim();
-          const fourthInitial = document.getElementById("fourthInitial").value.trim();
+          let hasChanges = false;
 
-          if (firstInitial) {
+          if (firstInitial !== (subjectData["1st Initial"] || "")) {
             gradeUpdates["1st Initial"] = firstInitial;
+            hasChanges = true;
           }
-          if (secondInitial) {
+          if (secondInitial !== (subjectData["2nd Initial"] || "")) {
             gradeUpdates["2nd Initial"] = secondInitial;
+            hasChanges = true;
           }
-          if (thirdInitial) {
+          if (thirdInitial !== (subjectData["3rd Initial"] || "")) {
             gradeUpdates["3rd Initial"] = thirdInitial;
+            hasChanges = true;
           }
-          if (fourthInitial) {
+          if (fourthInitial !== (subjectData["4th Initial"] || "")) {
             gradeUpdates["4th Initial"] = fourthInitial;
+            hasChanges = true;
           }
 
-          if (Object.keys(gradeUpdates).length === 0) {
-            alert("Please enter at least one grade to update.");
-            return;
+          if (hasChanges && Object.keys(gradeUpdates).length > 0) {
+            updates.push({
+              subject: subject,
+              gradeUpdates: gradeUpdates,
+              remarks: remarks
+            });
           }
+        });
 
-          // Show loading state
-          const updateBtn = document.getElementById("updateBtn");
-          const originalText = updateBtn.textContent;
-          updateBtn.textContent = "Updating...";
-          updateBtn.disabled = true;
+        if (updates.length === 0) {
+          alert("No changes detected. Please modify at least one grade before updating.");
+          return;
+        }
 
-          // Call the update function
-          google.script.run
-            .withSuccessHandler(function (result) {
-              if (result.success) {
-                alert("Success!\n\n" + result.message);
-                google.script.host.close();
-              } else {
-                alert("Update Failed!\n\n" + result.message);
-                updateBtn.textContent = originalText;
-                updateBtn.disabled = false;
-              }
-            })
-            .withFailureHandler(function (error) {
-              alert("Error: " + error.toString());
+        const updateBtn = document.getElementById("updateBtn");
+        const originalText = updateBtn.textContent;
+        updateBtn.textContent = "Updating...";
+        updateBtn.disabled = true;
+
+        google.script.run
+          .withSuccessHandler(function (result) {
+            if (result.success) {
+              alert("Success!\n\n" + result.message);
+              google.script.host.close();
+            } else {
+              alert("Update Failed!\n\n" + result.message);
               updateBtn.textContent = originalText;
               updateBtn.disabled = false;
-            })
-            .updateGrades(
-              studentNumber,
-              academicYear,
-              subject,
-              gradeUpdates,
-              remarks
-            );
-        });
+            }
+          })
+          .withFailureHandler(function (error) {
+            alert("Error: " + error.toString());
+            updateBtn.textContent = originalText;
+            updateBtn.disabled = false;
+          })
+          .updateMultipleGrades(studentNumber, academicYear, updates);
+      });
     </script>
   </body>
 </html>
-

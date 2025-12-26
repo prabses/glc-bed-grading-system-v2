@@ -75,7 +75,7 @@ function importGrades(ogsTemplateUrl, academicYearSheet) {
  */
 function showUpdateGradesDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("UpdateGradesDialog")
-    .setWidth(1400)
+    .setWidth(1100)
     .setHeight(700)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
@@ -216,6 +216,22 @@ function updateGrades(studentNumber, academicYearSheet, subject, gradeUpdates, r
     subject,
     gradeUpdates,
     remarks,
+    userEmail
+  });
+}
+
+function getAllGradeInfo(studentNumber, academicYearSheet) {
+  console.log("Function getAllGradeInfo executed by: " + Session.getActiveUser().getEmail());
+  return callApi("getAllGradeInfo", { studentNumber, academicYearSheet });
+}
+
+function updateMultipleGrades(studentNumber, academicYearSheet, updates) {
+  const userEmail = Session.getActiveUser().getEmail();
+  console.log("Function updateMultipleGrades executed by: " + userEmail);
+  return callApi("updateMultipleGrades", {
+    studentNumber,
+    academicYearSheet,
+    updates,
     userEmail
   });
 }

@@ -72,6 +72,18 @@ function doPost(e) {
           payload.remarks,
           payload.userEmail
         ));
+      case "getAllGradeInfo":
+        return response(200, _getAllGradeInfo(
+          payload.studentNumber,
+          payload.academicYearSheet
+        ));
+      case "updateMultipleGrades":
+        return response(200, _updateMultipleGrades(
+          payload.studentNumber,
+          payload.academicYearSheet,
+          payload.updates,
+          payload.userEmail
+        ));
       default:
         return response(400, "Bad Request: Invalid action.");
     }
@@ -959,6 +971,169 @@ function logUpdate(studentNumber, fullName, academicYear, subject, period, origi
   } catch (error) {
     console.error('Error logging update:', error);
     // Don't throw error, just log it - the update itself was successful
+  }
+}
+
+function _getAllGradeInfo(studentNumber, academicYearSheet) {
+  try {
+    if (!studentNumber || studentNumber.toString().trim() === '') {
+      return { success: false, message: 'Student number cannot be empty' };
+    }
+    
+    if (!academicYearSheet || academicYearSheet.toString().trim() === '') {
+      return { success: false, message: 'Academic year must be specified' };
+    }
+    
+    const targetSheet = getSheet(academicYearSheet);
+    
+    if (!targetSheet) {
+      return { success: false, message: 'Academic year sheet not found' };
+    }
+    
+    const lastRow = targetSheet.getLastRow();
+    if (lastRow < 2) {
+      return { success: false, message: 'No grade data found in the sheet' };
+    }
+    
+    const headerRow = targetSheet.getRange(1, 1, 1, targetSheet.getLastColumn()).getValues()[0];
+    const dataRange = targetSheet.getRange(2, 1, lastRow - 1, headerRow.length);
+    const data = dataRange.getValues();
+    const formulas = targetSheet.getRange(2, 1, lastRow - 1, 1).getFormulas();
+    
+    const allGradeData = [];
+    let studentInfo = null;
+    
+    for (let i = 0; i < data.length; i++) {
+      const formula = formulas[i][0];
+      if (formula && typeof formula === 'string' && formula.includes('HYPERLINK')) {
+        continue;
+      }
+      
+      const rowStudentNum = String(data[i][0] || '').trim();
+      const rowSubject = String(data[i][4] || '').trim();
+      
+      if (rowStudentNum === studentNumber.toString().trim() && rowSubject) {
+        if (!studentInfo) {
+          studentInfo = {
+            'Student Number': data[i][0],
+            'Full Name': data[i][1],
+            'Grade Level': data[i][2],
+            'Section': data[i][3]
+          };
+        }
+        
+        allGradeData.push({
+          'Subject': data[i][4],
+          'Teacher': data[i][5],
+          '1st Initial': data[i][6] || '',
+          '1st Transmuted': data[i][7] || '',
+          '1st EQ': data[i][8] || '',
+          '2nd Initial': data[i][9] || '',
+          '2nd Transmuted': data[i][10] || '',
+          '2nd EQ': data[i][11] || '',
+          '3rd Initial': data[i][12] || '',
+          '3rd Transmuted': data[i][13] || '',
+          '3rd EQ': data[i][14] || '',
+          '4th Initial': data[i][15] || '',
+          '4th Transmuted': data[i][16] || '',
+          '4th EQ': data[i][17] || '',
+          'Final Grading': data[i][18] || '',
+          'Final EQ': data[i][19] || ''
+        });
+      }
+    }
+    
+    if (allGradeData.length === 0) {
+      return { success: false, message: 'No grade records found for the specified student' };
+    }
+    
+    return {
+      success: true,
+      studentInfo: studentInfo,
+      gradeData: allGradeData
+    };
+    
+  } catch (error) {
+    console.error('Error getting all grade info:', error);
+    return { 
+      success: false, 
+      message: `Error retrieving grade data: ${error.toString()}` 
+    };
+  }
+}
+
+function _updateMultipleGrades(studentNumber, academicYearSheet, updates, userEmail) {
+  try {
+    if (!studentNumber || studentNumber.toString().trim() === '') {
+      return { success: false, message: 'Student number cannot be empty' };
+    }
+    
+    if (!academicYearSheet || academicYearSheet.toString().trim() === '') {
+      return { success: false, message: 'Academic year must be specified' };
+    }
+    
+    if (!updates || !Array.isArray(updates) || updates.length === 0) {
+      return { success: false, message: 'No updates provided' };
+    }
+    
+    const results = [];
+    let totalUpdated = 0;
+    let totalPeriodsUpdated = 0;
+    
+    for (let i = 0; i < updates.length; i++) {
+      const update = updates[i];
+      const { subject, gradeUpdates, remarks } = update;
+      
+      if (!subject || !gradeUpdates || Object.keys(gradeUpdates).length === 0) {
+        continue;
+      }
+      
+      const updateResult = _updateGrades(
+        studentNumber,
+        academicYearSheet,
+        subject,
+        gradeUpdates,
+        remarks || '',
+        userEmail
+      );
+      
+      if (updateResult.success) {
+        totalUpdated++;
+        const periodCount = Object.keys(gradeUpdates).length;
+        totalPeriodsUpdated += periodCount;
+        results.push({
+          subject: subject,
+          success: true,
+          message: updateResult.message
+        });
+      } else {
+        results.push({
+          subject: subject,
+          success: false,
+          message: updateResult.message
+        });
+      }
+    }
+    
+    if (totalUpdated === 0) {
+      return { 
+        success: false, 
+        message: 'No grades were updated. Please check your input values.' 
+      };
+    }
+    
+    return {
+      success: true,
+      message: `Successfully updated ${totalPeriodsUpdated} grade period(s) across ${totalUpdated} subject(s)`,
+      results: results
+    };
+    
+  } catch (error) {
+    console.error('Error updating multiple grades:', error);
+    return { 
+      success: false, 
+      message: `Error updating grades: ${error.toString()}` 
+    };
   }
 }
 
