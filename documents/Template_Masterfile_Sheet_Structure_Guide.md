@@ -300,6 +300,7 @@ Teacher | Grade Level | Section | Status | Created | Modified | Created By
 
 **Sheet Structure with Parent Headers:**
 
+**For Elementary/Junior High School (Non-SHS):**
 ```
 Row 1 (Parent Header):
 ┌─────────────────────────────────────────────────────────┐
@@ -311,15 +312,31 @@ Row 2 (Column Headers):
 # | Subject Name | Active
 ```
 
+**For Senior High School (SHS) - Enhanced Structure:**
+```
+Row 1 (Parent Header):
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                              SUBJECT INFORMATION                                    │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+                                    Col A-G
+
+Row 2 (Column Headers):
+# | Subject Name | Category | Strand | Semester | Level | Active
+```
+
 **Column Details:**
 
-| Column | Field Name    | Parent Header         | Description                    | Example         |
-|--------|---------------|-----------------------|--------------------------------|-----------------|
-| A      | #             | Subject Information   | Row numbering (formula)        | 1               |
-| B      | Subject Name  | Subject Information   | Full subject name              | English 1       |
-| C      | Active        | Subject Information   | ✓ or blank (hide if inactive)  | ✓               |
+| Column | Field Name    | Parent Header         | Description                                    | Example                  | SHS Only? |
+|--------|---------------|-----------------------|------------------------------------------------|--------------------------|-----------|
+| A      | #             | Subject Information   | Row numbering (formula)                        | 1                        | No        |
+| B      | Subject Name  | Subject Information   | Full subject name                              | English 1                | No        |
+| C      | Category      | Subject Information   | Category (Core, Specialized, Applied)          | Core                     | Yes       |
+| D      | Strand        | Subject Information   | Strand (ALL, STEM, HUMSS, ICT, ABM, GAS)       | ALL                      | Yes       |
+| E      | Semester      | Subject Information   | Semester (1ST, 2ND)                            | 1ST                      | Yes       |
+| F      | Level         | Subject Information   | Level (11, 12)                                 | 11                       | Yes       |
+| G      | Active        | Subject Information   | ✓ or blank (hide if inactive)                  | ✓                        | No        |
 
-**Sample Data:**
+**Sample Data (Non-SHS):**
 
 ```
 Row 1: SUBJECT INFORMATION (merged across A-C)
@@ -327,22 +344,32 @@ Row 2: # | Subject Name      | Active
 Row 3: 1 | English 1         | ✓
 Row 4: 2 | Mathematics 1     | ✓
 Row 5: 3 | Filipino 7        | ✓
-Row 6: 4 | Science 1         | ✓
-Row 7: 5 | Physical Ed 1     | ✓
-Row 8: 6 | Chemistry 1       | ✓
-Row 9: 7 | Old Subject       |     ← Inactive, won't show in dialog
+```
+
+**Sample Data (SHS):**
+
+```
+Row 1: SUBJECT INFORMATION (merged across A-G)
+Row 2: # | Subject Name | Category | Strand | Semester | Level | Active
+Row 3: 1 | Oral Communication | Core | ALL | 1ST | 11 | ✓
+Row 4: 2 | General Chemistry 1 | Specialized | STEM | 1ST | 11 | ✓
+Row 5: 3 | Computer Programming 1 | Specialized | ICT | 1ST | 11 | ✓
+Row 6: 4 | Basic Calculus | Specialized | STEM | 2ND | 11 | ✓
 ```
 
 **Key Features:**
-- ✅ Ultra-minimal - just 3 columns (numbering + 2 data columns)
-- ✅ Easy to add new subjects (just type name + check mark)
+- ✅ **For Non-SHS:** Ultra-minimal - just 3 columns (numbering + 2 data columns)
+- ✅ **For SHS:** Enhanced structure with Category, Strand, Semester, Level columns
+- ✅ Easy to add new subjects (just type name + check mark + SHS metadata if applicable)
 - ✅ Inactive subjects remain for historical reference
-- ✅ Dialog only shows active subjects (✓ in column C)
-- ✅ No unnecessary metadata
+- ✅ Dialog only shows active subjects (✓ in Active column)
+- ✅ **SHS Metadata:** Category, Strand, Semester, and Level are automatically retrieved when assigning subjects to teachers
 
 **Usage:**
 - Scripts read column B (Subject Name) for dropdown list in dialog
-- Only rows where column C (Active) = "✓" appear in dialog
+- Only rows where Active column = "✓" appear in dialog
+- **For SHS:** When a subject is selected, the system automatically retrieves its Category, Strand, Semester, and Level from this sheet
+- **For Non-SHS:** Category, Strand, Semester, and Level columns can be left blank (system uses defaults: ALL, Core, 1ST)
 
 ---
 

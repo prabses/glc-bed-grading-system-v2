@@ -65,40 +65,81 @@ function showAssignmentDialog() {
  * @return {Array} Array of active subject names
  */
 function getActiveSubjects() {
+  // Column B is Subject Name (Column A is "No." which we skip)
   return getActiveItems(CONFIG.SHEET_NAMES.SUBJECTS_REF, 1);
 }
 
 /**
- * Gets active strands from STRANDS_REF sheet
- * @return {Array} Array of active strand names
+ * Gets subject metadata (Category, Strand, Semester, Level) from SUBJECTS_REF sheet
+ * @param {string} subjectName - The subject name to look up
+ * @return {Object} Object with subject metadata or null if not found
  */
-function getActiveStrands() {
-  return getActiveItems(CONFIG.SHEET_NAMES.STRANDS_REF, 1);
+function getSubjectMetadata(subjectName) {
+  try {
+    if (!CONFIG.IS_SHS) {
+      // For non-SHS, return defaults
+      return {
+        category: CONFIG.SHS_DEFAULTS.CATEGORY,
+        strand: CONFIG.SHS_DEFAULTS.STRAND,
+        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+        level: null
+      };
+    }
+    
+    return callApi("getSubjectMetadata", {
+      subjectName: subjectName
+    });
+  } catch (error) {
+    console.error('Error getting subject metadata:', error);
+    // Return defaults on error
+    return {
+      category: CONFIG.SHS_DEFAULTS.CATEGORY,
+      strand: CONFIG.SHS_DEFAULTS.STRAND,
+      semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+      level: null
+    };
+  }
 }
 
 /**
- * Gets all available strands (for SHS)
- * @return {Array} Array of strand names (empty array if IS_SHS is false or STRANDS_REF doesn't exist)
+ * Gets subject metadata for multiple subjects at once
+ * @param {Array} subjectNames - Array of subject names
+ * @return {Object} Object mapping subject names to their metadata
  */
-function getStrands() {
+function getSubjectsMetadata(subjectNames) {
   try {
-    // Only return strands if SHS is enabled
-    if (!CONFIG.IS_SHS) {
-      return [];
+    if (!CONFIG.IS_SHS || !subjectNames || subjectNames.length === 0) {
+      // Return defaults for all subjects if not SHS
+      const defaults = {
+        category: CONFIG.SHS_DEFAULTS.CATEGORY,
+        strand: CONFIG.SHS_DEFAULTS.STRAND,
+        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+        level: null
+      };
+      const result = {};
+      subjectNames.forEach(name => {
+        result[name] = defaults;
+      });
+      return result;
     }
     
-    const strands = getActiveStrands();
-    // If STRANDS_REF doesn't exist or is empty, return empty array
-    // User must set up STRANDS_REF sheet with strands
-    if (!strands || strands.length === 0) {
-      console.warn('STRANDS_REF sheet is empty or does not exist. Please set up the STRANDS_REF sheet.');
-      return [];
-    }
-    return strands;
+    return callApi("getSubjectsMetadata", {
+      subjectNames: subjectNames
+    });
   } catch (error) {
-    console.error('Error getting strands:', error);
-    // Return empty array if sheet doesn't exist (user must set up STRANDS_REF)
-    return [];
+    console.error('Error getting subjects metadata:', error);
+    // Return defaults for all subjects on error
+    const defaults = {
+      category: CONFIG.SHS_DEFAULTS.CATEGORY,
+      strand: CONFIG.SHS_DEFAULTS.STRAND,
+      semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+      level: null
+    };
+    const result = {};
+    subjectNames.forEach(name => {
+      result[name] = defaults;
+    });
+    return result;
   }
 }
 
@@ -142,7 +183,7 @@ function getTeachers() {
 
 /**
  * Gets all dropdown data at once for performance optimization
- * @return {Object} Object containing gradeLevels, subjects, teachers, strands, categories, semesters
+ * @return {Object} Object containing gradeLevels, subjects, teachers, isSHS
  */
 function getAllDropdownData() {
   try {
@@ -150,9 +191,6 @@ function getAllDropdownData() {
     const gradeLevels = [];
     const subjects = [];
     const teachers = [];
-    const strands = [];
-    const categories = [];
-    const semesters = [];
     
     try {
       gradeLevels.push(...getGradeLevels());
@@ -175,34 +213,11 @@ function getAllDropdownData() {
       // Continue with empty array
     }
     
-    try {
-      strands.push(...getStrands());
-    } catch (error) {
-      console.error('Error getting strands:', error);
-      // Continue with empty array
-    }
-    
-    try {
-      categories.push(...getCategories());
-    } catch (error) {
-      console.error('Error getting categories:', error);
-      // Continue with empty array
-    }
-    
-    try {
-      semesters.push(...getSemesters());
-    } catch (error) {
-      console.error('Error getting semesters:', error);
-      // Continue with empty array
-    }
-    
     return { 
       gradeLevels: gradeLevels,
       subjects: subjects,
       teachers: teachers,
-      strands: strands,
-      categories: categories,
-      semesters: semesters
+      isSHS: CONFIG.IS_SHS
     };
   } catch (error) {
     console.error('Error loading dropdown data:', error);
@@ -211,9 +226,7 @@ function getAllDropdownData() {
       gradeLevels: [],
       subjects: [],
       teachers: [],
-      strands: [],
-      categories: [],
-      semesters: []
+      isSHS: false
     };
   }
 }

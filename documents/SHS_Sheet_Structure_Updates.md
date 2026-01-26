@@ -1,7 +1,7 @@
 # Senior High School Sheet Structure Updates
 
 ## Overview
-This document outlines the changes made to support Senior High School (SHS) requirements, specifically adding support for Strands, Categories, and Semesters.
+This document outlines the changes made to support Senior High School (SHS) requirements, specifically adding support for Strands, Categories, and Semesters. **Important:** Category, Strand, and Semester are properties of each subject (stored in SUBJECTS_REF), not user input when creating assignments.
 
 ---
 
@@ -38,53 +38,53 @@ Row 3 (Example):
 
 ---
 
-## 🆕 New Reference Sheet: STRANDS_REF
+## 📋 Updated SUBJECTS_REF Sheet Structure
 
-### **Purpose:** 
-List of available strands for Senior High School. Similar structure to SUBJECTS_REF.
+### **New Column Structure (6 columns total for SHS)**
 
-### **Sheet Structure:**
+The SUBJECTS_REF sheet now includes Category, Strand, Semester, and Level columns for SHS subjects. These values are automatically retrieved when assigning subjects to teachers.
 
-```
-Row 1 (Parent Header):
-┌─────────────────────────────────────────────────────────┐
-│                    STRAND INFORMATION                    │
-└─────────────────────────────────────────────────────────┘
-                        Col A-C
-
-Row 2 (Column Headers):
-# | Strand Name | Active
-```
-
-### **Column Details:**
-
-| Column | Field Name    | Description                    | Example         |
-|--------|---------------|--------------------------------|-----------------|
-| A      | #             | Row numbering (formula)        | 1               |
-| B      | Strand Name   | Full strand name               | STEM            |
-| C      | Active        | ✓ or blank (hide if inactive)  | ✓               |
+| Column | Field Name    | Description                                    | Example                  |
+|--------|---------------|------------------------------------------------|--------------------------|
+| A      | #             | Row numbering (formula)                       | 1                        |
+| B      | Subject Name   | Full subject name                              | General Chemistry 1       |
+| C      | **Category**   | **NEW:** Category (Core, Specialized, Applied) | Specialized              |
+| D      | **Strand**     | **NEW:** Strand (ALL, STEM, HUMSS, ICT, ABM, GAS) | STEM                    |
+| E      | **Semester**   | **NEW:** Semester (1ST, 2ND)                   | 1ST                      |
+| F      | **Level**      | **NEW:** Level (11, 12)                        | 11                       |
+| G      | Active         | ✓ or blank (hide if inactive)                  | ✓                        |
 
 ### **Sample Data:**
 
 ```
-Row 1: STRAND INFORMATION (merged across A-C)
-Row 2: # | Strand Name | Active
-Row 3: 1 | ALL         | ✓
-Row 4: 2 | STEM        | ✓
-Row 5: 3 | HUMSS       | ✓
-Row 6: 4 | ICT         | ✓
-Row 7: 5 | ABM         | ✓
-Row 8: 6 | GAS         | ✓
+Row 1: SUBJECT INFORMATION (merged across A-G)
+Row 2: # | Subject Name | Category | Strand | Semester | Level | Active
+Row 3: 1 | Oral Communication | Core | ALL | 1ST | 11 | ✓
+Row 4: 2 | General Chemistry 1 | Specialized | STEM | 1ST | 11 | ✓
+Row 5: 3 | Computer Programming 1 | Specialized | ICT | 1ST | 11 | ✓
+Row 6: 4 | Basic Calculus | Specialized | STEM | 2ND | 11 | ✓
 ```
 
-### **Default Values:**
-If STRANDS_REF sheet doesn't exist or is empty, the system uses these default strands:
-- ALL
-- STEM
-- HUMSS
-- ICT
-- ABM
-- GAS
+### **Key Points:**
+
+- ✅ **Category, Strand, Semester, and Level are properties of the subject**, not the assignment
+- ✅ When a user selects a subject in the "Manage Subjects" dialog, the system automatically retrieves its Category, Strand, Semester, and Level from SUBJECTS_REF
+- ✅ No user input required for these fields - they come from SUBJECTS_REF
+- ✅ For non-SHS grade levels, these columns can be left blank or use defaults (ALL, Core, 1ST)
+
+### **Backward Compatibility:**
+
+- If SUBJECTS_REF doesn't have the new columns, the system uses defaults:
+  - Category: Core
+  - Strand: ALL
+  - Semester: 1ST
+  - Level: null
+
+---
+
+## 📝 Note on STRANDS_REF
+
+**STRANDS_REF sheet is NOT needed.** Strands are now stored directly in SUBJECTS_REF (Column D) for each subject. This eliminates the need for a separate reference sheet and ensures each subject has its own strand assignment.
 
 ---
 
@@ -93,14 +93,11 @@ If STRANDS_REF sheet doesn't exist or is empty, the system uses these default st
 ### **New Constants in Config.js:**
 
 ```javascript
-// SHS Strands
-STRANDS: {
-  ALL: 'ALL',
-  STEM: 'STEM',
-  HUMSS: 'HUMSS',
-  ICT: 'ICT',
-  ABM: 'ABM',
-  GAS: 'GAS'
+// SHS Default Values (used when values are not provided)
+SHS_DEFAULTS: {
+  STRAND: 'ALL',        // Default strand value
+  CATEGORY: 'Core',     // Default category value
+  SEMESTER: '1ST'       // Default semester value
 },
 
 // Subject Categories
@@ -113,6 +110,19 @@ CATEGORIES: {
 SEMESTERS: {
   FIRST: '1ST',
   SECOND: '2ND'
+}
+```
+
+### **New Column Mapping for SUBJECTS_REF:**
+
+```javascript
+SUBJECTS_REF_COLUMNS: {
+  SUBJECT_NAME: 0,  // Column A - Subject Name
+  CATEGORY: 1,      // Column B - Category (Core, Specialized, Applied)
+  STRAND: 2,        // Column C - Strand (ALL, STEM, HUMSS, ICT, ABM, GAS)
+  SEMESTER: 3,      // Column D - Semester (1ST, 2ND)
+  LEVEL: 4,         // Column E - Level (11, 12)
+  ACTIVE: 5         // Column F - Active (✓ or blank)
 }
 ```
 
@@ -154,8 +164,9 @@ SUBJECTS_COLUMNS: {
      - The system will use these values going forward
 
 3. **New Assignments:**
-   - All new assignments MUST include Strand, Category, and Semester
-   - The UI will prompt for these fields
+   - When creating assignments, users select subjects from SUBJECTS_REF
+   - The system automatically retrieves Category, Strand, Semester, and Level from SUBJECTS_REF for each selected subject
+   - No manual input required - all metadata comes from SUBJECTS_REF
 
 ---
 
@@ -183,38 +194,43 @@ SUBJECTS_COLUMNS: {
 ## 🔄 Updated Functions
 
 ### **Code.js:**
-- `getStrands()` - Returns available strands
-- `getCategories()` - Returns available categories
-- `getSemesters()` - Returns available semesters
-- `getAllDropdownData()` - Now includes strands, categories, semesters
-- `addAssignment()` - Updated to accept strand, category, semester parameters
-- `addSubjectsBatch()` - Updated to handle subject objects with strand/category/semester
+- `getSubjectMetadata(subjectName)` - Gets Category, Strand, Semester, Level for a single subject from SUBJECTS_REF
+- `getSubjectsMetadata(subjectNames)` - Gets metadata for multiple subjects at once (batch operation)
+- `getAllDropdownData()` - Returns gradeLevels, subjects, teachers, and isSHS flag
+- `addSubjectsBatch()` - Accepts subject objects with metadata (retrieved from SUBJECTS_REF)
 
 ### **API.js:**
-- `_addAssignment()` - Handles new columns
-- `_addSubjectsBatch()` - Handles subject objects with new fields
-- `_getSubjects()` - Returns assignments with new fields
+- `_getSubjectMetadata(subjectName)` - Internal function to read metadata from SUBJECTS_REF
+- `_getSubjectsMetadata(subjectNames)` - Batch lookup of subject metadata
+- `_addSubjectsBatch()` - Handles subject objects with metadata from SUBJECTS_REF
+- `_getSubjects()` - Returns assignments with Category, Strand, Semester from SUBJECTS sheet
 - All functions handle backward compatibility (defaults for missing values)
 
 ---
 
 ## 📋 Setup Instructions
 
-### **Step 1: Create STRANDS_REF Sheet**
+### **Step 1: Update SUBJECTS_REF Sheet**
 
-1. Create a new sheet named "STRANDS_REF"
-2. Set up headers:
-   - Row 1: Merge A1:C1, type "STRAND INFORMATION"
-   - Row 2: A2 = "#", B2 = "Strand Name", C2 = "Active"
-3. Add data starting at Row 3:
+1. Add new columns to your existing SUBJECTS_REF sheet:
+   - Column C: Category (Core, Specialized, Applied)
+   - Column D: Strand (ALL, STEM, HUMSS, ICT, ABM, GAS)
+   - Column E: Semester (1ST, 2ND)
+   - Column F: Level (11, 12)
+   - Column G: Active (keep existing Active column, move to G)
+
+2. Update headers:
+   - Row 1: Merge A1:G1, type "SUBJECT INFORMATION"
+   - Row 2: A2 = "#", B2 = "Subject Name", C2 = "Category", D2 = "Strand", E2 = "Semester", F2 = "Level", G2 = "Active"
+
+3. Fill in data for each subject:
    ```
-   Row 3: 1 | ALL   | ✓
-   Row 4: 2 | STEM  | ✓
-   Row 5: 3 | HUMSS | ✓
-   Row 6: 4 | ICT   | ✓
-   Row 7: 5 | ABM   | ✓
-   Row 8: 6 | GAS   | ✓
+   Row 3: 1 | Oral Communication | Core | ALL | 1ST | 11 | ✓
+   Row 4: 2 | General Chemistry 1 | Specialized | STEM | 1ST | 11 | ✓
+   Row 5: 3 | Computer Programming 1 | Specialized | ICT | 1ST | 11 | ✓
    ```
+
+**Note:** For non-SHS subjects (Elementary/JHS), you can leave Category, Strand, Semester, and Level blank. The system will use defaults (ALL, Core, 1ST).
 
 ### **Step 2: Update SUBJECTS Sheet (if it exists)**
 
@@ -235,9 +251,11 @@ If you have an existing SUBJECTS sheet:
 ### **Step 3: Test the System**
 
 1. Open "Manage Subjects" dialog
-2. Verify that Strand, Category, and Semester dropdowns appear
-3. Create a test assignment with all fields filled
-4. Verify it appears correctly in the SUBJECTS sheet
+2. Verify that Strand, Category, and Semester fields are **NOT** shown (they come from SUBJECTS_REF automatically)
+3. Select Grade Level, Section, Teacher
+4. Select one or more subjects from the list
+5. Click "Add Subject" - the system will automatically retrieve Category, Strand, Semester, and Level from SUBJECTS_REF
+6. Verify the assignment appears correctly in the SUBJECTS sheet with the correct metadata
 
 ---
 
@@ -247,7 +265,7 @@ If you have an existing SUBJECTS sheet:
 
 2. **Validation:** The system validates that the same subject cannot be assigned to different teachers for the same grade/section/strand/category/semester combination.
 
-3. **Required Fields:** When creating new assignments, Strand, Category, and Semester are required (defaults are provided if not specified).
+3. **Automatic Metadata Retrieval:** When creating assignments, Category, Strand, Semester, and Level are automatically retrieved from SUBJECTS_REF for each selected subject. No user input required.
 
 4. **Display:** The UI will show all fields when viewing assignments, making it easy to identify strand-specific subjects.
 

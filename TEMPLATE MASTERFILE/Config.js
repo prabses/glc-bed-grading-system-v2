@@ -37,8 +37,7 @@ const CONFIG = {
     SECTIONS_REF: 'SECTIONS_REF',
     GRADING_REF: 'GRADING_REF',
     ATTENDANCE_REF: 'ATTENDANCE_REF',
-    CHARACTERS_REF: 'CHARACTERS_REF',
-    STRANDS_REF: 'STRANDS_REF'
+    CHARACTERS_REF: 'CHARACTERS_REF'
   },
   
   // Column mapping for MASTER_DATA (0-based index)
@@ -51,6 +50,17 @@ const CONFIG = {
     CREATED: 5,          // Column F
     MODIFIED: 6,         // Column G
     CREATED_BY: 7        // Column H
+  },
+  
+  // Column mapping for SUBJECTS_REF (0-based index relative to data array starting at Column B)
+  // Note: Column A is "No." (row numbers) and is ignored - we read from Column B onwards
+  SUBJECTS_REF_COLUMNS: {
+    SUBJECT_NAME: 0,  // Column B - Subject Name (index 0 in array when reading from column 2)
+    CATEGORY: 1,      // Column C - Category (Core, Specialized, Applied)
+    STRAND: 2,        // Column D - Strand (ALL, STEM, HUMSS, ICT, ABM, GAS)
+    SEMESTER: 3,      // Column E - Semester (1ST, 2ND)
+    LEVEL: 4,         // Column F - Level (11, 12)
+    ACTIVE: 5         // Column G - Active (✓ or blank)
   },
   
   // Column mapping for GRADING_REF (0-based index)
@@ -92,7 +102,7 @@ const CONFIG = {
   GRADING_COMPONENTS: ['Written Work', 'Performance Task', 'Assessment'],
   
   // SHS Default Values (used when values are not provided)
-  // Note: Full strand list comes from STRANDS_REF sheet
+  // Note: Strands are stored in SUBJECTS_REF for each subject
   SHS_DEFAULTS: {
     STRAND: 'ALL',        // Default strand value
     CATEGORY: 'Core',     // Default category value

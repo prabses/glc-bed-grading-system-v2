@@ -120,6 +120,14 @@ function doPost(e) {
         return response(200, _getSchoolYears());
       case "getGradeLevels":
         return response(200, _getGradeLevels());
+      case "getSubjectsMetadata":
+        return response(200, _getSubjectsMetadata(
+          payload.subjectNames || []
+        ));
+      case "getSubjectMetadata":
+        return response(200, _getSubjectMetadata(
+          payload.subjectName
+        ));
       case "getActiveItems":
         return response(200, _getActiveItems(
           payload.sheetName,
@@ -266,6 +274,199 @@ function _getActiveItems(sheetName, columnIndex = 0) {
   } catch (error) {
     console.error(`Error in _getActiveItems for ${sheetName}:`, error);
     return [];
+  }
+}
+
+/**
+ * Internal function to get subject metadata from SUBJECTS_REF sheet
+ * @param {string} subjectName - The subject name to look up
+ * @return {Object} Object with category, strand, semester, level or defaults if not found
+ */
+function _getSubjectMetadata(subjectName) {
+  try {
+    if (!CONFIG.IS_SHS) {
+      // For non-SHS, return defaults
+      return {
+        category: CONFIG.SHS_DEFAULTS.CATEGORY,
+        strand: CONFIG.SHS_DEFAULTS.STRAND,
+        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+        level: null
+      };
+    }
+    
+    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS_REF);
+    if (!sheet) {
+      console.warn('SUBJECTS_REF sheet not found');
+      return {
+        category: CONFIG.SHS_DEFAULTS.CATEGORY,
+        strand: CONFIG.SHS_DEFAULTS.STRAND,
+        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+        level: null
+      };
+    }
+    
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= CONFIG.HEADER_ROWS) {
+      return {
+        category: CONFIG.SHS_DEFAULTS.CATEGORY,
+        strand: CONFIG.SHS_DEFAULTS.STRAND,
+        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+        level: null
+      };
+    }
+    
+    const startRow = CONFIG.HEADER_ROWS + 1;
+    const numRows = lastRow - CONFIG.HEADER_ROWS;
+    
+    // Read columns B-G (Subject Name, Category, Strand, Semester, Level, Active)
+    // Column A is "No." and is ignored
+    const data = sheet.getRange(startRow, 2, numRows, 6).getValues();
+    
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const rowSubjectName = String(row[CONFIG.SUBJECTS_REF_COLUMNS.SUBJECT_NAME] || '').trim();
+      const activeValue = row[CONFIG.SUBJECTS_REF_COLUMNS.ACTIVE];
+      
+      // Check if subject matches and is active
+      if (rowSubjectName === subjectName && 
+          (activeValue === true || activeValue === '✓' || activeValue === 'TRUE')) {
+        return {
+          category: String(row[CONFIG.SUBJECTS_REF_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY,
+          strand: String(row[CONFIG.SUBJECTS_REF_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND,
+          semester: String(row[CONFIG.SUBJECTS_REF_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER,
+          level: String(row[CONFIG.SUBJECTS_REF_COLUMNS.LEVEL] || '').trim() || null
+        };
+      }
+    }
+    
+    // Subject not found, return defaults
+    return {
+      category: CONFIG.SHS_DEFAULTS.CATEGORY,
+      strand: CONFIG.SHS_DEFAULTS.STRAND,
+      semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+      level: null
+    };
+  } catch (error) {
+    console.error('Error getting subject metadata:', error);
+    return {
+      category: CONFIG.SHS_DEFAULTS.CATEGORY,
+      strand: CONFIG.SHS_DEFAULTS.STRAND,
+      semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+      level: null
+    };
+  }
+}
+
+/**
+ * Internal function to get metadata for multiple subjects at once
+ * @param {Array} subjectNames - Array of subject names
+ * @return {Object} Object mapping subject names to their metadata
+ */
+function _getSubjectsMetadata(subjectNames) {
+  try {
+    if (!CONFIG.IS_SHS || !subjectNames || subjectNames.length === 0) {
+      // Return defaults for all subjects if not SHS
+      const defaults = {
+        category: CONFIG.SHS_DEFAULTS.CATEGORY,
+        strand: CONFIG.SHS_DEFAULTS.STRAND,
+        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+        level: null
+      };
+      const result = {};
+      subjectNames.forEach(name => {
+        result[name] = defaults;
+      });
+      return result;
+    }
+    
+    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS_REF);
+    if (!sheet) {
+      console.warn('SUBJECTS_REF sheet not found');
+      const defaults = {
+        category: CONFIG.SHS_DEFAULTS.CATEGORY,
+        strand: CONFIG.SHS_DEFAULTS.STRAND,
+        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+        level: null
+      };
+      const result = {};
+      subjectNames.forEach(name => {
+        result[name] = defaults;
+      });
+      return result;
+    }
+    
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= CONFIG.HEADER_ROWS) {
+      const defaults = {
+        category: CONFIG.SHS_DEFAULTS.CATEGORY,
+        strand: CONFIG.SHS_DEFAULTS.STRAND,
+        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+        level: null
+      };
+      const result = {};
+      subjectNames.forEach(name => {
+        result[name] = defaults;
+      });
+      return result;
+    }
+    
+    const startRow = CONFIG.HEADER_ROWS + 1;
+    const numRows = lastRow - CONFIG.HEADER_ROWS;
+    
+    // Read columns B-G (Subject Name, Category, Strand, Semester, Level, Active)
+    // Column A is "No." and is ignored
+    const data = sheet.getRange(startRow, 2, numRows, 6).getValues();
+    
+    // Create a map for quick lookup
+    const subjectMap = {};
+    const subjectSet = new Set(subjectNames);
+    
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const rowSubjectName = String(row[CONFIG.SUBJECTS_REF_COLUMNS.SUBJECT_NAME] || '').trim();
+      const activeValue = row[CONFIG.SUBJECTS_REF_COLUMNS.ACTIVE];
+      
+      // Only process if subject is in our list and is active
+      if (subjectSet.has(rowSubjectName) && 
+          (activeValue === true || activeValue === '✓' || activeValue === 'TRUE')) {
+        subjectMap[rowSubjectName] = {
+          category: String(row[CONFIG.SUBJECTS_REF_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY,
+          strand: String(row[CONFIG.SUBJECTS_REF_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND,
+          semester: String(row[CONFIG.SUBJECTS_REF_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER,
+          level: String(row[CONFIG.SUBJECTS_REF_COLUMNS.LEVEL] || '').trim() || null
+        };
+      }
+    }
+    
+    // Fill in defaults for subjects not found
+    const defaults = {
+      category: CONFIG.SHS_DEFAULTS.CATEGORY,
+      strand: CONFIG.SHS_DEFAULTS.STRAND,
+      semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+      level: null
+    };
+    
+    subjectNames.forEach(name => {
+      if (!subjectMap[name]) {
+        subjectMap[name] = defaults;
+      }
+    });
+    
+    return subjectMap;
+  } catch (error) {
+    console.error('Error getting subjects metadata:', error);
+    // Return defaults for all subjects on error
+    const defaults = {
+      category: CONFIG.SHS_DEFAULTS.CATEGORY,
+      strand: CONFIG.SHS_DEFAULTS.STRAND,
+      semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+      level: null
+    };
+    const result = {};
+    subjectNames.forEach(name => {
+      result[name] = defaults;
+    });
+    return result;
   }
 }
 
