@@ -66,6 +66,9 @@ function doPost(e) {
           payload.section,
           payload.teacher,
           payload.subject,
+          payload.strand || CONFIG.SHS_DEFAULTS.STRAND,
+          payload.category || CONFIG.SHS_DEFAULTS.CATEGORY,
+          payload.semester || CONFIG.SHS_DEFAULTS.SEMESTER,
           payload.userEmail
         ));
       case "addSubjectsBatch":
@@ -3341,10 +3344,15 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
  * @param {string} userEmail - The email of the user creating the assignment (passed from client)
  * @return {Object} Result object with success status
  */
-function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
+function _addAssignment(gradeLevel, section, teacher, subject, strand, category, semester, userEmail) {
   try {
     // Normalize grade level for storage (sheet stores just numbers)
     const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
+    // Set defaults if not provided
+    const actualStrand = strand || CONFIG.SHS_DEFAULTS.STRAND;
+    const actualCategory = category || CONFIG.SHS_DEFAULTS.CATEGORY;
+    const actualSemester = semester || CONFIG.SHS_DEFAULTS.SEMESTER;
     
     let sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     
@@ -3353,16 +3361,19 @@ function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
       const spreadsheet = getSpreadsheet();
       sheet = spreadsheet.insertSheet(CONFIG.SHEET_NAMES.SUBJECTS);
       
-      // Set up headers (no parent header row)
+      // Set up headers (no parent header row) - Updated with new columns
       sheet.getRange(1, 1).setValue('Grade Level');
       sheet.getRange(1, 2).setValue('Section');
       sheet.getRange(1, 3).setValue('Teacher');
       sheet.getRange(1, 4).setValue('Subject');
-      sheet.getRange(1, 5).setValue('Status');
-      sheet.getRange(1, 6).setValue('Created');
-      sheet.getRange(1, 7).setValue('Modified');
-      sheet.getRange(1, 8).setValue('Created By');
-      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.DARK_GRAY);
+      sheet.getRange(1, 5).setValue('Strand');
+      sheet.getRange(1, 6).setValue('Category');
+      sheet.getRange(1, 7).setValue('Semester');
+      sheet.getRange(1, 8).setValue('Status');
+      sheet.getRange(1, 9).setValue('Created');
+      sheet.getRange(1, 10).setValue('Modified');
+      sheet.getRange(1, 11).setValue('Created By');
+      sheet.getRange(1, 1, 1, 11).setFontWeight('bold').setBackground(CONFIG.COLORS.DARK_GRAY);
     }
     
     const timestamp = new Date();
@@ -3372,19 +3383,26 @@ function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
     // Check if assignment already exists (skip header row 1)
     const data = sheet.getDataRange().getValues();
     
-    // First, check if exact match exists (same teacher, grade, section, subject)
+    // First, check if exact match exists (same teacher, grade, section, subject, strand, category, semester)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
+      const rowCategory = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
+      const rowSemester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
+      
       if (rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
-          row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject) {
+          row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject &&
+          rowStrand === actualStrand &&
+          rowCategory === actualCategory &&
+          rowSemester === actualSemester) {
         // Update existing assignment to active and update modified date
         sheet.getRange(i + 1, CONFIG.SUBJECTS_COLUMNS.STATUS + 1).setValue('Active');
         sheet.getRange(i + 1, CONFIG.SUBJECTS_COLUMNS.MODIFIED + 1).setValue(timestamp);
         // If Created By is empty, set it (for existing data that might not have it)
-        const createdByCol = CONFIG.SUBJECTS_COLUMNS.CREATED_BY + 1; // Column H
+        const createdByCol = CONFIG.SUBJECTS_COLUMNS.CREATED_BY + 1; // Column K
         const existingCreatedBy = sheet.getRange(i + 1, createdByCol).getValue();
         if (!existingCreatedBy || existingCreatedBy.toString().trim() === '') {
           sheet.getRange(i + 1, createdByCol).setValue(actualUserEmail);
@@ -3393,14 +3411,21 @@ function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
       }
     }
     
-    // VALIDATION: Prevent same grade level + section + subject from being assigned to different teachers
-    // Check if this subject already exists for this grade/section with a different teacher (and is Active)
+    // VALIDATION: Prevent same grade level + section + subject + strand + category + semester from being assigned to different teachers
+    // Check if this subject already exists for this grade/section/strand/category/semester with a different teacher (and is Active)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
+      const rowCategory = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
+      const rowSemester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
+      
       if (rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject &&
+          rowStrand === actualStrand &&
+          rowCategory === actualCategory &&
+          rowSemester === actualSemester &&
           row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
         const existingTeacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
         if (existingTeacher !== teacher) {
@@ -3418,7 +3443,7 @@ function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
     }
     
     // Add new assignment with audit trail (store normalized grade level)
-    sheet.appendRow([normalizedGradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, actualUserEmail]);
+    sheet.appendRow([normalizedGradeLevel, section, teacher, subject, actualStrand, actualCategory, actualSemester, 'Active', timestamp, timestamp, actualUserEmail]);
     
     return { success: true, message: CONFIG.MESSAGES.SUCCESS.ASSIGNMENT_ADDED };
   } catch (error) {
@@ -3434,7 +3459,7 @@ function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
- * @param {Array} subjects - Array of subject names
+ * @param {Array} subjects - Array of subject objects with {subject, strand, category, semester} or strings (for backward compatibility)
  * @param {string} userEmail - The email of the user creating the subjects (passed from client)
  * @return {Object} Result object with success status and counts
  */
@@ -3450,54 +3475,91 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
       const spreadsheet = getSpreadsheet();
       sheet = spreadsheet.insertSheet(CONFIG.SHEET_NAMES.SUBJECTS);
       
-      // Set up headers (no parent header row)
+      // Set up headers (no parent header row) - Updated with new columns
       sheet.getRange(1, 1).setValue('Grade Level');
       sheet.getRange(1, 2).setValue('Section');
       sheet.getRange(1, 3).setValue('Teacher');
       sheet.getRange(1, 4).setValue('Subject');
-      sheet.getRange(1, 5).setValue('Status');
-      sheet.getRange(1, 6).setValue('Created');
-      sheet.getRange(1, 7).setValue('Modified');
-      sheet.getRange(1, 8).setValue('Created By');
-      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.DARK_GRAY);
+      sheet.getRange(1, 5).setValue('Strand');
+      sheet.getRange(1, 6).setValue('Category');
+      sheet.getRange(1, 7).setValue('Semester');
+      sheet.getRange(1, 8).setValue('Status');
+      sheet.getRange(1, 9).setValue('Created');
+      sheet.getRange(1, 10).setValue('Modified');
+      sheet.getRange(1, 11).setValue('Created By');
+      sheet.getRange(1, 1, 1, 11).setFontWeight('bold').setBackground(CONFIG.COLORS.DARK_GRAY);
     }
     
     const timestamp = new Date();
     // Use passed userEmail, or fallback to Session.getActiveUser() if not provided (for backward compatibility)
     const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
     
+    // Normalize subjects array - handle both old format (strings) and new format (objects)
+    const normalizedSubjects = subjects.map(subj => {
+      if (typeof subj === 'string') {
+        // Backward compatibility: old format (just subject name)
+        return {
+          subject: subj,
+          strand: CONFIG.SHS_DEFAULTS.STRAND,
+          category: CONFIG.SHS_DEFAULTS.CATEGORY,
+          semester: CONFIG.SHS_DEFAULTS.SEMESTER
+        };
+      } else {
+        // New format: object with subject, strand, category, semester
+        return {
+          subject: subj.subject || subj,
+          strand: subj.strand || CONFIG.SHS_DEFAULTS.STRAND,
+          category: subj.category || CONFIG.SHS_DEFAULTS.CATEGORY,
+          semester: subj.semester || CONFIG.SHS_DEFAULTS.SEMESTER
+        };
+      }
+    });
+    
     // Get all existing data once (batch read)
     const data = sheet.getDataRange().getValues();
     const existingSubjects = new Set();
     
     // Build set of existing subjects for fast lookup (same teacher only)
+    // Use composite key: subject|strand|category|semester
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
       if (rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher) {
-        const subject = row[CONFIG.SUBJECTS_COLUMNS.SUBJECT];
-        existingSubjects.add(subject);
+        const subject = String(row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] || '').trim();
+        const strand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
+        const category = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.CATEGORIES.CORE;
+        const semester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SEMESTERS.FIRST;
+        const key = `${subject}|${strand}|${category}|${semester}`;
+        existingSubjects.add(key);
       }
     }
     
-    // VALIDATION: Check for conflicts - same grade/section/subject with different teacher
+    // VALIDATION: Check for conflicts - same grade/section/subject/strand/category/semester with different teacher
     const conflictErrors = [];
     const formattedGradeLevel = _formatGradeLevel(gradeLevel);
-    subjects.forEach(subject => {
+    normalizedSubjects.forEach(subj => {
+      const key = `${subj.subject}|${subj.strand}|${subj.category}|${subj.semester}`;
       // Only check if this is a new subject (not already assigned to this teacher)
-      if (!existingSubjects.has(subject)) {
+      if (!existingSubjects.has(key)) {
         for (let i = 1; i < data.length; i++) {
           const row = data[i];
           const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+          const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
+          const rowCategory = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
+          const rowSemester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
+          
           if (rowGradeLevel === normalizedGradeLevel &&
               row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
-              row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject &&
+              row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subj.subject &&
+              rowStrand === subj.strand &&
+              rowCategory === subj.category &&
+              rowSemester === subj.semester &&
               row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
             const existingTeacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
             if (existingTeacher !== teacher) {
-              conflictErrors.push(`${formattedGradeLevel}${section} - ${subject} is already assigned to ${existingTeacher}`);
+              conflictErrors.push(`${formattedGradeLevel}${section} - ${subj.subject} (${subj.strand}, ${subj.category}, ${subj.semester}) is already assigned to ${existingTeacher}`);
               break;
             }
           }
@@ -3519,23 +3581,31 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
     const newRows = [];
     const updateRows = [];
     
-    subjects.forEach(subject => {
-      if (existingSubjects.has(subject)) {
+    normalizedSubjects.forEach(subj => {
+      const key = `${subj.subject}|${subj.strand}|${subj.category}|${subj.semester}`;
+      if (existingSubjects.has(key)) {
         // Find row index for update
         for (let i = 1; i < data.length; i++) {
           const row = data[i];
           const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+          const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
+          const rowCategory = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
+          const rowSemester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
+          
           if (rowGradeLevel === normalizedGradeLevel &&
               row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
               row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
-              row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject) {
-            updateRows.push({ rowIndex: i + 1, subject: subject });
+              row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subj.subject &&
+              rowStrand === subj.strand &&
+              rowCategory === subj.category &&
+              rowSemester === subj.semester) {
+            updateRows.push({ rowIndex: i + 1, subject: subj.subject });
             break;
           }
         }
       } else {
         // New assignment (store normalized grade level)
-        newRows.push([normalizedGradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, actualUserEmail]);
+        newRows.push([normalizedGradeLevel, section, teacher, subj.subject, subj.strand, subj.category, subj.semester, 'Active', timestamp, timestamp, actualUserEmail]);
       }
     });
     
@@ -3545,7 +3615,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
       updateRows.sort((a, b) => a.rowIndex - b.rowIndex);
       
       // Update Created By for existing subjects if empty
-      const createdByCol = CONFIG.SUBJECTS_COLUMNS.CREATED_BY + 1; // Column H
+      const createdByCol = CONFIG.SUBJECTS_COLUMNS.CREATED_BY + 1; // Column K
       updateRows.forEach(({ rowIndex }) => {
         const existingCreatedBy = sheet.getRange(rowIndex, createdByCol).getValue();
         if (!existingCreatedBy || existingCreatedBy.toString().trim() === '') {
@@ -3586,7 +3656,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
     // Batch insert new subjects (single API call instead of multiple appendRow calls)
     if (newRows.length > 0) {
       const lastRow = sheet.getLastRow();
-      const targetRange = sheet.getRange(lastRow + 1, 1, newRows.length, 8);
+      const targetRange = sheet.getRange(lastRow + 1, 1, newRows.length, 11);
       targetRange.setValues(newRows);
     }
     
@@ -3634,9 +3704,9 @@ function _getSubjects(gradeLevel, section) {
       return [];
     }
     
-    // OPTIMIZATION 1: Only read necessary columns (A-E) instead of all columns
-    // Columns: Grade Level (A), Section (B), Teacher (C), Subject (D), Status (E)
-    const numCols = 5; // Only read first 5 columns (we only need these)
+    // OPTIMIZATION 1: Read all columns needed (A-H) - Updated to include new columns
+    // Columns: Grade Level (A), Section (B), Teacher (C), Subject (D), Strand (E), Category (F), Semester (G), Status (H)
+    const numCols = 8; // Read first 8 columns (we need these for display)
     const dataRange = sheet.getRange(2, 1, lastRow - 1, numCols); // Start from row 2 (skip header)
     const data = dataRange.getValues();
     
@@ -3648,7 +3718,10 @@ function _getSubjects(gradeLevel, section) {
     const COL_SECTION = 1;
     const COL_TEACHER = 2;
     const COL_SUBJECT = 3;
-    const COL_STATUS = 4;
+    const COL_STRAND = 4;
+    const COL_CATEGORY = 5;
+    const COL_SEMESTER = 6;
+    const COL_STATUS = 7;
     
     // OPTIMIZATION 3: Convert filters to boolean flags for faster checks
     const hasGradeFilter = Boolean(gradeLevel);
@@ -3675,11 +3748,20 @@ function _getSubjects(gradeLevel, section) {
       
       // OPTIMIZATION 7: Direct object creation without intermediate variables
       // Format grade level for display (add "Grade " prefix)
+      // Extract values with defaults for backward compatibility
+        const strand = String(row[COL_STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
+        const category = String(row[COL_CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
+        const semester = String(row[COL_SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
+      
       subjects.push({
         gradeLevel: _formatGradeLevel(row[COL_GRADE]), // Format for display
         section: row[COL_SECTION],
         teacher: row[COL_TEACHER],
-        subject: row[COL_SUBJECT]
+        subject: row[COL_SUBJECT],
+        strand: strand,
+        category: category,
+        semester: semester,
+        status: row[COL_STATUS]
       });
     }
     

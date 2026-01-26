@@ -436,6 +436,33 @@
               <div id="teacherDropdown" class="autocomplete-dropdown" style="display: none;"></div>
             </div>
 
+            <div class="form-group" id="strandGroup" style="display: none;">
+              <label class="form-label" for="strand">
+                Strand <span style="color: #e74c3c;">*</span>
+              </label>
+              <select id="strand" class="form-control">
+                <option value="">Select strand...</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="categoryGroup" style="display: none;">
+              <label class="form-label" for="category">
+                Category <span style="color: #e74c3c;">*</span>
+              </label>
+              <select id="category" class="form-control">
+                <option value="">Select category...</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="semesterGroup" style="display: none;">
+              <label class="form-label" for="semester">
+                Semester <span style="color: #e74c3c;">*</span>
+              </label>
+              <select id="semester" class="form-control">
+                <option value="">Select semester...</option>
+              </select>
+            </div>
+
             <div class="button-group">
               <button type="submit" class="btn btn-primary">
                 Add Subject
@@ -494,6 +521,9 @@
       let allSections = {};
       let subjects = [];
       let teachers = [];
+      let strands = [];
+      let categories = [];
+      let semesters = [];
       let allTeachers = []; // All teachers for autocomplete
       let highlightedIndex = -1; // For keyboard navigation
 
@@ -516,6 +546,9 @@
             gradeLevels = data.gradeLevels || [];
             subjects = data.subjects || [];
             teachers = data.teachers || [];
+            strands = data.strands || [];
+            categories = data.categories || [];
+            semesters = data.semesters || [];
             
             // OPTIMIZATION: Use DocumentFragment for batch DOM operations (faster)
             
@@ -530,6 +563,60 @@
               gradeFragment.appendChild(option);
             });
             gradeSelect.appendChild(gradeFragment);
+            
+            // Populate strands (only if SHS enabled and strands are available)
+            if (strands && strands.length > 0) {
+              const strandSelect = document.getElementById('strand');
+              const strandGroup = document.getElementById('strandGroup');
+              strandSelect.innerHTML = '<option value="">Select strand...</option>';
+              const strandFragment = document.createDocumentFragment();
+              strands.forEach(function(strand) {
+                const option = document.createElement('option');
+                option.value = strand;
+                option.textContent = strand;
+                strandFragment.appendChild(option);
+              });
+              strandSelect.appendChild(strandFragment);
+              strandGroup.style.display = 'block';
+            } else {
+              document.getElementById('strandGroup').style.display = 'none';
+            }
+            
+            // Populate categories (only if SHS enabled and categories are available)
+            if (categories && categories.length > 0) {
+              const categorySelect = document.getElementById('category');
+              const categoryGroup = document.getElementById('categoryGroup');
+              categorySelect.innerHTML = '<option value="">Select category...</option>';
+              const categoryFragment = document.createDocumentFragment();
+              categories.forEach(function(category) {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categoryFragment.appendChild(option);
+              });
+              categorySelect.appendChild(categoryFragment);
+              categoryGroup.style.display = 'block';
+            } else {
+              document.getElementById('categoryGroup').style.display = 'none';
+            }
+            
+            // Populate semesters (only if SHS enabled and semesters are available)
+            if (semesters && semesters.length > 0) {
+              const semesterSelect = document.getElementById('semester');
+              const semesterGroup = document.getElementById('semesterGroup');
+              semesterSelect.innerHTML = '<option value="">Select semester...</option>';
+              const semesterFragment = document.createDocumentFragment();
+              semesters.forEach(function(semester) {
+                const option = document.createElement('option');
+                option.value = semester;
+                option.textContent = semester;
+                semesterFragment.appendChild(option);
+              });
+              semesterSelect.appendChild(semesterFragment);
+              semesterGroup.style.display = 'block';
+            } else {
+              document.getElementById('semesterGroup').style.display = 'none';
+            }
             
             // Populate subjects (from SUBJECTS_REF - always visible)
             const subjectsCheckboxesContainer = document.getElementById('subjectsCheckboxesContainer');
@@ -734,8 +821,20 @@
                 gradeLevel: assignment.gradeLevel,
                 section: assignment.section,
                 teacher: assignment.teacher,
-                subject: assignment.subject
+                subject: assignment.subject,
+                strand: assignment.strand || 'ALL',
+                category: assignment.category || 'Core',
+                semester: assignment.semester || '1ST'
               }).replace(/"/g, '&quot;');
+              
+              const strandDisplay = assignment.strand || 'ALL';
+              const categoryDisplay = assignment.category || 'Core';
+              const semesterDisplay = assignment.semester || '1ST';
+              
+              // Only show SHS metadata if SHS fields are visible (SHS enabled)
+              const strandSelect = document.getElementById('strand');
+              const isSHS = strandSelect && strandSelect.offsetParent !== null;
+              const metadataDisplay = isSHS ? `<br><small style="color: #6c757d;">${strandDisplay} | ${categoryDisplay} | ${semesterDisplay}</small>` : '';
               
               html += `
                 <div class="assignment-item">
@@ -743,7 +842,7 @@
                     <input type="checkbox" id="${assignmentId}" class="assignment-checkbox-input" 
                            data-assignment='${assignmentData}' onchange="updateSelectedCount()">
                     <label for="${assignmentId}" class="assignment-info">
-                      <strong>${assignment.teacher}</strong> - ${assignment.subject}
+                      <strong>${assignment.teacher}</strong> - ${assignment.subject}${metadataDisplay}
                     </label>
                   </div>
                 </div>
@@ -857,6 +956,15 @@
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = document.getElementById('section').value;
         const teacher = document.getElementById('teacher').value;
+        const strandSelect = document.getElementById('strand');
+        const categorySelect = document.getElementById('category');
+        const semesterSelect = document.getElementById('semester');
+        
+        // Get SHS fields only if they are visible (SHS enabled)
+        const isSHS = strandSelect && strandSelect.offsetParent !== null;
+        const strand = isSHS ? strandSelect.value : '';
+        const category = isSHS ? categorySelect.value : '';
+        const semester = isSHS ? semesterSelect.value : '';
         
         // Get selected subjects
         const checkboxes = document.querySelectorAll('input[name="subjects"]:checked');
@@ -867,6 +975,24 @@
           return;
         }
         
+        // Validate SHS fields only if SHS is enabled
+        if (isSHS) {
+          if (!strand) {
+            alert('Please select a strand.');
+            return;
+          }
+          
+          if (!category) {
+            alert('Please select a category.');
+            return;
+          }
+          
+          if (!semester) {
+            alert('Please select a semester.');
+            return;
+          }
+        }
+        
         // Disable submit button
         const submitBtn = document.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
@@ -874,6 +1000,14 @@
         submitBtn.disabled = true;
         
         // OPTIMIZED: Add all subjects in a single batch API call
+        // Convert subjects array to objects with strand, category, semester (or defaults if not SHS)
+        const subjectsWithMetadata = selectedSubjects.map(subject => ({
+          subject: subject,
+          strand: isSHS ? strand : 'ALL',
+          category: isSHS ? category : 'Core',
+          semester: isSHS ? semester : '1ST'
+        }));
+        
         submitBtn.textContent = `Adding ${selectedSubjects.length} assignment(s)...`;
         
         google.script.run
@@ -885,6 +1019,10 @@
               alert(`✅ ${result.message}`);
               document.getElementById('assignmentForm').reset();
               document.getElementById('section').disabled = true;
+              // Hide SHS fields if they were shown
+              if (strandSelect) strandSelect.closest('.form-group').style.display = 'none';
+              if (categorySelect) categorySelect.closest('.form-group').style.display = 'none';
+              if (semesterSelect) semesterSelect.closest('.form-group').style.display = 'none';
               // Reload subjects checkboxes
               loadInitialData();
               loadSubjects();
@@ -899,7 +1037,7 @@
             alert(`❌ Error: ${error.toString()}`);
             loadSubjects();
           })
-          .addSubjectsBatch(gradeLevel, section, teacher, selectedSubjects);
+          .addSubjectsBatch(gradeLevel, section, teacher, subjectsWithMetadata);
       });
     </script>
   </body>

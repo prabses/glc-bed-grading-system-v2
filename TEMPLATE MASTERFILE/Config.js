@@ -7,11 +7,16 @@ const CONFIG = {
   // Web App URL - Update this after deploying the script as a web app
   // To deploy: Deploy > New deployment > Select type: Web app > Execute as: Me > Who has access: Anyone
   // Then copy the Web App URL (the one ending with /exec) and paste it below
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbyiwk07zzhhemEucl3uF4ijqQEbfU8Nr5SrT2Njw8Fn9AAtr7vH3Hq1eL1A48U-lrgC/exec", // Replace with your /exec URL after deployment
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxWJodkUTl7ql0JL9bnVqlG79G_IfdSf80d9cK1wiymMUjXksWEpstcFjpYF4ybIx97/exec", // Replace with your /exec URL after deployment
   
   // API Key for securing the API - This is a unique identifier
   // Keep this secret and don't share it publicly
   API_KEY: "YTM0NzhkODItZmU4Zi00YjczLWI5ZGQtZGVhNjYxZGI4ZmFi",
+  
+  // Senior High School (SHS) Configuration
+  // Set to true to enable SHS features (Strand, Category, Semester fields)
+  // Set to false for Elementary and Junior High School (will use defaults: ALL, Core, 1ST)
+  IS_SHS: true,
   
   // Spreadsheet ID - Will use the active spreadsheet
   // This is determined dynamically, no need to hardcode
@@ -20,7 +25,7 @@ const CONFIG = {
   },
   
   // STUDENTS DB Spreadsheet URL - Full URL to the students database spreadsheet
-  STUDENTS_DB_URL: "https://docs.google.com/spreadsheets/d/1x4dcYyafykjj3MVXRwMIyn8vMLslOV-iSB7bhMnhJ3c/edit?gid=1882876298#gid=1882876298",
+  STUDENTS_DB_URL: "https://docs.google.com/spreadsheets/d/1QNN7DAfWY7nZVQ5GccWh1yTGhsCCIb-d-aZV7Thndjk/edit?gid=956921393#gid=956921393",
   
   // Sheet names
   SHEET_NAMES: {
@@ -32,7 +37,8 @@ const CONFIG = {
     SECTIONS_REF: 'SECTIONS_REF',
     GRADING_REF: 'GRADING_REF',
     ATTENDANCE_REF: 'ATTENDANCE_REF',
-    CHARACTERS_REF: 'CHARACTERS_REF'
+    CHARACTERS_REF: 'CHARACTERS_REF',
+    STRANDS_REF: 'STRANDS_REF'
   },
   
   // Column mapping for MASTER_DATA (0-based index)
@@ -62,10 +68,13 @@ const CONFIG = {
     SECTION: 1,          // Column B
     TEACHER: 2,       // Column C
     SUBJECT: 3,          // Column D
-    STATUS: 4,            // Column E
-    CREATED: 5,           // Column F
-    MODIFIED: 6,          // Column G
-    CREATED_BY: 7         // Column H
+    STRAND: 4,           // Column E - NEW: Strand (ALL, STEM, HUMSS, ICT, ABM, GAS)
+    CATEGORY: 5,          // Column F - NEW: Category (Core, Specialized)
+    SEMESTER: 6,         // Column G - NEW: Semester (1ST, 2ND)
+    STATUS: 7,            // Column H
+    CREATED: 8,           // Column I
+    MODIFIED: 9,          // Column J
+    CREATED_BY: 10        // Column K
   },
   
   // Column mapping for ADVISORY (0-based index)
@@ -81,6 +90,26 @@ const CONFIG = {
   
   // Fixed grading components
   GRADING_COMPONENTS: ['Written Work', 'Performance Task', 'Assessment'],
+  
+  // SHS Default Values (used when values are not provided)
+  // Note: Full strand list comes from STRANDS_REF sheet
+  SHS_DEFAULTS: {
+    STRAND: 'ALL',        // Default strand value
+    CATEGORY: 'Core',     // Default category value
+    SEMESTER: '1ST'       // Default semester value
+  },
+  
+  // Subject Categories
+  CATEGORIES: {
+    CORE: 'Core',
+    SPECIALIZED: 'Specialized'
+  },
+  
+  // Semesters
+  SEMESTERS: {
+    FIRST: '1ST',
+    SECOND: '2ND'
+  },
   
   // Data row configuration
   DATA_START_ROW: 3,  // Data starts from row 3 (after 2 header rows)

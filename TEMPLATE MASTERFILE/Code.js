@@ -69,6 +69,56 @@ function getActiveSubjects() {
 }
 
 /**
+ * Gets active strands from STRANDS_REF sheet
+ * @return {Array} Array of active strand names
+ */
+function getActiveStrands() {
+  return getActiveItems(CONFIG.SHEET_NAMES.STRANDS_REF, 1);
+}
+
+/**
+ * Gets all available strands (for SHS)
+ * @return {Array} Array of strand names (empty array if IS_SHS is false or STRANDS_REF doesn't exist)
+ */
+function getStrands() {
+  try {
+    // Only return strands if SHS is enabled
+    if (!CONFIG.IS_SHS) {
+      return [];
+    }
+    
+    const strands = getActiveStrands();
+    // If STRANDS_REF doesn't exist or is empty, return empty array
+    // User must set up STRANDS_REF sheet with strands
+    if (!strands || strands.length === 0) {
+      console.warn('STRANDS_REF sheet is empty or does not exist. Please set up the STRANDS_REF sheet.');
+      return [];
+    }
+    return strands;
+  } catch (error) {
+    console.error('Error getting strands:', error);
+    // Return empty array if sheet doesn't exist (user must set up STRANDS_REF)
+    return [];
+  }
+}
+
+/**
+ * Gets all available categories
+ * @return {Array} Array of category names (empty array if IS_SHS is false)
+ */
+function getCategories() {
+  return CONFIG.IS_SHS ? Object.values(CONFIG.CATEGORIES) : [];
+}
+
+/**
+ * Gets all available semesters
+ * @return {Array} Array of semester names (empty array if IS_SHS is false)
+ */
+function getSemesters() {
+  return CONFIG.IS_SHS ? Object.values(CONFIG.SEMESTERS) : [];
+}
+
+/**
  * Gets active teachers from TEACHERS_REF sheet
  * @return {Array} Array of active teacher names
  */
@@ -92,7 +142,7 @@ function getTeachers() {
 
 /**
  * Gets all dropdown data at once for performance optimization
- * @return {Object} Object containing gradeLevels, subjects, and teachers
+ * @return {Object} Object containing gradeLevels, subjects, teachers, strands, categories, semesters
  */
 function getAllDropdownData() {
   try {
@@ -100,6 +150,9 @@ function getAllDropdownData() {
     const gradeLevels = [];
     const subjects = [];
     const teachers = [];
+    const strands = [];
+    const categories = [];
+    const semesters = [];
     
     try {
       gradeLevels.push(...getGradeLevels());
@@ -122,10 +175,34 @@ function getAllDropdownData() {
       // Continue with empty array
     }
     
+    try {
+      strands.push(...getStrands());
+    } catch (error) {
+      console.error('Error getting strands:', error);
+      // Continue with empty array
+    }
+    
+    try {
+      categories.push(...getCategories());
+    } catch (error) {
+      console.error('Error getting categories:', error);
+      // Continue with empty array
+    }
+    
+    try {
+      semesters.push(...getSemesters());
+    } catch (error) {
+      console.error('Error getting semesters:', error);
+      // Continue with empty array
+    }
+    
     return { 
       gradeLevels: gradeLevels,
       subjects: subjects,
-      teachers: teachers
+      teachers: teachers,
+      strands: strands,
+      categories: categories,
+      semesters: semesters
     };
   } catch (error) {
     console.error('Error loading dropdown data:', error);
@@ -133,7 +210,10 @@ function getAllDropdownData() {
     return { 
       gradeLevels: [],
       subjects: [],
-      teachers: []
+      teachers: [],
+      strands: [],
+      categories: [],
+      semesters: []
     };
   }
 }
@@ -380,15 +460,21 @@ function generateOGSTemplatesBatch(schoolYear, gradeLevel, section, teachersWith
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
  * @param {string} subject - The subject name
+ * @param {string} strand - The strand (ALL, STEM, HUMSS, ICT, ABM, GAS)
+ * @param {string} category - The category (Core, Specialized)
+ * @param {string} semester - The semester (1ST, 2ND)
  * @return {Object} Result object with success status
  */
-function addAssignment(gradeLevel, section, teacher, subject) {
+function addAssignment(gradeLevel, section, teacher, subject, strand, category, semester) {
   const userEmail = Session.getActiveUser().getEmail();
   return callApi("addAssignment", {
     gradeLevel,
     section,
     teacher,
     subject,
+    strand: strand || CONFIG.SHS_DEFAULTS.STRAND,
+    category: category || CONFIG.SHS_DEFAULTS.CATEGORY,
+    semester: semester || CONFIG.SHS_DEFAULTS.SEMESTER,
     userEmail: userEmail
   });
 }
@@ -398,7 +484,7 @@ function addAssignment(gradeLevel, section, teacher, subject) {
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
- * @param {Array} subjects - Array of subject names
+ * @param {Array} subjects - Array of subject objects with {subject, strand, category, semester}
  * @return {Object} Result object with success status and counts
  */
 function addSubjectsBatch(gradeLevel, section, teacher, subjects) {
