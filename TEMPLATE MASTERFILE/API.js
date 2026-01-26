@@ -128,6 +128,10 @@ function doPost(e) {
         return response(200, _getSubjectMetadata(
           payload.subjectName
         ));
+      case "getActiveSubjectsByLevel":
+        return response(200, _getActiveSubjectsByLevel(
+          payload.gradeLevel
+        ));
       case "getActiveItems":
         return response(200, _getActiveItems(
           payload.sheetName,
@@ -467,6 +471,77 @@ function _getSubjectsMetadata(subjectNames) {
       result[name] = defaults;
     });
     return result;
+  }
+}
+
+/**
+ * Internal function to get active subjects filtered by level from SUBJECTS_REF sheet
+ * @param {string} gradeLevel - The grade level to filter by (e.g., "Grade 11" or "11")
+ * @return {Array} Array of active subject names for the specified level
+ */
+function _getActiveSubjectsByLevel(gradeLevel) {
+  try {
+    if (!CONFIG.IS_SHS) {
+      // For non-SHS, return all active subjects (no level filtering)
+      return _getActiveItems(CONFIG.SHEET_NAMES.SUBJECTS_REF, 1);
+    }
+    
+    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS_REF);
+    if (!sheet) {
+      console.warn('SUBJECTS_REF sheet not found');
+      return [];
+    }
+    
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= CONFIG.HEADER_ROWS) {
+      return [];
+    }
+    
+    // Normalize grade level for comparison (extract just the number)
+    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    
+    const startRow = CONFIG.HEADER_ROWS + 1;
+    const numRows = lastRow - CONFIG.HEADER_ROWS;
+    
+    // Read columns B-G (Subject Name, Category, Strand, Semester, Level, Active)
+    // Column A is "No." and is ignored
+    const data = sheet.getRange(startRow, 2, numRows, 6).getValues();
+    
+    const subjects = [];
+    
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const rowSubjectName = String(row[CONFIG.SUBJECTS_REF_COLUMNS.SUBJECT_NAME] || '').trim();
+      const rowLevel = String(row[CONFIG.SUBJECTS_REF_COLUMNS.LEVEL] || '').trim();
+      const activeValue = row[CONFIG.SUBJECTS_REF_COLUMNS.ACTIVE];
+      
+      // Check if subject is active
+      if (!(activeValue === true || activeValue === '✓' || activeValue === 'TRUE')) {
+        continue;
+      }
+      
+      // If level is empty/null, include it (for backward compatibility or non-SHS subjects)
+      // Otherwise, only include if level matches the selected grade level
+      if (!rowLevel || rowLevel === '') {
+        // Include subjects with no level specified (backward compatibility)
+        if (rowSubjectName) {
+          subjects.push(rowSubjectName);
+        }
+      } else {
+        // Normalize row level for comparison
+        const normalizedRowLevel = _normalizeGradeLevel(rowLevel);
+        // Include if level matches
+        if (normalizedRowLevel === normalizedGradeLevel && rowSubjectName) {
+          subjects.push(rowSubjectName);
+        }
+      }
+    }
+    
+    return subjects;
+  } catch (error) {
+    console.error('Error getting subjects by level:', error);
+    // Fallback to all active subjects on error
+    return _getActiveItems(CONFIG.SHEET_NAMES.SUBJECTS_REF, 1);
   }
 }
 

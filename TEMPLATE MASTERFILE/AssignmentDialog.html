@@ -520,8 +520,16 @@
         loadInitialData();
         
         document.getElementById('gradeLevel').addEventListener('change', function() {
-          loadSections(this.value);
+          const gradeLevel = this.value;
+          loadSections(gradeLevel);
           loadSubjects();
+          // Filter subjects by level when grade level is selected
+          if (gradeLevel) {
+            filterSubjectsByLevel(gradeLevel);
+          } else {
+            // Show all subjects if no grade level selected
+            showAllSubjects();
+          }
         });
         
         document.getElementById('section').addEventListener('change', function() {
@@ -551,20 +559,11 @@
             });
             gradeSelect.appendChild(gradeFragment);
             
-            // Populate subjects (from SUBJECTS_REF - always visible)
-            const subjectsCheckboxesContainer = document.getElementById('subjectsCheckboxesContainer');
-            const subjectsFragment = document.createDocumentFragment();
-            subjects.forEach(function(subject) {
-              const checkboxDiv = document.createElement('div');
-              checkboxDiv.className = 'subject-checkbox';
-              checkboxDiv.innerHTML = `
-                <input type="checkbox" id="subject_${subject}" value="${subject}" name="subjects">
-                <label for="subject_${subject}">${subject}</label>
-              `;
-              subjectsFragment.appendChild(checkboxDiv);
-            });
-            subjectsCheckboxesContainer.innerHTML = '';
-            subjectsCheckboxesContainer.appendChild(subjectsFragment);
+            // Store all subjects for later filtering
+            filteredSubjects = subjects; // Initially show all subjects
+            
+            // Populate subjects (from SUBJECTS_REF - filtered by level if grade level is selected)
+            updateSubjectsDisplay();
             
             // Load all teachers for autocomplete
             google.script.run
@@ -703,6 +702,48 @@
             alert('Error loading sections: ' + error.toString());
           })
           .getSectionsForGrade(gradeLevel);
+      }
+
+      function updateSubjectsDisplay() {
+        const subjectsCheckboxesContainer = document.getElementById('subjectsCheckboxesContainer');
+        const subjectsFragment = document.createDocumentFragment();
+        
+        if (filteredSubjects.length === 0) {
+          subjectsCheckboxesContainer.innerHTML = '<p style="text-align: center; color: #6c757d; margin: 0;">No subjects found for this grade level.</p>';
+          return;
+        }
+        
+        filteredSubjects.forEach(function(subject) {
+          const checkboxDiv = document.createElement('div');
+          checkboxDiv.className = 'subject-checkbox';
+          checkboxDiv.innerHTML = `
+            <input type="checkbox" id="subject_${subject}" value="${subject}" name="subjects">
+            <label for="subject_${subject}">${subject}</label>
+          `;
+          subjectsFragment.appendChild(checkboxDiv);
+        });
+        subjectsCheckboxesContainer.innerHTML = '';
+        subjectsCheckboxesContainer.appendChild(subjectsFragment);
+      }
+      
+      function filterSubjectsByLevel(gradeLevel) {
+        google.script.run
+          .withSuccessHandler(function(filtered) {
+            filteredSubjects = filtered || [];
+            updateSubjectsDisplay();
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error filtering subjects by level:', error);
+            // Fallback to showing all subjects
+            filteredSubjects = subjects;
+            updateSubjectsDisplay();
+          })
+          .getActiveSubjectsByLevel(gradeLevel);
+      }
+      
+      function showAllSubjects() {
+        filteredSubjects = subjects;
+        updateSubjectsDisplay();
       }
 
       function loadSubjects() {

@@ -70,6 +70,28 @@ function getActiveSubjects() {
 }
 
 /**
+ * Gets active subjects filtered by level from SUBJECTS_REF sheet
+ * @param {string} gradeLevel - The grade level to filter by (e.g., "Grade 11" or "11")
+ * @return {Array} Array of active subject names for the specified level
+ */
+function getActiveSubjectsByLevel(gradeLevel) {
+  try {
+    if (!CONFIG.IS_SHS) {
+      // For non-SHS, return all active subjects (no level filtering)
+      return getActiveSubjects();
+    }
+    
+    return callApi("getActiveSubjectsByLevel", {
+      gradeLevel: gradeLevel
+    });
+  } catch (error) {
+    console.error('Error getting subjects by level:', error);
+    // Fallback to all subjects on error
+    return getActiveSubjects();
+  }
+}
+
+/**
  * Gets subject metadata (Category, Strand, Semester, Level) from SUBJECTS_REF sheet
  * @param {string} subjectName - The subject name to look up
  * @return {Object} Object with subject metadata or null if not found
