@@ -1,0 +1,93 @@
+==========================================
+STUDENTS DB
+==========================================
+
+✅ change field type to dropdown for update information from text
+✅ remove A.Y. in the school year sheets
+✅ change name "Actions" to "Upload"
+✅ typable student number to auto filter student number
+✅ alternating row colors
+✅ fix unresponsive UI for small screen in update form
+✅ fix the error in importing the student information
+✅ fix the error in updating the student information
+
+==========================================
+TEMPLATE MASTERFILE
+==========================================
+
+✅ change delete button to checkbox for current assignments section
+✅ create folders for grade level and section with school year (2025-2026 Grade 1A)
+✅ replace OFFICAL GRADING SHEET to teacher's name
+✅ fill the list of students in the ogs template from students db
+✅ put the formula functions for the ogs template for the grading references
+✅ transmuted and final grading have formula and should be protected
+✅ student columns should also be protected
+✅ add access permission based on the instructor email
+✅ add attendance reference sheet
+✅ attendance reference sheet should have number of school days
+✅ add character reference sheet
+✅ character reference sheet should have list of traits
+✅ alternating row colors
+✅ compare the formulas from the excel sheet
+✅ change "Instructor" to "Teacher"
+✅ Grading Components as the main title header
+✅ add another menu and put the manage buttons there
+✅ change "Generate OGS Template" to "Export OGS" menu
+✅ change "ASSIGNMENTS" sheet to "SUBJECTS"
+✅ change "Manage Assignments" to "Manage Subjects"
+✅ shorten "REFERENCE" to "REF"
+✅ change "ATTENDANCE_MONTHLY_DAYS" to "ATTENDANCE_REF"
+✅ teacher name format is "Last Name, First Name MI."
+✅ change "Email" column to "Email Address"
+✅ add data validation for invalid email address (@goldenlink.ph)
+✅ remove "Grade" under Grade Levels but add "Grade" for the functionalities
+✅ make subject name field wider, ww - pt - as shorter and middle align, status as shorter in width
+✅ make the forms wider and rechange ui
+✅ change wordings for the alerts, add them to the config for easy modification
+✅ similar to student, add auto filtering for instructor selection
+✅ add conditional formatting for red background color for status in the sheets
+✅ add columns for numbers on the left most side
+✅ name format is "OGS-GRADE-1A-2026-2027 - Last Name, First Name"
+✅ add gray bg color for columns with formulas 
+✅ add underline colors for the attendance and character sheets
+✅ add validation if subject for a class is already assigned to a teacher
+✅ fix the issue assigned advisor not showing in the Manage Advisory
+✅ change from "Menu" to "Manage"
+✅ add gray column for character EQ value
+✅ add eq formula column for subjects grade in ogs
+✅ add validation for if invalid grade input in ogs like change color to red
+✅ add validation for if invalid attendance days like change color to red
+✅ add transmutation reference for transmuted grades for grading
+✅ add protection for these new columns with formula
+✅ add gray column for these new formula columns
+✅ add new custom sheet for MAPEH (if 4 subjects are present)
+✅ change "Open Template" to the actual file name
+✅ add admin email addresses for custom permission for generated templates
+✅ add dropdown for the school year for the generate ogs template form via students db
+✅ add formula for attendance sheet for Days Absent which is School Days minus Days Present
+✅ change from GLC EQ to AVE EQ in MAPEH sheet
+✅ remove the GLC column in MAPEH sheet
+✅ add dynamic formula for the attendance school days
+✅ fix inconsistent display of existing assigned advisory
+✅ modify the generate ogs template form UI by making it responsive
+
+add 2 rows in ogs template for strand and semester
+add strand and semester selection in export ogs form for subject filter
+change name format for ogs template if shs
+reduce columns to 2 instead of 4 gradings
+change grading headers to Mastery and Final
+change other sheets in ogs template to 2 gradings too
+
+==========================================
+GRADES DB
+==========================================
+
+✅ add link divider row for the imported OGS template
+✅ fix OGS template name showing in list of students
+✅ modify the update form UI by making it responsive
+✅ attached a temporary version of the working instruction link to manual menu
+
+add semester and strand columns
+in import function, only fill the 1st grading, 2nd grading, and final
+add semester select component update student grades if shs
+add strand in student information in update student grades form
