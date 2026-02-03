@@ -3443,10 +3443,18 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     // Normalize grade level for folder/file naming (extract just the number)
     const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
     
-    // Generate template file name in format: OGS-GRADE-1A-2026-2027 - {teacher name}
+    // Generate template file name: SHS adds strand and semester; otherwise same as before
     const sanitizedSection = section.toUpperCase();
     const sanitizedYear = schoolYear.replace(/[^a-zA-Z0-9-]/g, '');
-    const templateFileName = `OGS-GRADE-${normalizedGradeLevel}${sanitizedSection}-${sanitizedYear} - ${teacher}`;
+    let templateFileName;
+    if (CONFIG.IS_SHS && subjects && subjects.length > 0) {
+      const meta = _getSubjectMetadata(subjects[0]);
+      const strand = (meta.strand || CONFIG.SHS_DEFAULTS.STRAND).replace(/[^a-zA-Z0-9]/g, '');
+      const semester = (meta.semester || CONFIG.SHS_DEFAULTS.SEMESTER).replace(/[^a-zA-Z0-9]/g, '');
+      templateFileName = `OGS-GRADE-${normalizedGradeLevel}-${sanitizedSection}-${strand}-${semester} Quarter-${sanitizedYear} - ${teacher}`;
+    } else {
+      templateFileName = `OGS-GRADE-${normalizedGradeLevel}${sanitizedSection}-${sanitizedYear} - ${teacher}`;
+    }
     
     // Get the parent folder of the master spreadsheet
     const masterFile = DriveApp.getFileById(masterSpreadsheet.getId());
