@@ -720,10 +720,11 @@ function _getAssignedTeachers(gradeLevel, section) {
 
 /**
  * Internal function to get subjects assigned to a specific teacher, grade level, and section
+ * Returns objects with subject, strand, category, semester for SHS filtering in OGS dialog
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
- * @return {Array} Array of subject names
+ * @return {Array} Array of { subject, strand, category, semester } (strand/category/semester from SUBJECTS sheet)
  */
 function _getAssignedSubjects(gradeLevel, section, teacher) {
   try {
@@ -732,11 +733,11 @@ function _getAssignedSubjects(gradeLevel, section, teacher) {
     
     const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
-      return []; // Return empty if sheet doesn't exist
+      return [];
     }
     
     const data = sheet.getDataRange().getValues();
-    const subjects = [];
+    const assignments = [];
     
     // Skip header row (row 1)
     for (let i = 1; i < data.length; i++) {
@@ -748,12 +749,15 @@ function _getAssignedSubjects(gradeLevel, section, teacher) {
           row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
         const subject = row[CONFIG.SUBJECTS_COLUMNS.SUBJECT];
         if (subject) {
-          subjects.push(subject);
+          const strand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
+          const category = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
+          const semester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
+          assignments.push({ subject: subject, strand: strand, category: category, semester: semester });
         }
       }
     }
     
-    return subjects;
+    return assignments;
   } catch (error) {
     console.error('Error getting assigned subjects:', error);
     return [];
@@ -958,7 +962,18 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
   allData.push(padRow(['Total Student:', '']));
   allData.push(padRow(['Subject:', subject]));
   
-  // Row 8: Grading period headers row (1ST GRADING, 2ND GRADING, 3RD GRADING, 4TH GRADING)
+  // SHS only: Strand and Semester from SUBJECTS_REF (two rows after Subject)
+  const isSHS = CONFIG.IS_SHS;
+  if (isSHS) {
+    const subjectMeta = _getSubjectMetadata(subject);
+    const strandDisplay = subjectMeta.strand || CONFIG.SHS_DEFAULTS.STRAND;
+    const semesterDisplay = subjectMeta.semester || CONFIG.SHS_DEFAULTS.SEMESTER;
+    allData.push(padRow(['Strand:', strandDisplay]));
+    allData.push(padRow(['Semester:', semesterDisplay]));
+  }
+  
+  // Grading period headers row (1ST GRADING, 2ND GRADING, 3RD GRADING, 4TH GRADING)
+  const gradingRowNum = isSHS ? 10 : 8;
   const gradingHeadersRow = padRow([
     '', 
     '', 
@@ -966,11 +981,11 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     '2ND GRADING', '', '', '', '', '',  // Columns I-N (6 columns for 2ND GRADING - will be merged)
     '3RD GRADING', '', '', '', '', '',  // Columns O-T (6 columns for 3RD GRADING - will be merged)
     '4TH GRADING', '', '', '', '', '',  // Columns U-Z (6 columns for 4TH GRADING - will be merged)
-    '', ''                            // Columns AA-AB (Final Grading and Final EQ headers are in row 10)
+    '', ''                            // Final Grading and Final EQ headers
   ]);
   allData.push(gradingHeadersRow);
   
-  // Row 10: Column headers (percentage row removed temporarily)
+  // Column headers row
   const headerRow = [
     'Student No',
     'Student Name',
@@ -1021,24 +1036,24 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     .setFontWeight('bold')
     .setHorizontalAlignment('center');
   
-  // Info rows (rows 2-7): Batch format column A (bold) and column B (background)
-  sheet.getRange(2, 1, 6, 1).setFontWeight('bold');
-  // Batch background for column B (rows 2-7)
-  sheet.getRange(2, 2, 6, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
+  // Info rows: rows 2-7 (non-SHS) or 2-9 (SHS: includes Subject, Strand, Semester)
+  const headerRowNum = gradingRowNum + 1;
+  const infoRowsCount = isSHS ? 8 : 6;  // 8 rows (2-9) when SHS, 6 rows (2-7) when not
+  sheet.getRange(2, 1, infoRowsCount, 1).setFontWeight('bold');
+  sheet.getRange(2, 2, infoRowsCount, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
   
-  // OPTIMIZATION: Batch merges first, then apply formatting in one operation
-  // Row 8: Grading period headers - batch merges and formatting
-  sheet.getRange(8, 3, 1, 6).merge();   // 1ST GRADING
-  sheet.getRange(8, 9, 1, 6).merge();   // 2ND GRADING
-  sheet.getRange(8, 15, 1, 6).merge(); // 3RD GRADING
-  sheet.getRange(8, 21, 1, 6).merge();  // 4TH GRADING
-  const row8Range = sheet.getRange(8, 3, 1, 26);
-  row8Range.setFontWeight('bold')
+  // Grading period headers - batch merges and formatting
+  sheet.getRange(gradingRowNum, 3, 1, 6).merge();   // 1ST GRADING
+  sheet.getRange(gradingRowNum, 9, 1, 6).merge();   // 2ND GRADING
+  sheet.getRange(gradingRowNum, 15, 1, 6).merge(); // 3RD GRADING
+  sheet.getRange(gradingRowNum, 21, 1, 6).merge();  // 4TH GRADING
+  const gradingRange = sheet.getRange(gradingRowNum, 3, 1, 26);
+  gradingRange.setFontWeight('bold')
     .setHorizontalAlignment('center')
     .setBackground(CONFIG.COLORS.MEDIUM_GRAY);
   
-  // Row 9: Column headers - single batch operation
-  const headerRange = sheet.getRange(9, 1, 1, numCols);
+  // Column headers - single batch operation
+  const headerRange = sheet.getRange(headerRowNum, 1, 1, numCols);
   headerRange.setFontWeight('bold')
     .setBackground(CONFIG.COLORS.DARK_GRAY)
     .setHorizontalAlignment('center')
@@ -1052,11 +1067,12 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     sheet.setColumnWidth(c, 130);
   }
   
-  sheet.setFrozenRows(9);
+  const frozenRowsCount = isSHS ? 11 : 9;
+  sheet.setFrozenRows(frozenRowsCount);
   
   const hasStudents = students && students.length > 0;
   const numStudentRows = hasStudents ? Math.max(students.length, CONFIG.TEMPLATE.NUM_STUDENT_ROWS) : CONFIG.TEMPLATE.NUM_STUDENT_ROWS;
-  const startRow = 10;
+  const startRow = headerRowNum + 1;
   
   if (numStudentRows > 0) {
     const ww = weights.writtenWork;
@@ -1225,17 +1241,18 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
       // Protect student info columns (from config)
       if (protectedRanges.STUDENT_INFO_COLUMNS && protectedRanges.STUDENT_INFO_COLUMNS.length >= 2) {
         const startCol = protectedRanges.STUDENT_INFO_COLUMNS[0];
-        const numCols = protectedRanges.STUDENT_INFO_COLUMNS[1] - protectedRanges.STUDENT_INFO_COLUMNS[0] + 1;
-        const colABRange = sheet.getRange(1, startCol, protectToRow, numCols);
+        const numColsProtect = protectedRanges.STUDENT_INFO_COLUMNS[1] - protectedRanges.STUDENT_INFO_COLUMNS[0] + 1;
+        const colABRange = sheet.getRange(1, startCol, protectToRow, numColsProtect);
         const protection1 = colABRange.protect().setWarningOnly(false);
         setProtectionWithEditors(protection1, validEmails);
       }
       
-      // Protect header rows (from config)
-      if (protectedRanges.HEADER_ROWS && protectedRanges.HEADER_ROWS.length > 0) {
-        const startRow = Math.min(...protectedRanges.HEADER_ROWS);
-        const numRows = Math.max(...protectedRanges.HEADER_ROWS) - startRow + 1;
-        const headerRowsRange = sheet.getRange(startRow, 1, numRows, numCols);
+      // Protect header rows: SHS uses rows 10-11 (grading + column headers), non-SHS uses rows 8-9
+      const subjectHeaderRows = CONFIG.IS_SHS ? [10, 11] : [8, 9];
+      if (subjectHeaderRows.length > 0) {
+        const headerStartRow = Math.min(...subjectHeaderRows);
+        const headerNumRows = Math.max(...subjectHeaderRows) - headerStartRow + 1;
+        const headerRowsRange = sheet.getRange(headerStartRow, 1, headerNumRows, numCols);
         const protection2 = headerRowsRange.protect().setWarningOnly(false);
         setProtectionWithEditors(protection2, validEmails);
       }

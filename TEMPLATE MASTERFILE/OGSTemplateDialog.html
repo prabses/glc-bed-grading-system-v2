@@ -364,6 +364,24 @@
               </select>
             </div>
 
+            <div id="strandSemesterGroup" class="form-group" style="display: none;">
+              <label class="form-label" for="strandFilter">Filter by Strand &amp; Semester</label>
+              <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 120px;">
+                  <label for="strandFilter" style="font-size: 12px; color: #6c757d;">Strand</label>
+                  <select id="strandFilter" class="form-control">
+                    <option value="">All</option>
+                  </select>
+                </div>
+                <div style="flex: 1; min-width: 120px;">
+                  <label for="semesterFilter" style="font-size: 12px; color: #6c757d;">Semester</label>
+                  <select id="semesterFilter" class="form-control">
+                    <option value="">All</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <div class="form-group">
               <label class="form-label">
                 Teachers <span class="required">*</span>
@@ -414,7 +432,10 @@
       let subjects = [];
       let teachers = [];
       let filteredTeachers = []; // Filtered teachers based on grade/section
-      let teacherSubjectsMap = {}; // Map of teacher -> subjects array
+      let teacherSubjectsMap = {}; // Map of teacher -> array of { subject, strand, category, semester }
+      let isSHS = false;
+      let strands = [];
+      let semesters = [];
 
       // Populate dropdowns when page loads - OPTIMIZED: Load all at once
       document.addEventListener('DOMContentLoaded', function() {
@@ -456,18 +477,16 @@
       function loadAllDropdowns() {
         google.script.run
           .withSuccessHandler(function(data) {
-            // OPTIMIZATION: Use DocumentFragment for batch DOM operations (3x faster)
-            
-            // Populate grade levels
             gradeLevels = data.gradeLevels || [];
+            isSHS = data.isSHS || false;
+            subjects = data.subjects || [];
+            
             const gradeSelect = document.getElementById('gradeLevel');
             const gradeFragment = document.createDocumentFragment();
-            
             const gradeDefault = document.createElement('option');
             gradeDefault.value = '';
             gradeDefault.textContent = 'Select grade level...';
             gradeFragment.appendChild(gradeDefault);
-            
             gradeLevels.forEach(function(gradeLevel) {
               const option = document.createElement('option');
               option.value = gradeLevel;
@@ -477,8 +496,36 @@
             gradeSelect.innerHTML = '';
             gradeSelect.appendChild(gradeFragment);
             
-            subjects = data.subjects || [];
-            
+            const strandGroup = document.getElementById('strandSemesterGroup');
+            if (strandGroup) strandGroup.style.display = isSHS ? 'block' : 'none';
+            if (isSHS) {
+              google.script.run.withSuccessHandler(function(strandList) {
+                strands = strandList || [];
+                const sel = document.getElementById('strandFilter');
+                if (sel) {
+                  sel.innerHTML = '<option value="">All</option>';
+                  strands.forEach(function(s) {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    sel.appendChild(opt);
+                  });
+                }
+              }).getStrands();
+              google.script.run.withSuccessHandler(function(semesterList) {
+                semesters = semesterList || [];
+                const sel = document.getElementById('semesterFilter');
+                if (sel) {
+                  sel.innerHTML = '<option value="">All</option>';
+                  semesters.forEach(function(s) {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    sel.appendChild(opt);
+                  });
+                }
+              }).getSemesters();
+            }
           })
           .withFailureHandler(function(error) {
             console.error('Error loading dropdown data:', error);
@@ -486,6 +533,9 @@
           })
           .getAllDropdownData();
       }
+
+      document.getElementById('strandFilter').addEventListener('change', function() { updateSubjectsDisplay(); });
+      document.getElementById('semesterFilter').addEventListener('change', function() { updateSubjectsDisplay(); });
 
       // Handle grade level change - load sections
       document.getElementById('gradeLevel').addEventListener('change', function() {
@@ -655,10 +705,9 @@
           let loadedCount = 0;
           teachersToLoad.forEach(function(teacher) {
             google.script.run
-              .withSuccessHandler(function(subjects) {
-                teacherSubjectsMap[teacher] = subjects || [];
+              .withSuccessHandler(function(assignments) {
+                teacherSubjectsMap[teacher] = Array.isArray(assignments) ? assignments : [];
                 loadedCount++;
-                
                 if (loadedCount === teachersToLoad.length) {
                   displayAllSubjects();
                 }
@@ -675,6 +724,21 @@
         } else {
           displayAllSubjects();
         }
+      }
+      
+      function getFilteredAssignmentsForTeacher(teacher) {
+        const raw = teacherSubjectsMap[teacher] || [];
+        if (!isSHS) {
+          return raw.map(function(a) { return typeof a === 'object' && a && a.subject != null ? a : { subject: a, strand: '', category: '', semester: '' }; });
+        }
+        const strandVal = (document.getElementById('strandFilter') && document.getElementById('strandFilter').value) || '';
+        const semesterVal = (document.getElementById('semesterFilter') && document.getElementById('semesterFilter').value) || '';
+        return raw.filter(function(a) {
+          const item = typeof a === 'object' && a && a.subject != null ? a : { subject: a, strand: '', category: '', semester: '' };
+          if (strandVal && item.strand !== strandVal) return false;
+          if (semesterVal && item.semester !== semesterVal) return false;
+          return true;
+        });
       }
       
       function displayAllSubjects() {
@@ -696,19 +760,20 @@
         
         Array.from(checkboxes).forEach(function(checkbox) {
           const teacher = checkbox.value;
-          const subjects = teacherSubjectsMap[teacher] || [];
-          if (subjects.length > 0) {
+          const assignments = getFilteredAssignmentsForTeacher(teacher);
+          if (assignments.length > 0) {
             hasSubjects = true;
             html += `<div style="margin-bottom: 12px;"><strong style="color: #667eea;">${teacher}:</strong><ul style="margin: 4px 0 0 0; padding-left: 20px; color: #495057;">`;
-            subjects.forEach(function(subject) {
-              html += `<li style="margin-bottom: 4px;">${subject}</li>`;
+            assignments.forEach(function(a) {
+              const name = typeof a === 'object' && a && a.subject != null ? a.subject : a;
+              html += `<li style="margin-bottom: 4px;">${name}</li>`;
             });
             html += '</ul></div>';
           }
         });
         
         if (!hasSubjects) {
-          html = '<p style="margin: 0; color: #6c757d;">No subjects assigned to selected teachers.</p>';
+          html = '<p style="margin: 0; color: #6c757d;">No subjects assigned to selected teachers.' + (isSHS ? ' Try changing Strand or Semester filter.' : '') + '</p>';
         }
         
         subjectsListDiv.innerHTML = html;
@@ -753,18 +818,21 @@
         let hasSubjects = false;
         const teachersWithSubjects = [];
         selectedTeachers.forEach(function(teacher) {
-          const subjects = teacherSubjectsMap[teacher] || [];
-          if (subjects.length > 0) {
+          const assignments = getFilteredAssignmentsForTeacher(teacher);
+          const subjectNames = assignments.map(function(a) {
+            return typeof a === 'object' && a && a.subject != null ? a.subject : a;
+          });
+          if (subjectNames.length > 0) {
             hasSubjects = true;
             teachersWithSubjects.push({
               teacher: teacher,
-              subjects: subjects
+              subjects: subjectNames
             });
           }
         });
 
         if (!hasSubjects) {
-          alert("No subjects assigned to selected teachers for the selected grade level and section. Please add subjects first.");
+          alert("No subjects assigned to selected teachers for the selected grade level and section." + (isSHS ? " Try changing Strand or Semester filter." : " Please add subjects first."));
           return;
         }
 

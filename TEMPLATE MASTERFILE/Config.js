@@ -120,6 +120,16 @@ const CONFIG = {
     FIRST: '1ST',
     SECOND: '2ND'
   },
+
+  // Strands (SHS)
+  STRANDS: {
+    ALL: 'ALL',
+    STEM: 'STEM',
+    HUMSS: 'HUMSS',
+    ICT: 'ICT',
+    ABM: 'ABM',
+    GAS: 'GAS'
+  },
   
   // Data row configuration
   DATA_START_ROW: 3,  // Data starts from row 3 (after 2 header rows)
@@ -167,7 +177,7 @@ const CONFIG = {
       // Subject sheets protection ranges
       SUBJECT_SHEETS: {
         STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
-        HEADER_ROWS: [8, 9],  // Rows 8-9 (grading period headers and column headers)
+        HEADER_ROWS: [8, 9],  // Non-SHS: rows 8-9 (grading + column headers). When IS_SHS true, API uses [10, 11]
         FORMULA_COLUMNS: [6, 7, 8, 12, 13, 14, 18, 19, 20, 24, 25, 26, 27, 28]  // Columns F, G, H, L, M, N, R, S, T, X, Y, Z, AA, AB
       },
       // Character sheet protection ranges

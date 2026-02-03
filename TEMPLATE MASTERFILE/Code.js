@@ -182,6 +182,14 @@ function getSemesters() {
 }
 
 /**
+ * Gets all available strands (SHS)
+ * @return {Array} Array of strand names (empty array if IS_SHS is false)
+ */
+function getStrands() {
+  return CONFIG.IS_SHS ? Object.values(CONFIG.STRANDS) : [];
+}
+
+/**
  * Gets active teachers from TEACHERS_REF sheet
  * @return {Array} Array of active teacher names
  */
