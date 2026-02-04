@@ -184,7 +184,7 @@ const CONFIG = {
       CHARACTER_SHEET: {
         STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
         HEADER_ROW: 7,  // Row 7 (column headers)
-        FORMULA_COLUMNS: [3, 5, 7, 9, 11, 13]  // Columns C, E, G, I, K, M
+        FORMULA_COLUMNS: [3, 5, 7, 9, 11, 12, 13]  // Columns C, E, G, I, K, L (Final Grading), M
       },
       // Attendance sheet protection ranges
       ATTENDANCE_SHEET: {
