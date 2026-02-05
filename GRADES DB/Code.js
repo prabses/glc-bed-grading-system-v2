@@ -464,11 +464,13 @@ function exportGrades(academicYearSheet, gradeLevel, section, subject) {
           data[i][2] || '', // Grade Level
           data[i][3] || '', // Section
           data[i][4] || '', // Subject
-          data[i][5] || '', // Teacher
-          data[i][7] || '', // 1st Transmuted
-          data[i][10] || '', // 2nd Transmuted
-          data[i][13] || '', // 3rd Transmuted
-          data[i][16] || ''  // 4th Transmuted
+          data[i][5] || '', // Semester
+          data[i][6] || '', // Strand
+          data[i][7] || '', // Teacher
+          data[i][9] || '', // 1st Transmuted
+          data[i][12] || '', // 2nd Transmuted
+          data[i][15] || '', // 3rd Transmuted
+          data[i][18] || ''  // 4th Transmuted
         ]);
       }
     }
@@ -482,6 +484,8 @@ function exportGrades(academicYearSheet, gradeLevel, section, subject) {
       'Grade Level',
       'Section',
       'Subject',
+      'Semester',
+      'Strand', 
       'Teacher',
       '1st Transmuted',
       '2nd Transmuted',

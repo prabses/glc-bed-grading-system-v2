@@ -297,6 +297,9 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
     // Normalize grade level
     const normalizedGradeLevel = normalizeGradeLevel(level);
 
+    // Detect SHS from OGS template filename (GRADE-11 or GRADE-12 in name)
+    const isSHS = /GRADE-11|GRADE-12/i.test(ogsSpreadsheetName || '');
+
     // Get target sheet in GRADES DB
     const targetSpreadsheet = getSpreadsheet();
     let targetSheet = getSheet(academicYearSheet);
@@ -312,8 +315,9 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
     const headerRow = targetSheet.getRange(1, 1, 1, targetSheet.getLastColumn()).getValues()[0];
     const numColumns = headerRow.length;
     
-    // Expected column count (minimum)
-    const expectedColumnCount = 20;
+    // Expected column count: Student#(0), Full Name(1), Grade Level(2), Section(3), Subject(4),
+    // Semester(5), Strand(6), Teacher(7), 1st-4th Initial/Transmuted/EQ(8-19), Final Grading(20), Final EQ(21)
+    const expectedColumnCount = 22;
     
     if (numColumns < expectedColumnCount) {
       return { 
@@ -334,17 +338,22 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
       const subjectName = subjectSheets[i].name;
       const isMAPEH = subjectSheets[i].isMAPEH || false;
       
-      const lastRow = subjectSheet.getLastRow();
-      if (lastRow < 9) continue; // Skip if no headers
+      let strandVal = '';
+      let semesterVal = '';
+      if (isSHS && !isMAPEH) {
+        const strandCell = subjectSheet.getRange(8, 2).getValue();
+        const semesterCell = subjectSheet.getRange(9, 2).getValue();
+        strandVal = String(strandCell || '').trim();
+        semesterVal = String(semesterCell || '').trim();
+      }
       
-      // Data starts at row 10 (row 9 is headers: "Student No", "Student Name", etc.)
-      const dataStartRow = 10;
-      if (lastRow < dataStartRow) continue; // Skip if no data
+      const dataStartRow = isSHS ? 12 : 10;
+      const lastRow = subjectSheet.getLastRow();
+      if (lastRow < (isSHS ? 11 : 9)) continue;
+      if (lastRow < dataStartRow) continue;
       
       if (isMAPEH) {
-        // MAPEH: Only use Final Grading (column AF, index 30) and Final EQ (column AG, index 31)
-        // For MAPEH, set grading periods to empty
-        const numColumnsNeeded = 32; // MAPEH has 32 columns
+        const numColumnsNeeded = 32;
         const dataRange = subjectSheet.getRange(dataStartRow, 1, lastRow - dataStartRow + 1, numColumnsNeeded);
         const data = dataRange.getValues();
         
@@ -352,31 +361,54 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
           const row = data[j];
           const studentNumber = String(row[0] || '').trim();
           const studentName = String(row[1] || '').trim();
+          if (!studentNumber) continue;
           
-          if (!studentNumber) continue; // Skip empty rows
-          
-          const rowData = new Array(numColumns);
+          const rowData = new Array(expectedColumnCount);
           rowData[0] = studentNumber;
           rowData[1] = studentName;
           rowData[2] = normalizedGradeLevel;
           rowData[3] = section;
           rowData[4] = subjectName;
-          rowData[5] = advisorName;
+          rowData[5] = '';
           rowData[6] = '';
-          rowData[7] = '';
-          rowData[8] = '';
-          rowData[9] = '';
-          rowData[10] = '';
-          rowData[11] = '';
-          rowData[12] = '';
-          rowData[13] = '';
+          rowData[7] = advisorName;
+          for (let k = 8; k < expectedColumnCount; k++) rowData[k] = '';
+          allRows.push(rowData);
+        }
+      } else if (isSHS) {
+        const numColumnsNeeded = 16;
+        const dataRange = subjectSheet.getRange(dataStartRow, 1, lastRow - dataStartRow + 1, numColumnsNeeded);
+        const data = dataRange.getValues();
+        
+        for (let j = 0; j < data.length; j++) {
+          const row = data[j];
+          const studentNumber = String(row[0] || '').trim();
+          const studentName = String(row[1] || '').trim();
+          if (!studentNumber) continue;
+          
+          const rowData = new Array(expectedColumnCount);
+          rowData[0] = studentNumber;
+          rowData[1] = studentName;
+          rowData[2] = normalizedGradeLevel;
+          rowData[3] = section;
+          rowData[4] = subjectName;
+          rowData[5] = semesterVal;
+          rowData[6] = strandVal;
+          rowData[7] = advisorName;
+          rowData[8] = row[5] || '';
+          rowData[9] = row[6] || '';
+          rowData[10] = row[7] || '';
+          rowData[11] = row[11] || '';
+          rowData[12] = row[12] || '';
+          rowData[13] = row[13] || '';
           rowData[14] = '';
           rowData[15] = '';
           rowData[16] = '';
           rowData[17] = '';
           rowData[18] = '';
           rowData[19] = '';
-          
+          rowData[20] = row[14] || '';
+          rowData[21] = row[15] || '';
           allRows.push(rowData);
         }
       } else {
@@ -388,31 +420,31 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
           const row = data[j];
           const studentNumber = String(row[0] || '').trim();
           const studentName = String(row[1] || '').trim();
+          if (!studentNumber) continue;
           
-          if (!studentNumber) continue; // Skip empty rows
-          
-          const rowData = new Array(numColumns);
+          const rowData = new Array(expectedColumnCount);
           rowData[0] = studentNumber;
           rowData[1] = studentName;
           rowData[2] = normalizedGradeLevel;
           rowData[3] = section;
           rowData[4] = subjectName;
-          rowData[5] = advisorName;
-          rowData[6] = row[5] || '';
-          rowData[7] = '';
-          rowData[8] = '';
-          rowData[9] = row[11] || '';
-          rowData[10] = '';
-          rowData[11] = '';
-          rowData[12] = row[17] || '';
-          rowData[13] = '';
-          rowData[14] = '';
-          rowData[15] = row[23] || '';
-          rowData[16] = '';
-          rowData[17] = '';
-          rowData[18] = '';
-          rowData[19] = '';
-          
+          rowData[5] = '';
+          rowData[6] = '';
+          rowData[7] = advisorName;
+          rowData[8] = row[5] || '';
+          rowData[9] = row[6] || '';
+          rowData[10] = row[7] || '';
+          rowData[11] = row[11] || '';
+          rowData[12] = row[12] || '';
+          rowData[13] = row[13] || '';
+          rowData[14] = row[17] || '';
+          rowData[15] = row[18] || '';
+          rowData[16] = row[19] || '';
+          rowData[17] = row[23] || '';
+          rowData[18] = row[24] || '';
+          rowData[19] = row[25] || '';
+          rowData[20] = row[26] || '';
+          rowData[21] = row[27] || '';
           allRows.push(rowData);
         }
       }
@@ -551,8 +583,8 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
                                  existingRowNum > existingDividerRow && 
                                  existingRowNum < existingImportEndRow;
         
-        // Always compare grades before updating (even if not from same import, to avoid unnecessary overwrites)
-        const gradeColumns = [6, 9, 12, 15];
+        // Always compare grades before updating (1st, 2nd, 3rd, 4th Initial - cols 8, 11, 14, 17)
+        const gradeColumns = [8, 11, 14, 17];
         const periodNames = ['1st Initial', '2nd Initial', '3rd Initial', '4th Initial'];
         let hasChanges = false;
         const changes = [];
@@ -733,12 +765,13 @@ function _getGradeInfo(studentNumber, academicYearSheet, subject) {
     // Get header row to find column indices
     const headerRow = targetSheet.getRange(1, 1, 1, targetSheet.getLastColumn()).getValues()[0];
     
-    // Expected column order: Student Number (0), Full Name (1), Grade Level (2), Section (3), 
-    // Subject (4), Teacher (5), 1st Initial (6), 1st Transmuted (7), 1st EQ (8),
-    // 2nd Initial (9), 2nd Transmuted (10), 2nd EQ (11),
-    // 3rd Initial (12), 3rd Transmuted (13), 3rd EQ (14),
-    // 4th Initial (15), 4th Transmuted (16), 4th EQ (17),
-    // Final Grading (18), Final EQ (19)
+    // Expected column order: Student Number (0), Full Name (1), Grade Level (2), Section (3),
+    // Subject (4), Semester (5), Strand (6), Teacher (7),
+    // 1st Initial (8), 1st Transmuted (9), 1st EQ (10),
+    // 2nd Initial (11), 2nd Transmuted (12), 2nd EQ (13),
+    // 3rd Initial (14), 3rd Transmuted (15), 3rd EQ (16),
+    // 4th Initial (17), 4th Transmuted (18), 4th EQ (19),
+    // Final Grading (20), Final EQ (21)
     
     // Get all data starting from row 2
     const dataRange = targetSheet.getRange(2, 1, lastRow - 1, headerRow.length);
@@ -759,21 +792,23 @@ function _getGradeInfo(studentNumber, academicYearSheet, subject) {
             'Grade Level': data[i][2],
             'Section': data[i][3],
             'Subject': data[i][4],
-            'Teacher': data[i][5],
-            '1st Initial': data[i][6] || '',
-            '1st Transmuted': data[i][7] || '',
-            '1st EQ': data[i][8] || '',
-            '2nd Initial': data[i][9] || '',
-            '2nd Transmuted': data[i][10] || '',
-            '2nd EQ': data[i][11] || '',
-            '3rd Initial': data[i][12] || '',
-            '3rd Transmuted': data[i][13] || '',
-            '3rd EQ': data[i][14] || '',
-            '4th Initial': data[i][15] || '',
-            '4th Transmuted': data[i][16] || '',
-            '4th EQ': data[i][17] || '',
-            'Final Grading': data[i][18] || '',
-            'Final EQ': data[i][19] || ''
+            'Semester': data[i][5] || '',
+            'Strand': data[i][6] || '',
+            'Teacher': data[i][7],
+            '1st Initial': data[i][8] || '',
+            '1st Transmuted': data[i][9] || '',
+            '1st EQ': data[i][10] || '',
+            '2nd Initial': data[i][11] || '',
+            '2nd Transmuted': data[i][12] || '',
+            '2nd EQ': data[i][13] || '',
+            '3rd Initial': data[i][14] || '',
+            '3rd Transmuted': data[i][15] || '',
+            '3rd EQ': data[i][16] || '',
+            '4th Initial': data[i][17] || '',
+            '4th Transmuted': data[i][18] || '',
+            '4th EQ': data[i][19] || '',
+            'Final Grading': data[i][20] || '',
+            'Final EQ': data[i][21] || ''
           },
           rowIndex: i + 2 // Actual row number in sheet (1-based, +1 for header)
         };
@@ -832,12 +867,12 @@ function _updateGrades(studentNumber, academicYearSheet, subject, gradeUpdates, 
       return gradeInfo;
     }
     
-    // Column mapping for initial grades (0-based indices)
+    // Column mapping for initial grades (0-based indices, after Semester/Strand columns)
     const columnMap = {
-      '1st Initial': 6,
-      '2nd Initial': 9,
-      '3rd Initial': 12,
-      '4th Initial': 15
+      '1st Initial': 8,
+      '2nd Initial': 11,
+      '3rd Initial': 14,
+      '4th Initial': 17
     };
     
     // Period order for chronological logging
@@ -1024,21 +1059,23 @@ function _getAllGradeInfo(studentNumber, academicYearSheet) {
         
         allGradeData.push({
           'Subject': data[i][4],
-          'Teacher': data[i][5],
-          '1st Initial': data[i][6] || '',
-          '1st Transmuted': data[i][7] || '',
-          '1st EQ': data[i][8] || '',
-          '2nd Initial': data[i][9] || '',
-          '2nd Transmuted': data[i][10] || '',
-          '2nd EQ': data[i][11] || '',
-          '3rd Initial': data[i][12] || '',
-          '3rd Transmuted': data[i][13] || '',
-          '3rd EQ': data[i][14] || '',
-          '4th Initial': data[i][15] || '',
-          '4th Transmuted': data[i][16] || '',
-          '4th EQ': data[i][17] || '',
-          'Final Grading': data[i][18] || '',
-          'Final EQ': data[i][19] || ''
+          'Semester': data[i][5] || '',
+          'Strand': data[i][6] || '',
+          'Teacher': data[i][7],
+          '1st Initial': data[i][8] || '',
+          '1st Transmuted': data[i][9] || '',
+          '1st EQ': data[i][10] || '',
+          '2nd Initial': data[i][11] || '',
+          '2nd Transmuted': data[i][12] || '',
+          '2nd EQ': data[i][13] || '',
+          '3rd Initial': data[i][14] || '',
+          '3rd Transmuted': data[i][15] || '',
+          '3rd EQ': data[i][16] || '',
+          '4th Initial': data[i][17] || '',
+          '4th Transmuted': data[i][18] || '',
+          '4th EQ': data[i][19] || '',
+          'Final Grading': data[i][20] || '',
+          'Final EQ': data[i][21] || ''
         });
       }
     }
