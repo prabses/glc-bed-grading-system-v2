@@ -1053,7 +1053,8 @@ function _getAllGradeInfo(studentNumber, academicYearSheet) {
             'Student Number': data[i][0],
             'Full Name': data[i][1],
             'Grade Level': data[i][2],
-            'Section': data[i][3]
+            'Section': data[i][3],
+            'Strand': data[i][6] || ''
           };
         }
         

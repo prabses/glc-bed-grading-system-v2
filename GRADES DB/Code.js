@@ -75,6 +75,14 @@ function importGrades(ogsTemplateUrl, academicYearSheet) {
 }
 
 /**
+ * Returns semester options from config (for Update Grades dialog)
+ * @return {Array<string>}
+ */
+function getSemesterOptions() {
+  return CONFIG.SEMESTERS ? Object.values(CONFIG.SEMESTERS) : [];
+}
+
+/**
  * Shows the update grades dialog with HTML interface
  */
 function showUpdateGradesDialog() {

@@ -156,7 +156,7 @@
 
       .student-info-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
         gap: 15px;
         font-size: 14px;
       }
@@ -419,6 +419,13 @@
               </div>
             </div>
 
+            <div class="form-group">
+              <label class="form-label" for="semesterFilter">Filter by Semester (Optional)</label>
+              <select id="semesterFilter" class="form-control">
+                <option value="">All semesters</option>
+              </select>
+            </div>
+
             <button type="button" class="btn-load" id="loadBtn">
               Load Grades
             </button>
@@ -450,9 +457,21 @@
       let allStudentNumbers = [];
       let highlightedIndex = -1;
       let allGradeData = null;
+      let displayedGradeData = null;
       let studentInfo = null;
 
       document.addEventListener("DOMContentLoaded", function () {
+        google.script.run.withSuccessHandler(function (opts) {
+          const semesterSelect = document.getElementById("semesterFilter");
+          semesterSelect.innerHTML = '<option value="">All semesters</option>';
+          (opts || []).forEach(function (s) {
+            const opt = document.createElement("option");
+            opt.value = s;
+            opt.textContent = s;
+            semesterSelect.appendChild(opt);
+          });
+        }).getSemesterOptions();
+
         google.script.run
           .withSuccessHandler(function (sheets) {
             const select = document.getElementById("academicYear");
@@ -472,17 +491,28 @@
           const academicYear = this.value;
           const studentNumberInput = document.getElementById("studentNumber");
           const dropdown = document.getElementById("studentNumberDropdown");
-          
+
+          document.getElementById("semesterFilter").innerHTML = '<option value="">All semesters</option>';
+          google.script.run.withSuccessHandler(function (opts) {
+            const semesterSelect = document.getElementById("semesterFilter");
+            (opts || []).forEach(function (s) {
+              const opt = document.createElement("option");
+              opt.value = s;
+              opt.textContent = s;
+              semesterSelect.appendChild(opt);
+            });
+          }).getSemesterOptions();
+
           studentNumberInput.value = "";
           dropdown.style.display = "none";
           allStudentNumbers = [];
           highlightedIndex = -1;
           allGradeData = null;
+          displayedGradeData = null;
           studentInfo = null;
           document.getElementById("studentInfoHeader").classList.remove("visible");
           document.getElementById("subjectsContainer").classList.remove("visible");
           document.getElementById("buttonGroup").style.display = "none";
-          
           if (academicYear) {
             google.script.run
               .withSuccessHandler(function (studentNumbers) {
@@ -595,14 +625,17 @@
           .withSuccessHandler(function (result) {
             if (result.success) {
               allGradeData = result.gradeData;
+              displayedGradeData = result.gradeData;
               studentInfo = result.studentInfo;
-              displayAllGrades(result.studentInfo, result.gradeData);
+              populateFilters();
+              applyFiltersAndDisplay();
               document.getElementById("studentInfoHeader").classList.add("visible");
               document.getElementById("subjectsContainer").classList.add("visible");
               document.getElementById("buttonGroup").style.display = "flex";
             } else {
               alert("Error: " + result.message);
               allGradeData = null;
+              displayedGradeData = null;
               studentInfo = null;
               document.getElementById("studentInfoHeader").classList.remove("visible");
               document.getElementById("subjectsContainer").classList.remove("visible");
@@ -619,6 +652,20 @@
           .getAllGradeInfo(studentNumber, academicYear);
       });
 
+      function populateFilters() {
+        document.getElementById("semesterFilter").value = "";
+      }
+
+      function applyFiltersAndDisplay() {
+        if (!studentInfo || !allGradeData) return;
+        const semesterVal = document.getElementById("semesterFilter").value;
+        let filtered = semesterVal ? allGradeData.filter(function(d) { return (d.Semester || "") === semesterVal; }) : allGradeData;
+        displayedGradeData = filtered;
+        displayAllGrades(studentInfo, filtered);
+      }
+
+      document.getElementById("semesterFilter").addEventListener("change", applyFiltersAndDisplay);
+
       function displayAllGrades(studentInfo, gradeData) {
         const studentInfoGrid = document.getElementById("studentInfoGrid");
         studentInfoGrid.innerHTML = "";
@@ -627,7 +674,8 @@
           { label: "Student Number", value: studentInfo["Student Number"] || "-" },
           { label: "Full Name", value: studentInfo["Full Name"] || "-" },
           { label: "Grade Level", value: studentInfo["Grade Level"] || "-" },
-          { label: "Section", value: studentInfo["Section"] || "-" }
+          { label: "Section", value: studentInfo["Section"] || "-" },
+          { label: "Strand", value: studentInfo["Strand"] || "-" }
         ];
         
         infoFields.forEach(function(field) {
@@ -721,7 +769,7 @@
       document.getElementById("updateForm").addEventListener("submit", function (e) {
         e.preventDefault();
 
-        if (!allGradeData || !studentInfo) {
+        if (!displayedGradeData || !studentInfo) {
           alert("Please load grade information first.");
           return;
         }
@@ -732,7 +780,7 @@
         const updates = [];
         const subjectMap = {};
 
-        allGradeData.forEach(function(subjectData, index) {
+        displayedGradeData.forEach(function(subjectData, index) {
           const subject = subjectData.Subject;
           const firstInitial = document.getElementById(`firstInitial_${index}`).value.trim();
           const secondInitial = document.getElementById(`secondInitial_${index}`).value.trim();
