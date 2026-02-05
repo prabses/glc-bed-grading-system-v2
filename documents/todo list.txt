@@ -71,12 +71,12 @@ TEMPLATE MASTERFILE
 ✅ fix inconsistent display of existing assigned advisory
 ✅ modify the generate ogs template form UI by making it responsive
 
-add 2 rows in ogs template for strand and semester
-add strand and semester selection in export ogs form for subject filter
-change name format for ogs template if shs
-reduce columns to 2 instead of 4 gradings
-change grading headers to Mastery and Final
-change other sheets in ogs template to 2 gradings too
+✅ add 2 rows in ogs template for strand and semester
+✅ add strand and semester selection in export ogs form for subject filter
+✅ change name format for ogs template if shs
+✅ reduce columns to 2 instead of 4 gradings
+✅ change grading headers to Mastery and Final
+✅ change other sheets in ogs template to 2 gradings too
 
 ==========================================
 GRADES DB
@@ -87,7 +87,7 @@ GRADES DB
 ✅ modify the update form UI by making it responsive
 ✅ attached a temporary version of the working instruction link to manual menu
 
-add semester and strand columns
-in import function, only fill the 1st grading, 2nd grading, and final
-add semester select component update student grades if shs
-add strand in student information in update student grades form
+✅ add semester and strand columns
+✅ in import function, only fill the 1st and 2nd initial grades
+✅ add semester select component update student grades if shs
+✅ add strand in student information in update student grades form
