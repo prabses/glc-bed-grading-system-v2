@@ -396,19 +396,19 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
           rowData[6] = strandVal;
           rowData[7] = advisorName;
           rowData[8] = row[5] || '';
-          rowData[9] = row[6] || '';
-          rowData[10] = row[7] || '';
+          rowData[9] = '';
+          rowData[10] = '';
           rowData[11] = row[11] || '';
-          rowData[12] = row[12] || '';
-          rowData[13] = row[13] || '';
+          rowData[12] = '';
+          rowData[13] = '';
           rowData[14] = '';
           rowData[15] = '';
           rowData[16] = '';
           rowData[17] = '';
           rowData[18] = '';
           rowData[19] = '';
-          rowData[20] = row[14] || '';
-          rowData[21] = row[15] || '';
+          rowData[20] = '';
+          rowData[21] = '';
           allRows.push(rowData);
         }
       } else {
@@ -432,19 +432,19 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
           rowData[6] = '';
           rowData[7] = advisorName;
           rowData[8] = row[5] || '';
-          rowData[9] = row[6] || '';
-          rowData[10] = row[7] || '';
+          rowData[9] = '';
+          rowData[10] = '';
           rowData[11] = row[11] || '';
-          rowData[12] = row[12] || '';
-          rowData[13] = row[13] || '';
+          rowData[12] = '';
+          rowData[13] = '';
           rowData[14] = row[17] || '';
-          rowData[15] = row[18] || '';
-          rowData[16] = row[19] || '';
+          rowData[15] = '';
+          rowData[16] = '';
           rowData[17] = row[23] || '';
-          rowData[18] = row[24] || '';
-          rowData[19] = row[25] || '';
-          rowData[20] = row[26] || '';
-          rowData[21] = row[27] || '';
+          rowData[18] = '';
+          rowData[19] = '';
+          rowData[20] = '';
+          rowData[21] = '';
           allRows.push(rowData);
         }
       }
