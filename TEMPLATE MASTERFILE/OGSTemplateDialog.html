@@ -370,13 +370,13 @@
                 <div style="flex: 1; min-width: 120px;">
                   <label for="strandFilter" style="font-size: 12px; color: #6c757d;">Strand</label>
                   <select id="strandFilter" class="form-control">
-                    <option value="">All</option>
+                    <option value="">Select strand...</option>
                   </select>
                 </div>
                 <div style="flex: 1; min-width: 120px;">
                   <label for="semesterFilter" style="font-size: 12px; color: #6c757d;">Semester</label>
                   <select id="semesterFilter" class="form-control">
-                    <option value="">All</option>
+                    <option value="">Select semester...</option>
                   </select>
                 </div>
               </div>
@@ -503,7 +503,7 @@
                 strands = strandList || [];
                 const sel = document.getElementById('strandFilter');
                 if (sel) {
-                  sel.innerHTML = '<option value="">All</option>';
+                  sel.innerHTML = '<option value="">Select strand...</option>';
                   strands.forEach(function(s) {
                     const opt = document.createElement('option');
                     opt.value = s;
@@ -516,7 +516,7 @@
                 semesters = semesterList || [];
                 const sel = document.getElementById('semesterFilter');
                 if (sel) {
-                  sel.innerHTML = '<option value="">All</option>';
+                  sel.innerHTML = '<option value="">Select semester...</option>';
                   semesters.forEach(function(s) {
                     const opt = document.createElement('option');
                     opt.value = s;
