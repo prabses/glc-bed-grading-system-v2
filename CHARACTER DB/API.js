@@ -366,12 +366,12 @@ function _importCharacters(ogsTemplateUrl, academicYearSheet, userEmail) {
       const update = rowsToUpdate[i];
       const padData = update.data.slice();
       while (padData.length < numColumns) padData.push('');
-      targetSheet.getRange(update.row, 1, update.row, numColumns).setValues([padData.slice(0, numColumns)]);
+      targetSheet.getRange(update.row, 1, 1, numColumns).setValues([padData.slice(0, numColumns)]);
     }
 
     for (let i = 0; i < characterChangesToLog.length; i++) {
       const c = characterChangesToLog[i];
-      logUpdate(c.studentNumber, c.fullName, academicYearSheet, `${c.trait} ${c.period}`,
+      logUpdate(c.studentNumber, c.fullName, academicYearSheet, c.trait, c.period,
         c.oldValue, c.newValue, `Re-imported from: ${ogsSpreadsheetName || 'OGS Template'}`, actualUserEmail);
     }
 
@@ -379,8 +379,8 @@ function _importCharacters(ogsTemplateUrl, academicYearSheet, userEmail) {
       const insertRow = lastDataRow + 1;
       const linkLabel = ogsSpreadsheetName || 'OGS Template';
       const dividerRow = new Array(numColumns).fill('');
-      targetSheet.getRange(insertRow, 1, insertRow, numColumns).setValues([dividerRow]);
-      targetSheet.getRange(insertRow, 1, insertRow, numColumns).merge();
+      targetSheet.getRange(insertRow, 1, 1, numColumns).setValues([dividerRow]);
+      targetSheet.getRange(insertRow, 1, 1, numColumns).merge();
       targetSheet.getRange(insertRow, 1).setFormula(`=HYPERLINK("${ogsTemplateUrl}","${linkLabel}")`);
       targetSheet.getRange(insertRow, 1).setBackground('#d9d9d9')
         .setFontStyle('italic').setFontColor('#1155cc').setFontSize(10)
@@ -392,7 +392,7 @@ function _importCharacters(ogsTemplateUrl, academicYearSheet, userEmail) {
         while (arr.length < numColumns) arr.push('');
         return arr.slice(0, numColumns);
       });
-      targetSheet.getRange(dataInsertRow, 1, dataInsertRow + paddedRows.length - 1, numColumns).setValues(paddedRows);
+      targetSheet.getRange(dataInsertRow, 1, paddedRows.length, numColumns).setValues(paddedRows);
     }
 
     const updatedCount = rowsToUpdate.length;
@@ -508,7 +508,6 @@ function _updateCharacter(studentNumber, academicYearSheet, section, trait, firs
     const rowIndex = info.rowIndex;
     const updates = [];
     const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
-    const periodPrefix = trait ? `${trait} ` : '';
 
     const gradeUpdates = [
       { col: 7, key: '1st Grade', value: firstGrade },
@@ -523,7 +522,7 @@ function _updateCharacter(studentNumber, academicYearSheet, section, trait, firs
       const newVal = String(g.value).trim();
       if (oldVal !== newVal) {
         targetSheet.getRange(rowIndex, g.col).setValue(newVal);
-        logUpdate(studentNumber, info.characterData['Full Name'], academicYearSheet, periodPrefix + g.key, oldVal, newVal, remarks || '', actualUserEmail);
+        logUpdate(studentNumber, info.characterData['Full Name'], academicYearSheet, info.characterData['Trait'], g.key, oldVal, newVal, remarks || '', actualUserEmail);
         updates.push(g.key);
       }
     }
@@ -538,13 +537,13 @@ function _updateCharacter(studentNumber, academicYearSheet, section, trait, firs
   }
 }
 
-function logUpdate(studentNumber, fullName, academicYear, period, originalValue, updatedValue, remarks, userEmail) {
+function logUpdate(studentNumber, fullName, academicYear, trait, period, originalValue, updatedValue, remarks, userEmail) {
   try {
     const spreadsheet = getSpreadsheet();
     let logSheet = spreadsheet.getSheetByName('UPDATE LOG');
     if (!logSheet) {
       logSheet = spreadsheet.insertSheet('UPDATE LOG');
-      const headers = ['Timestamp', 'Updated By', 'Student Number', 'Full Name', 'School Year', 'Period', 'Original Value', 'Updated Value', 'Remarks'];
+      const headers = ['Timestamp', 'Updated By', 'Student Number', 'Full Name', 'School Year', 'Trait', 'Period', 'Original Value', 'Updated Value', 'Remarks'];
       logSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
       logSheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
       logSheet.setFrozenRows(1);
@@ -556,14 +555,15 @@ function logUpdate(studentNumber, fullName, academicYear, period, originalValue,
       studentNumber,
       fullName,
       academicYear,
-      period,
+      trait || '',
+      period || '',
       originalValue,
       updatedValue,
       remarks || ''
     ];
     const nextRow = logSheet.getLastRow() + 1;
-    logSheet.getRange(nextRow, 1, nextRow, logEntry.length).setValues([logEntry]);
-    logSheet.getRange(nextRow, 1, nextRow, logEntry.length).setHorizontalAlignment('left');
+    logSheet.getRange(nextRow, 1, 1, logEntry.length).setValues([logEntry]);
+    logSheet.getRange(nextRow, 1, 1, logEntry.length).setHorizontalAlignment('left');
     logSheet.getRange(nextRow, 1).setNumberFormat('yyyy-MM-dd HH:mm:ss');
   } catch (error) {
     console.error('Error logging update:', error);

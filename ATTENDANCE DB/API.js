@@ -365,7 +365,7 @@ function _importAttendance(ogsTemplateUrl, academicYearSheet, userEmail) {
 
     for (let i = 0; i < attendanceChangesToLog.length; i++) {
       const c = attendanceChangesToLog[i];
-      logUpdate(c.studentNumber, c.fullName, academicYearSheet, `${c.month} ${c.period}`,
+      logUpdate(c.studentNumber, c.fullName, academicYearSheet, c.month, c.period,
         c.oldValue, c.newValue, `Re-imported from: ${ogsSpreadsheetName || 'OGS Template'}`, actualUserEmail);
     }
 
@@ -496,13 +496,12 @@ function _updateAttendance(studentNumber, academicYearSheet, section, month, sch
     const updates = [];
     const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
 
-    const periodPrefix = month ? `${month} ` : '';
     if (schoolDays !== undefined && schoolDays !== null) {
       const oldVal = String(info.attendanceData['School DAYS'] || '').trim();
       const newVal = String(schoolDays).trim();
       if (oldVal !== newVal) {
         targetSheet.getRange(rowIndex, 7).setValue(newVal);
-        logUpdate(studentNumber, info.attendanceData['Full Name'], academicYearSheet, periodPrefix + 'School DAYS', oldVal, newVal, remarks || '', actualUserEmail);
+        logUpdate(studentNumber, info.attendanceData['Full Name'], academicYearSheet, info.attendanceData['Month'], 'School DAYS', oldVal, newVal, remarks || '', actualUserEmail);
         updates.push('School DAYS');
       }
     }
@@ -511,7 +510,7 @@ function _updateAttendance(studentNumber, academicYearSheet, section, month, sch
       const newVal = String(daysPresent).trim();
       if (oldVal !== newVal) {
         targetSheet.getRange(rowIndex, 8).setValue(newVal);
-        logUpdate(studentNumber, info.attendanceData['Full Name'], academicYearSheet, periodPrefix + 'Days PRESENT', oldVal, newVal, remarks || '', actualUserEmail);
+        logUpdate(studentNumber, info.attendanceData['Full Name'], academicYearSheet, info.attendanceData['Month'], 'Days PRESENT', oldVal, newVal, remarks || '', actualUserEmail);
         updates.push('Days PRESENT');
       }
     }
@@ -527,13 +526,13 @@ function _updateAttendance(studentNumber, academicYearSheet, section, month, sch
   }
 }
 
-function logUpdate(studentNumber, fullName, academicYear, period, originalValue, updatedValue, remarks, userEmail) {
+function logUpdate(studentNumber, fullName, academicYear, month, period, originalValue, updatedValue, remarks, userEmail) {
   try {
     const spreadsheet = getSpreadsheet();
     let logSheet = spreadsheet.getSheetByName('UPDATE LOG');
     if (!logSheet) {
       logSheet = spreadsheet.insertSheet('UPDATE LOG');
-      const headers = ['Timestamp', 'Updated By', 'Student Number', 'Full Name', 'School Year', 'Period', 'Original Value', 'Updated Value', 'Remarks'];
+      const headers = ['Timestamp', 'Updated By', 'Student Number', 'Full Name', 'School Year', 'Month', 'Period', 'Original Value', 'Updated Value', 'Remarks'];
       logSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
       logSheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
       logSheet.setFrozenRows(1);
@@ -545,7 +544,8 @@ function logUpdate(studentNumber, fullName, academicYear, period, originalValue,
       studentNumber,
       fullName,
       academicYear,
-      period,
+      month || '',
+      period || '',
       originalValue,
       updatedValue,
       remarks || ''
