@@ -49,8 +49,8 @@ function importAttendance(ogsTemplateUrl, academicYearSheet) {
 
 function showUpdateAttendanceDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("UpdateAttendanceDialog")
-    .setWidth(650)
-    .setHeight(550)
+    .setWidth(1100)
+    .setHeight(700)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Update Student Attendance");
 }
@@ -114,17 +114,21 @@ function getMonths(academicYearSheet, studentNumber, section) {
     if (lastRow < 2) return [];
     const data = targetSheet.getRange(2, 1, lastRow, 6).getValues();
     const formulas = targetSheet.getRange(2, 1, lastRow, 1).getFormulas();
-    const unique = new Set();
+    const orderSeen = [];
+    const seen = new Set();
     const sn = studentNumber.toString().trim();
     const sec = section.toString().trim();
     for (let i = 0; i < data.length; i++) {
       if (formulas[i][0] && typeof formulas[i][0] === 'string' && formulas[i][0].includes('HYPERLINK')) continue;
       if (String(data[i][0] || '').trim() === sn && String(data[i][3] || '').trim() === sec) {
         const mon = String(data[i][5] || '').trim();
-        if (mon) unique.add(mon);
+        if (mon && !seen.has(mon)) {
+          seen.add(mon);
+          orderSeen.push(mon);
+        }
       }
     }
-    return Array.from(unique).sort();
+    return orderSeen;
   } catch (e) {
     console.error('getMonths:', e);
     return [];

@@ -5,7 +5,13 @@
     <meta charset="utf-8" />
     <title>Update Student Attendance</title>
     <style>
-      html, body { height: 100%; margin: 0; padding: 0; overflow-x: hidden; }
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
+
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         padding: 20px;
@@ -16,16 +22,27 @@
         box-sizing: border-box;
         height: 100%;
         overflow-y: auto;
+        overflow-x: hidden;
       }
+
       .container {
         background: white;
         border-radius: 12px;
-        padding: 25px 35px;
+        padding: 25px 35px 20px 35px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
         margin: auto;
+        position: relative;
+        overflow: visible;
         width: 100%;
-        max-width: 600px;
+        max-width: 100%;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        z-index: 1;
       }
+
       .container::before {
         content: "";
         position: absolute;
@@ -35,12 +52,53 @@
         height: 4px;
         background: linear-gradient(90deg, #667eea, #764ba2);
       }
-      .header { text-align: center; margin-bottom: 20px; }
-      .header h2 { color: #333; font-size: 24px; font-weight: 600; margin: 0 0 8px 0; }
-      .header p { color: #666; font-size: 15px; margin: 0; }
-      .search-fields-row { display: flex; gap: 18px; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; }
-      .form-group { flex: 1; min-width: 120px; position: relative; }
-      .form-label { display: block; color: #333; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+
+      .header {
+        text-align: center;
+        margin-bottom: 20px;
+        flex-shrink: 0;
+      }
+
+      .header h2 {
+        color: #333;
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+      }
+
+      .header p {
+        color: #666;
+        font-size: 15px;
+        margin: 0;
+      }
+
+      .search-section {
+        margin-bottom: 25px;
+        flex-shrink: 0;
+      }
+
+      .search-fields-row {
+        display: flex;
+        gap: 18px;
+        align-items: flex-end;
+        margin-bottom: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 0;
+        flex: 1;
+        position: relative;
+        z-index: 1;
+      }
+
+      .form-label {
+        display: block;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
       .form-control {
         width: 100%;
         padding: 12px 16px;
@@ -49,13 +107,16 @@
         font-size: 14px;
         box-sizing: border-box;
         background: #fafbfc;
+        transition: all 0.3s ease;
       }
+
       .form-control:focus {
         outline: none;
         border-color: #667eea;
         background: white;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
       }
+
       .btn-load {
         padding: 12px 24px;
         border: none;
@@ -63,37 +124,130 @@
         font-size: 14px;
         font-weight: 500;
         cursor: pointer;
+        transition: all 0.3s ease;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         white-space: nowrap;
+        height: fit-content;
       }
-      .btn-load:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3); }
-      .btn-load:disabled { opacity: 0.6; cursor: not-allowed; }
-      .edit-section {
+
+      .btn-load:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-load:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .student-info-header {
+        background: #f8f9fa;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
         display: none;
+      }
+
+      .student-info-header.visible {
+        display: block;
+      }
+
+      .student-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
+        gap: 15px;
+        font-size: 14px;
+      }
+
+      .student-info-item {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .student-info-label {
+        color: #6c757d;
+        font-weight: 500;
+        margin-bottom: 4px;
+        font-size: 12px;
+      }
+
+      .student-info-value {
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .attendance-container {
+        display: none;
+        flex-direction: column;
+        gap: 20px;
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+      }
+
+      .attendance-container.visible {
+        display: flex;
+      }
+
+      .attendance-card {
         background: #f8f9fa;
         border: 2px solid #e1e5e9;
         border-radius: 8px;
         padding: 20px;
-        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
       }
-      .edit-section.visible { display: block; }
-      .current-display {
+
+      .attendance-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e1e5e9;
+      }
+
+      .attendance-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .attendance-advisor {
+        font-size: 14px;
+        color: #6c757d;
+      }
+
+      .current-grades-display {
         background: #fff3cd;
         border: 2px solid #ffc107;
         border-radius: 8px;
         padding: 12px 16px;
         font-size: 13px;
         color: #856404;
-        margin-bottom: 15px;
       }
+
+      .current-grades-display strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
       .grade-input-group {
         display: flex;
         gap: 10px;
         align-items: center;
-        margin-bottom: 12px;
       }
-      .grade-input-group label { flex: 0 0 140px; color: #333; font-weight: 600; font-size: 14px; }
+
+      .grade-input-group label {
+        flex: 0 0 120px;
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
       .grade-input-group input {
         flex: 1;
         padding: 10px 14px;
@@ -101,14 +255,36 @@
         border-radius: 8px;
         font-size: 14px;
         box-sizing: border-box;
+        background: #fafbfc;
+        transition: all 0.3s ease;
       }
+
       .grade-input-group input:focus {
         outline: none;
         border-color: #667eea;
+        background: white;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
       }
-      .remarks-group { margin-top: 15px; }
-      .remarks-group label { display: block; color: #333; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+
+      .grade-input-group .read-only-value {
+        flex: 1;
+        padding: 10px 14px;
+        color: #6c757d;
+        font-size: 14px;
+      }
+
+      .remarks-group {
+        margin-top: 5px;
+      }
+
+      .remarks-group label {
+        display: block;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
       .remarks-group input {
         width: 100%;
         padding: 10px 14px;
@@ -116,14 +292,64 @@
         border-radius: 8px;
         font-size: 14px;
         box-sizing: border-box;
+        background: #fafbfc;
+        transition: all 0.3s ease;
       }
-      .button-group { display: flex; gap: 12px; margin-top: 20px; }
-      .btn { flex: 1; padding: 12px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; }
-      .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-      .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-      .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3); }
-      .btn-secondary { background: #f8f9fa; color: #6c757d; border: 2px solid #e9ecef; }
-      .btn-secondary:hover:not(:disabled) { background: #e9ecef; color: #495057; }
+
+      .remarks-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .button-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid #e1e5e9;
+        flex-shrink: 0;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-secondary {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 2px solid #e9ecef;
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        background: #e9ecef;
+        color: #495057;
+      }
+
       .autocomplete-dropdown {
         position: absolute;
         top: 100%;
@@ -133,14 +359,39 @@
         border: 2px solid #e1e5e9;
         border-top: none;
         border-radius: 0 0 8px 8px;
-        max-height: 200px;
+        max-height: 300px;
         overflow-y: auto;
         z-index: 10000;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        margin-top: -2px;
       }
-      .autocomplete-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-      .autocomplete-item:hover, .autocomplete-item.highlighted { background-color: #f8f9fa; }
-      .autocomplete-item.empty { color: #6c757d; font-style: italic; cursor: default; }
+
+      .autocomplete-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+        transition: background-color 0.2s ease;
+      }
+
+      .autocomplete-item:hover,
+      .autocomplete-item.highlighted {
+        background-color: #f8f9fa;
+      }
+
+      .autocomplete-item:last-child {
+        border-bottom: none;
+      }
+
+      .autocomplete-item.empty {
+        color: #6c757d;
+        font-style: italic;
+        cursor: default;
+      }
+
+      .autocomplete-item.empty:hover {
+        background-color: white;
+      }
     </style>
   </head>
   <body>
@@ -151,56 +402,67 @@
       </div>
 
       <form id="updateForm">
-        <div class="search-fields-row">
-          <div class="form-group">
-            <label class="form-label" for="academicYear">Academic Year</label>
-            <select id="academicYear" class="form-control" required>
-              <option value="">Select academic year...</option>
-            </select>
+        <div class="search-section">
+          <div class="search-fields-row">
+            <div class="form-group">
+              <label class="form-label" for="academicYear">Academic Year</label>
+              <select id="academicYear" class="form-control" required>
+                <option value="">Select academic year...</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="position: relative; z-index: 100;">
+              <label class="form-label" for="studentNumber">Student Number</label>
+              <div style="position: relative;">
+                <input
+                  type="text"
+                  id="studentNumber"
+                  class="form-control"
+                  placeholder="Type to search student number..."
+                  autocomplete="off"
+                  required
+                />
+                <div id="studentNumberDropdown" class="autocomplete-dropdown" style="display: none;"></div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="section">Section</label>
+              <select id="section" class="form-control" required disabled>
+                <option value="">Select section...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="month">Month</label>
+              <select id="month" class="form-control" required disabled>
+                <option value="">Select month...</option>
+              </select>
+            </div>
+
+            <button type="button" class="btn-load" id="loadBtn">
+              Load Attendance
+            </button>
           </div>
-          <div class="form-group" style="position: relative;">
-            <label class="form-label" for="studentNumber">Student Number</label>
-            <input type="text" id="studentNumber" class="form-control" placeholder="Type to search..." autocomplete="off" required />
-            <div id="studentNumberDropdown" class="autocomplete-dropdown" style="display: none;"></div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="section">Section</label>
-            <select id="section" class="form-control" required disabled>
-              <option value="">Select section...</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="month">Month</label>
-            <select id="month" class="form-control" required disabled>
-              <option value="">Select month...</option>
-            </select>
-          </div>
-          <button type="button" class="btn-load" id="loadBtn">Load Attendance</button>
         </div>
 
-        <div class="edit-section" id="editSection">
-          <div class="current-display" id="currentDisplay"></div>
-          <div class="grade-input-group">
-            <label for="schoolDays">School DAYS:</label>
-            <input type="text" id="schoolDays" placeholder="" />
-          </div>
-          <div class="grade-input-group">
-            <label for="daysPresent">Days PRESENT:</label>
-            <input type="text" id="daysPresent" placeholder="" />
-          </div>
-          <div class="grade-input-group">
-            <label>Days ABSENT:</label>
-            <span id="daysAbsentDisplay" style="padding: 10px 14px; color: #6c757d; font-size: 14px;">—</span>
-          </div>
-          <div class="remarks-group">
-            <label for="remarks">Remarks (Optional)</label>
-            <input type="text" id="remarks" placeholder="Reason for update" />
-          </div>
+        <div class="student-info-header" id="studentInfoHeader">
+          <div class="student-info-grid" id="studentInfoGrid"></div>
         </div>
+
+        <div class="attendance-container" id="attendanceContainer"></div>
 
         <div class="button-group" id="buttonGroup" style="display: none;">
-          <button type="button" class="btn btn-secondary" onclick="google.script.host.close()">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="updateBtn">Update Attendance</button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            onclick="google.script.host.close()"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" id="updateBtn">
+            Update Attendance
+          </button>
         </div>
       </form>
     </div>
@@ -214,6 +476,7 @@
         google.script.run
           .withSuccessHandler(function (sheets) {
             const select = document.getElementById("academicYear");
+            select.innerHTML = '<option value="">Select academic year...</option>';
             (sheets || []).forEach(function (s) {
               const opt = document.createElement("option");
               opt.value = s;
@@ -232,7 +495,9 @@
           document.getElementById("section").disabled = true;
           document.getElementById("month").innerHTML = "<option value=\"\">Select month...</option>";
           document.getElementById("month").disabled = true;
-          document.getElementById("editSection").classList.remove("visible");
+          document.getElementById("studentInfoHeader").classList.remove("visible");
+          document.getElementById("attendanceContainer").classList.remove("visible");
+          document.getElementById("attendanceContainer").innerHTML = "";
           document.getElementById("buttonGroup").style.display = "none";
           allStudentNumbers = [];
           highlightedIndex = -1;
@@ -257,7 +522,7 @@
           const filtered = allStudentNumbers.filter(function (n) { return n.toLowerCase().includes(q); });
           dropdown.innerHTML = "";
           if (filtered.length === 0) {
-            dropdown.innerHTML = '<div class="autocomplete-item empty">No matching student numbers</div>';
+            dropdown.innerHTML = '<div class="autocomplete-item empty">No matching student numbers found</div>';
             dropdown.style.display = "block";
             return;
           }
@@ -281,17 +546,20 @@
           if (e.key === "ArrowDown") {
             e.preventDefault();
             highlightedIndex = (highlightedIndex + 1) % items.length;
-            items.forEach((it, i) => { it.classList.toggle("highlighted", i === highlightedIndex); });
+            items.forEach(function (it, i) { it.classList.toggle("highlighted", i === highlightedIndex); });
             items[highlightedIndex].scrollIntoView({ block: "nearest" });
           } else if (e.key === "ArrowUp") {
             e.preventDefault();
             highlightedIndex = highlightedIndex <= 0 ? items.length - 1 : highlightedIndex - 1;
-            items.forEach((it, i) => { it.classList.toggle("highlighted", i === highlightedIndex); });
+            items.forEach(function (it, i) { it.classList.toggle("highlighted", i === highlightedIndex); });
             items[highlightedIndex].scrollIntoView({ block: "nearest" });
           } else if (e.key === "Enter" && highlightedIndex >= 0) {
             e.preventDefault();
             items[highlightedIndex].click();
-          } else if (e.key === "Escape") { dropdown.style.display = "none"; highlightedIndex = -1; }
+          } else if (e.key === "Escape") {
+            dropdown.style.display = "none";
+            highlightedIndex = -1;
+          }
         });
         document.addEventListener("click", function (e) {
           if (!studentInput.contains(e.target) && !dropdown.contains(e.target)) {
@@ -306,7 +574,6 @@
         });
 
         document.getElementById("section").addEventListener("change", loadMonths);
-
         document.getElementById("loadBtn").addEventListener("click", loadAttendance);
         document.getElementById("updateForm").addEventListener("submit", function (e) {
           e.preventDefault();
@@ -406,16 +673,57 @@
           .withSuccessHandler(function (r) {
             if (r.success) {
               attendanceData = r.attendanceData;
-              document.getElementById("currentDisplay").innerHTML =
-                "<strong>Current:</strong> School DAYS: " + (r.attendanceData["School DAYS"] || "-") +
-                " | Days PRESENT: " + (r.attendanceData["Days PRESENT"] || "-") +
-                " | Days ABSENT: " + (r.attendanceData["Days ABSENT"] || "-");
-              document.getElementById("schoolDays").value = r.attendanceData["School DAYS"] || "";
-              document.getElementById("schoolDays").placeholder = r.attendanceData["School DAYS"] || "";
-              document.getElementById("daysPresent").value = r.attendanceData["Days PRESENT"] || "";
-              document.getElementById("daysPresent").placeholder = r.attendanceData["Days PRESENT"] || "";
-              document.getElementById("daysAbsentDisplay").textContent = r.attendanceData["Days ABSENT"] !== undefined && r.attendanceData["Days ABSENT"] !== "" ? r.attendanceData["Days ABSENT"] : "—";
-              document.getElementById("editSection").classList.add("visible");
+              const d = r.attendanceData;
+              const infoFields = [
+                { label: "Student Number", value: d["Student Number"] || "—" },
+                { label: "Full Name", value: d["Full Name"] || "—" },
+                { label: "Grade Level", value: d["Grade Level"] || "—" },
+                { label: "Section", value: d["Section"] || "—" },
+                { label: "Month", value: d["Month"] || "—" }
+              ];
+              const grid = document.getElementById("studentInfoGrid");
+              grid.innerHTML = "";
+              infoFields.forEach(function (f) {
+                const item = document.createElement("div");
+                item.className = "student-info-item";
+                item.innerHTML = "<span class=\"student-info-label\">" + f.label + "</span><span class=\"student-info-value\">" + f.value + "</span>";
+                grid.appendChild(item);
+              });
+              document.getElementById("studentInfoHeader").classList.add("visible");
+
+              const container = document.getElementById("attendanceContainer");
+              container.innerHTML = "";
+              const card = document.createElement("div");
+              card.className = "attendance-card";
+              const daysAbsentVal = (d["Days ABSENT"] !== undefined && d["Days ABSENT"] !== "") ? d["Days ABSENT"] : "—";
+              card.innerHTML =
+                "<div class=\"attendance-header\"><div><div class=\"attendance-title\">" + (d["Month"] || "Attendance") + "</div><div class=\"attendance-advisor\">Advisor: " + (d["Advisor"] || "—") + "</div></div></div>" +
+                "<div class=\"current-grades-display\"><strong>Current:</strong> School DAYS: " + (d["School DAYS"] || "—") + " | Days PRESENT: " + (d["Days PRESENT"] || "—") + " | Days ABSENT: " + daysAbsentVal + "</div>" +
+                "<div class=\"grade-input-group\"><label for=\"schoolDays\">School DAYS:</label><input type=\"text\" id=\"schoolDays\" placeholder=\"" + (d["School DAYS"] || "") + "\" value=\"" + (d["School DAYS"] || "") + "\" /></div>" +
+                "<div class=\"grade-input-group\"><label for=\"daysPresent\">Days PRESENT:</label><input type=\"text\" id=\"daysPresent\" placeholder=\"" + (d["Days PRESENT"] || "") + "\" value=\"" + (d["Days PRESENT"] || "") + "\" /></div>" +
+                "<div class=\"grade-input-group\"><label>Days ABSENT:</label><span class=\"read-only-value\" id=\"daysAbsentDisplay\">" + daysAbsentVal + "</span></div>" +
+                "<div class=\"remarks-group\"><label for=\"remarks\">Remarks (Optional)</label><input type=\"text\" id=\"remarks\" placeholder=\"Reason for update\" /></div>";
+              container.appendChild(card);
+              function updateDaysAbsentDisplay() {
+                const el = document.getElementById("daysAbsentDisplay");
+                if (!el) return;
+                const schoolDays = document.getElementById("schoolDays").value.trim();
+                const daysPresent = document.getElementById("daysPresent").value.trim();
+                const sd = parseFloat(schoolDays);
+                const dp = parseFloat(daysPresent);
+                if (schoolDays === "" || daysPresent === "" || isNaN(sd) || isNaN(dp)) {
+                  el.textContent = "—";
+                  return;
+                }
+                const result = Math.round((sd - dp) * 100) / 100;
+                el.textContent = result < 0 ? "—" : String(result);
+              }
+              document.getElementById("schoolDays").addEventListener("input", updateDaysAbsentDisplay);
+              document.getElementById("schoolDays").addEventListener("change", updateDaysAbsentDisplay);
+              document.getElementById("daysPresent").addEventListener("input", updateDaysAbsentDisplay);
+              document.getElementById("daysPresent").addEventListener("change", updateDaysAbsentDisplay);
+              updateDaysAbsentDisplay();
+              document.getElementById("attendanceContainer").classList.add("visible");
               document.getElementById("buttonGroup").style.display = "flex";
             } else {
               alert("Error: " + r.message);

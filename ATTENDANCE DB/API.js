@@ -236,11 +236,7 @@ function _importAttendance(ogsTemplateUrl, academicYearSheet, userEmail) {
       return { success: false, message: 'No student attendance records found in Attendance sheet.' };
     }
 
-    allRows.sort((a, b) => {
-      const cmp1 = String(a[0] || '').localeCompare(String(b[0] || ''));
-      if (cmp1 !== 0) return cmp1;
-      return String(a[5] || '').localeCompare(String(b[5] || ''));
-    });
+    allRows.sort((a, b) => String(a[0] || '').localeCompare(String(b[0] || '')));
 
     const sheetLastRow = targetSheet.getLastRow();
     const rangeEnd = Math.max(2, sheetLastRow);
