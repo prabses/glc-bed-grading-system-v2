@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <title>Update Student Character</title>
+    <style>
+      html, body { height: 100%; margin: 0; padding: 0; overflow-x: hidden; }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        box-sizing: border-box;
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      .container {
+        background: white;
+        border-radius: 12px;
+        padding: 25px 35px 20px 35px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        margin: auto;
+        position: relative;
+        overflow: visible;
+        width: 100%;
+        max-width: 100%;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        z-index: 1;
+      }
+      .container::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+      }
+      .header { text-align: center; margin-bottom: 20px; flex-shrink: 0; }
+      .header h2 { color: #333; font-size: 24px; font-weight: 600; margin: 0 0 8px 0; }
+      .header p { color: #666; font-size: 15px; margin: 0; }
+      .search-section { margin-bottom: 25px; flex-shrink: 0; }
+      .search-fields-row { display: flex; gap: 18px; align-items: flex-end; margin-bottom: 20px; }
+      .form-group { margin-bottom: 0; flex: 1; position: relative; z-index: 1; }
+      .form-label { display: block; color: #333; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+      .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+        background: #fafbfc;
+        transition: all 0.3s ease;
+      }
+      .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      .btn-load {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        white-space: nowrap;
+        height: fit-content;
+      }
+      .btn-load:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3); }
+      .btn-load:disabled { opacity: 0.6; cursor: not-allowed; }
+      .student-info-header {
+        background: #f8f9fa;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        display: none;
+      }
+      .student-info-header.visible { display: block; }
+      .student-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
+        gap: 15px;
+        font-size: 14px;
+      }
+      .student-info-item { display: flex; flex-direction: column; }
+      .student-info-label { color: #6c757d; font-weight: 500; margin-bottom: 4px; font-size: 12px; }
+      .student-info-value { color: #333; font-weight: 600; font-size: 14px; }
+      .character-container {
+        display: none;
+        flex-direction: column;
+        gap: 20px;
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+      }
+      .character-container.visible { display: flex; }
+      .character-card {
+        background: #f8f9fa;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+      .character-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e1e5e9;
+      }
+      .character-title { font-size: 18px; font-weight: 600; color: #333; }
+      .character-advisor { font-size: 14px; color: #6c757d; }
+      .current-grades-display {
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 13px;
+        color: #856404;
+      }
+      .current-grades-display strong { display: block; margin-bottom: 6px; }
+      .grade-input-group { display: flex; gap: 10px; align-items: center; }
+      .grade-input-group label { flex: 0 0 120px; color: #333; font-weight: 600; font-size: 14px; }
+      .grade-input-group input {
+        flex: 1;
+        padding: 10px 14px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+        background: #fafbfc;
+        transition: all 0.3s ease;
+      }
+      .grade-input-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      .grade-input-group .read-only-value { flex: 1; padding: 10px 14px; color: #6c757d; font-size: 14px; }
+      .remarks-group { margin-top: 5px; }
+      .remarks-group label { display: block; color: #333; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+      .remarks-group input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+        background: #fafbfc;
+      }
+      .remarks-group input:focus { outline: none; border-color: #667eea; background: white; }
+      .button-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid #e1e5e9;
+        flex-shrink: 0;
+      }
+      .btn { flex: 1; padding: 12px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; }
+      .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+      .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+      .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3); }
+      .btn-secondary { background: #f8f9fa; color: #6c757d; border: 2px solid #e9ecef; }
+      .btn-secondary:hover:not(:disabled) { background: #e9ecef; color: #495057; }
+      .autocomplete-dropdown {
+        position: absolute;
+        top: 100%; left: 0; right: 0;
+        background: white;
+        border: 2px solid #e1e5e9;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        margin-top: -2px;
+      }
+      .autocomplete-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 14px; transition: background-color 0.2s ease; }
+      .autocomplete-item:hover, .autocomplete-item.highlighted { background-color: #f8f9fa; }
+      .autocomplete-item:last-child { border-bottom: none; }
+      .autocomplete-item.empty { color: #6c757d; font-style: italic; cursor: default; }
+      .autocomplete-item.empty:hover { background-color: white; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>Update Student Character</h2>
+        <p>Edit 1st–4th Grade per trait</p>
+      </div>
+
+      <form id="updateForm">
+        <div class="search-section">
+          <div class="search-fields-row">
+            <div class="form-group">
+              <label class="form-label" for="academicYear">Academic Year</label>
+              <select id="academicYear" class="form-control" required>
+                <option value="">Select academic year...</option>
+              </select>
+            </div>
+            <div class="form-group" style="position: relative; z-index: 100;">
+              <label class="form-label" for="studentNumber">Student Number</label>
+              <div style="position: relative;">
+                <input type="text" id="studentNumber" class="form-control" placeholder="Type to search student number..." autocomplete="off" required />
+                <div id="studentNumberDropdown" class="autocomplete-dropdown" style="display: none;"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="section">Section</label>
+              <select id="section" class="form-control" required disabled>
+                <option value="">Select section...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="trait">Trait</label>
+              <select id="trait" class="form-control" required disabled>
+                <option value="">Select trait...</option>
+              </select>
+            </div>
+            <button type="button" class="btn-load" id="loadBtn">Load Character</button>
+          </div>
+        </div>
+
+        <div class="student-info-header" id="studentInfoHeader">
+          <div class="student-info-grid" id="studentInfoGrid"></div>
+        </div>
+
+        <div class="character-container" id="characterContainer"></div>
+
+        <div class="button-group" id="buttonGroup" style="display: none;">
+          <button type="button" class="btn btn-secondary" onclick="google.script.host.close()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="updateBtn">Update Character</button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      let allStudentNumbers = [];
+      let highlightedIndex = -1;
+      let characterData = null;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        google.script.run
+          .withSuccessHandler(function (sheets) {
+            const select = document.getElementById("academicYear");
+            select.innerHTML = '<option value="">Select academic year...</option>';
+            (sheets || []).forEach(function (s) {
+              const opt = document.createElement("option");
+              opt.value = s;
+              opt.textContent = s;
+              select.appendChild(opt);
+            });
+          })
+          .withFailureHandler(function (e) { console.error(e); })
+          .getStudentSheets();
+
+        document.getElementById("academicYear").addEventListener("change", function () {
+          const ay = this.value;
+          document.getElementById("studentNumber").value = "";
+          document.getElementById("studentNumberDropdown").style.display = "none";
+          document.getElementById("section").innerHTML = "<option value=\"\">Select section...</option>";
+          document.getElementById("section").disabled = true;
+          document.getElementById("trait").innerHTML = "<option value=\"\">Select trait...</option>";
+          document.getElementById("trait").disabled = true;
+          document.getElementById("studentInfoHeader").classList.remove("visible");
+          document.getElementById("characterContainer").classList.remove("visible");
+          document.getElementById("characterContainer").innerHTML = "";
+          document.getElementById("buttonGroup").style.display = "none";
+          allStudentNumbers = [];
+          highlightedIndex = -1;
+          characterData = null;
+          if (ay) {
+            google.script.run
+              .withSuccessHandler(function (nums) { allStudentNumbers = nums || []; })
+              .withFailureHandler(function (e) { alert("Error: " + e); })
+              .getStudentNumbers(ay);
+          }
+        });
+
+        const studentInput = document.getElementById("studentNumber");
+        const dropdown = document.getElementById("studentNumberDropdown");
+        studentInput.addEventListener("input", function () {
+          const q = this.value.toLowerCase().trim();
+          highlightedIndex = -1;
+          if (!q || allStudentNumbers.length === 0) { dropdown.style.display = "none"; return; }
+          const filtered = allStudentNumbers.filter(function (n) { return n.toLowerCase().includes(q); });
+          dropdown.innerHTML = "";
+          if (filtered.length === 0) {
+            dropdown.innerHTML = '<div class="autocomplete-item empty">No matching student numbers found</div>';
+            dropdown.style.display = "block";
+            return;
+          }
+          filtered.slice(0, 10).forEach(function (num) {
+            const div = document.createElement("div");
+            div.className = "autocomplete-item";
+            div.textContent = num;
+            div.addEventListener("click", function () {
+              studentInput.value = num;
+              dropdown.style.display = "none";
+              highlightedIndex = -1;
+              loadSections();
+            });
+            dropdown.appendChild(div);
+          });
+          dropdown.style.display = "block";
+        });
+        studentInput.addEventListener("keydown", function (e) {
+          const items = dropdown.querySelectorAll(".autocomplete-item:not(.empty)");
+          if (items.length === 0) return;
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            highlightedIndex = (highlightedIndex + 1) % items.length;
+            items.forEach(function (it, i) { it.classList.toggle("highlighted", i === highlightedIndex); });
+            items[highlightedIndex].scrollIntoView({ block: "nearest" });
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            highlightedIndex = highlightedIndex <= 0 ? items.length - 1 : highlightedIndex - 1;
+            items.forEach(function (it, i) { it.classList.toggle("highlighted", i === highlightedIndex); });
+            items[highlightedIndex].scrollIntoView({ block: "nearest" });
+          } else if (e.key === "Enter" && highlightedIndex >= 0) {
+            e.preventDefault();
+            items[highlightedIndex].click();
+          } else if (e.key === "Escape") {
+            dropdown.style.display = "none";
+            highlightedIndex = -1;
+          }
+        });
+        document.addEventListener("click", function (e) {
+          if (!studentInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = "none";
+            highlightedIndex = -1;
+          }
+        });
+        studentInput.addEventListener("blur", function () {
+          setTimeout(function () {
+            if (studentInput.value.trim() && document.getElementById("section").disabled) loadSections();
+          }, 150);
+        });
+
+        document.getElementById("section").addEventListener("change", loadTraits);
+        document.getElementById("loadBtn").addEventListener("click", loadCharacter);
+        document.getElementById("updateForm").addEventListener("submit", function (e) {
+          e.preventDefault();
+          if (!characterData) {
+            alert("Please load character first.");
+            return;
+          }
+          const updateBtn = document.getElementById("updateBtn");
+          const orig = updateBtn.textContent;
+          updateBtn.textContent = "Updating...";
+          updateBtn.disabled = true;
+          google.script.run
+            .withSuccessHandler(function (r) {
+              if (r.success) {
+                alert("Success!\n\n" + r.message);
+                google.script.host.close();
+              } else {
+                alert("Update Failed!\n\n" + r.message);
+                updateBtn.textContent = orig;
+                updateBtn.disabled = false;
+              }
+            })
+            .withFailureHandler(function (err) {
+              alert("Error: " + err);
+              updateBtn.textContent = orig;
+              updateBtn.disabled = false;
+            })
+            .updateCharacter(
+              document.getElementById("studentNumber").value.trim(),
+              document.getElementById("academicYear").value,
+              document.getElementById("section").value,
+              document.getElementById("trait").value,
+              document.getElementById("firstGrade").value.trim(),
+              document.getElementById("secondGrade").value.trim(),
+              document.getElementById("thirdGrade").value.trim(),
+              document.getElementById("fourthGrade").value.trim(),
+              document.getElementById("remarks").value.trim()
+            );
+        });
+      });
+
+      function loadSections() {
+        const ay = document.getElementById("academicYear").value;
+        const sn = document.getElementById("studentNumber").value.trim();
+        if (!ay || !sn) return;
+        google.script.run
+          .withSuccessHandler(function (sections) {
+            const sel = document.getElementById("section");
+            sel.innerHTML = '<option value="">Select section...</option>';
+            (sections || []).forEach(function (s) {
+              const opt = document.createElement("option");
+              opt.value = s;
+              opt.textContent = s;
+              sel.appendChild(opt);
+            });
+            sel.disabled = false;
+            document.getElementById("trait").innerHTML = "<option value=\"\">Select trait...</option>";
+            document.getElementById("trait").disabled = true;
+          })
+          .withFailureHandler(function (e) { alert("Error: " + e); })
+          .getSections(document.getElementById("academicYear").value, document.getElementById("studentNumber").value.trim());
+      }
+
+      function loadTraits() {
+        const ay = document.getElementById("academicYear").value;
+        const sn = document.getElementById("studentNumber").value.trim();
+        const sec = document.getElementById("section").value;
+        if (!ay || !sn || !sec) return;
+        google.script.run
+          .withSuccessHandler(function (traits) {
+            const sel = document.getElementById("trait");
+            sel.innerHTML = '<option value="">Select trait...</option>';
+            (traits || []).forEach(function (t) {
+              const opt = document.createElement("option");
+              opt.value = t;
+              opt.textContent = t;
+              sel.appendChild(opt);
+            });
+            sel.disabled = false;
+          })
+          .withFailureHandler(function (e) { alert("Error: " + e); })
+          .getTraits(ay, sn, sec);
+      }
+
+      function loadCharacter() {
+        const ay = document.getElementById("academicYear").value;
+        const sn = document.getElementById("studentNumber").value.trim();
+        const sec = document.getElementById("section").value;
+        const trait = document.getElementById("trait").value;
+        if (!ay || !sn || !sec || !trait) {
+          alert("Please fill in Academic Year, Student Number, Section, and Trait.");
+          return;
+        }
+        const loadBtn = document.getElementById("loadBtn");
+        const orig = loadBtn.textContent;
+        loadBtn.textContent = "Loading...";
+        loadBtn.disabled = true;
+        google.script.run
+          .withSuccessHandler(function (r) {
+            if (r.success) {
+              characterData = r.characterData;
+              const d = r.characterData;
+              const infoFields = [
+                { label: "Student Number", value: d["Student Number"] || "—" },
+                { label: "Full Name", value: d["Full Name"] || "—" },
+                { label: "Grade Level", value: d["Grade Level"] || "—" },
+                { label: "Section", value: d["Section"] || "—" },
+                { label: "Trait", value: d["Trait"] || "—" }
+              ];
+              const grid = document.getElementById("studentInfoGrid");
+              grid.innerHTML = "";
+              infoFields.forEach(function (f) {
+                const item = document.createElement("div");
+                item.className = "student-info-item";
+                item.innerHTML = "<span class=\"student-info-label\">" + f.label + "</span><span class=\"student-info-value\">" + (f.value || "—") + "</span>";
+                grid.appendChild(item);
+              });
+              document.getElementById("studentInfoHeader").classList.add("visible");
+
+              const container = document.getElementById("characterContainer");
+              container.innerHTML = "";
+              const card = document.createElement("div");
+              card.className = "character-card";
+              const g1 = d["1st Grade"] || "";
+              const g2 = d["2nd Grade"] || "";
+              const g3 = d["3rd Grade"] || "";
+              const g4 = d["4th Grade"] || "";
+              const eq1 = (d["1st EQ"] !== undefined && d["1st EQ"] !== "") ? d["1st EQ"] : "—";
+              const eq2 = (d["2nd EQ"] !== undefined && d["2nd EQ"] !== "") ? d["2nd EQ"] : "—";
+              const eq3 = (d["3rd EQ"] !== undefined && d["3rd EQ"] !== "") ? d["3rd EQ"] : "—";
+              const eq4 = (d["4th EQ"] !== undefined && d["4th EQ"] !== "") ? d["4th EQ"] : "—";
+              const finalG = (d["Final Grading"] !== undefined && d["Final Grading"] !== "") ? d["Final Grading"] : "—";
+              const finalEQ = (d["Final EQ"] !== undefined && d["Final EQ"] !== "") ? d["Final EQ"] : "—";
+              card.innerHTML =
+                "<div class=\"character-header\"><div><div class=\"character-title\">" + (d["Trait"] || "Character") + "</div><div class=\"character-advisor\">Advisor: " + (d["Advisor"] || "—") + "</div></div></div>" +
+                "<div class=\"current-grades-display\"><strong>Current:</strong> 1st: " + (g1 || "—") + " (" + eq1 + ") | 2nd: " + (g2 || "—") + " (" + eq2 + ") | 3rd: " + (g3 || "—") + " (" + eq3 + ") | 4th: " + (g4 || "—") + " (" + eq4 + ") | Final: " + finalG + " (" + finalEQ + ")</div>" +
+                "<div class=\"grade-input-group\"><label for=\"firstGrade\">1st Grade:</label><input type=\"text\" id=\"firstGrade\" value=\"" + (g1 || "") + "\" /></div>" +
+                "<div class=\"grade-input-group\"><label>1st EQ:</label><span class=\"read-only-value\">" + eq1 + "</span></div>" +
+                "<div class=\"grade-input-group\"><label for=\"secondGrade\">2nd Grade:</label><input type=\"text\" id=\"secondGrade\" value=\"" + (g2 || "") + "\" /></div>" +
+                "<div class=\"grade-input-group\"><label>2nd EQ:</label><span class=\"read-only-value\">" + eq2 + "</span></div>" +
+                "<div class=\"grade-input-group\"><label for=\"thirdGrade\">3rd Grade:</label><input type=\"text\" id=\"thirdGrade\" value=\"" + (g3 || "") + "\" /></div>" +
+                "<div class=\"grade-input-group\"><label>3rd EQ:</label><span class=\"read-only-value\">" + eq3 + "</span></div>" +
+                "<div class=\"grade-input-group\"><label for=\"fourthGrade\">4th Grade:</label><input type=\"text\" id=\"fourthGrade\" value=\"" + (g4 || "") + "\" /></div>" +
+                "<div class=\"grade-input-group\"><label>4th EQ:</label><span class=\"read-only-value\">" + eq4 + "</span></div>" +
+                "<div class=\"grade-input-group\"><label>Final Grading:</label><span class=\"read-only-value\">" + finalG + "</span></div>" +
+                "<div class=\"grade-input-group\"><label>Final EQ:</label><span class=\"read-only-value\">" + finalEQ + "</span></div>" +
+                "<div class=\"remarks-group\"><label for=\"remarks\">Remarks (Optional)</label><input type=\"text\" id=\"remarks\" placeholder=\"Reason for update\" /></div>";
+              container.appendChild(card);
+              document.getElementById("characterContainer").classList.add("visible");
+              document.getElementById("buttonGroup").style.display = "flex";
+            } else {
+              alert("Error: " + r.message);
+            }
+            loadBtn.textContent = orig;
+            loadBtn.disabled = false;
+          })
+          .withFailureHandler(function (e) {
+            alert("Error: " + e);
+            loadBtn.textContent = orig;
+            loadBtn.disabled = false;
+          })
+          .getCharacterInfo(sn, ay, sec, trait);
+      }
+    </script>
+  </body>
+</html>
