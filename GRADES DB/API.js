@@ -369,8 +369,8 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
           rowData[2] = normalizedGradeLevel;
           rowData[3] = section;
           rowData[4] = subjectName;
-          rowData[5] = '';
-          rowData[6] = '';
+          rowData[5] = 'N/A';
+          rowData[6] = 'N/A';
           rowData[7] = advisorName;
           for (let k = 8; k < expectedColumnCount; k++) rowData[k] = '';
           allRows.push(rowData);
@@ -392,8 +392,8 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
           rowData[2] = normalizedGradeLevel;
           rowData[3] = section;
           rowData[4] = subjectName;
-          rowData[5] = semesterVal;
-          rowData[6] = strandVal;
+          rowData[5] = semesterVal || 'N/A';
+          rowData[6] = strandVal || 'N/A';
           rowData[7] = advisorName;
           rowData[8] = row[5] || '';
           rowData[9] = '';
@@ -428,8 +428,8 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
           rowData[2] = normalizedGradeLevel;
           rowData[3] = section;
           rowData[4] = subjectName;
-          rowData[5] = '';
-          rowData[6] = '';
+          rowData[5] = 'N/A';
+          rowData[6] = 'N/A';
           rowData[7] = advisorName;
           rowData[8] = row[5] || '';
           rowData[9] = '';
