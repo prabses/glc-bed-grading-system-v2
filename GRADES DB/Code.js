@@ -47,14 +47,17 @@ function getStudentSheets() {
 }
 
 function showImportOGSTemplateDialog() {
-  const htmlOutput = HtmlService.createHtmlOutputFromFile("ImportOGSTemplateDialog")
+  const spreadsheetId = SpreadsheetApp.getActiveSpreadsheet().getId();
+  const html = HtmlService.createTemplateFromFile("ImportOGSTemplateDialog");
+  html.gradesDbSpreadsheetId = spreadsheetId;
+  const htmlOutput = html.evaluate()
     .setWidth(500)
     .setHeight(550)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Import OGS Template");
 }
 
-function importOGSTemplate(ogsTemplateUrl, academicYearSheet) {
+function importOGSTemplate(ogsTemplateUrl, academicYearSheet, spreadsheetId) {
   const userEmail = Session.getActiveUser().getEmail();
   const trimmedUrl = ogsTemplateUrl.toString().trim();
   if (!trimmedUrl) {
@@ -66,8 +69,8 @@ function importOGSTemplate(ogsTemplateUrl, academicYearSheet) {
 
   let sheetNames = [];
   try {
-    const spreadsheetId = extractSpreadsheetId(trimmedUrl);
-    const ogsSpreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    const ogsSpreadsheetId = extractSpreadsheetId(trimmedUrl);
+    const ogsSpreadsheet = SpreadsheetApp.openById(ogsSpreadsheetId);
     sheetNames = ogsSpreadsheet.getSheets().map(function(s) { return s.getName(); });
   } catch (error) {
     const errMsg = error.message || error.toString();
@@ -165,7 +168,7 @@ function importOGSTemplate(ogsTemplateUrl, academicYearSheet) {
   const semester = (gradesOk && gradesResult && gradesResult.semester) ? gradesResult.semester : 'N/A';
   const strand = (gradesOk && gradesResult && gradesResult.strand) ? gradesResult.strand : 'N/A';
   const teacher = gradesOk && gradesResult ? (gradesResult.teacher || '') : '';
-  logImport(trimmedUrl, academicYearSheet, userEmail, gradesSummary, hasAttendance && attendanceOk, hasCharacter && characterOk, gradeLevel, section, semester, strand, teacher);
+  logImport(trimmedUrl, academicYearSheet, userEmail, gradeLevel, section, semester, strand, teacher, spreadsheetId);
   return {
     success: allOk,
     message: parts.join("\n\n")

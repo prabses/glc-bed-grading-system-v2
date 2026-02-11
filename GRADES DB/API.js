@@ -1027,22 +1027,20 @@ function _importLogHyperlink(url, label) {
  * @param {string} ogsTemplateUrl - OGS template sheet URL
  * @param {string} academicYearSheet - Academic year sheet name
  * @param {string} userEmail - User who ran the import
- * @param {string} gradesSummary - Grades import result message
- * @param {boolean} attendanceImported - Whether attendance was imported
- * @param {boolean} characterImported - Whether character was imported
  * @param {string} [gradeLevel] - Grade level from OGS template
  * @param {string} [section] - Section from OGS template
  * @param {string} [semester] - Semester (SHS) or N/A
  * @param {string} [strand] - Strand (SHS) or N/A
  * @param {string} [teacher] - Teacher/Advisor name from OGS template
+ * @param {string} [spreadsheetId] - Grades DB spreadsheet ID (use when active spreadsheet is not set, e.g. when run from dialog)
  */
-function logImport(ogsTemplateUrl, academicYearSheet, userEmail, gradesSummary, attendanceImported, characterImported, gradeLevel, section, semester, strand, teacher) {
+function logImport(ogsTemplateUrl, academicYearSheet, userEmail, gradeLevel, section, semester, strand, teacher, spreadsheetId) {
   try {
-    const spreadsheet = getSpreadsheet();
+    const spreadsheet = spreadsheetId ? SpreadsheetApp.openById(spreadsheetId) : getSpreadsheet();
     let logSheet = spreadsheet.getSheetByName('IMPORT LOG');
     if (!logSheet) {
       logSheet = spreadsheet.insertSheet('IMPORT LOG');
-      const headers = ['Timestamp', 'Imported By', 'Academic Year', 'Grade Level', 'Section', 'Semester', 'Strand', 'Teacher', 'OGS Template Link', 'Grades DB Link', 'Attendance DB Link', 'Character DB Link', 'Grades Summary', 'Attendance Imported', 'Character Imported'];
+      const headers = ['Timestamp', 'Imported By', 'Academic Year', 'Grade Level', 'Section', 'Semester', 'Strand', 'Teacher', 'OGS Template Link', 'Grades DB Link', 'Attendance DB Link', 'Character DB Link'];
       logSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
       logSheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
       logSheet.setFrozenRows(1);
@@ -1064,15 +1062,12 @@ function logImport(ogsTemplateUrl, academicYearSheet, userEmail, gradesSummary, 
       ogsLink,
       gradesDbLink,
       attendanceDbLink,
-      characterDbLink,
-      gradesSummary || '',
-      attendanceImported ? 'Yes' : 'No',
-      characterImported ? 'Yes' : 'No'
+      characterDbLink
     ];
     const lastRow = logSheet.getLastRow();
     const nextRow = lastRow + 1;
-    logSheet.getRange(nextRow, 1, nextRow, logEntry.length).setValues([logEntry]);
-    logSheet.getRange(nextRow, 1, nextRow, logEntry.length).setHorizontalAlignment('left');
+    logSheet.getRange(nextRow, 1, 1, logEntry.length).setValues([logEntry]);
+    logSheet.getRange(nextRow, 1, 1, logEntry.length).setHorizontalAlignment('left');
     logSheet.getRange(nextRow, 1).setNumberFormat('yyyy-MM-dd HH:mm:ss');
   } catch (error) {
     console.error('Error logging import:', error);
