@@ -10,7 +10,7 @@ function onOpen() {
   const ui = SpreadsheetApp.getUi();
 
   ui.createMenu("Upload")
-    .addItem("Import Student Grades", "showImportGradesDialog")
+    .addItem("Import OGS Template", "showImportOGSTemplateDialog")
     .addItem("Update Student Grades", "showUpdateGradesDialog")
     .addToUi();
 
@@ -46,17 +46,130 @@ function getStudentSheets() {
   return sheetNames;
 }
 
-/**
- * Shows the import grades dialog with HTML interface
- * Can be used on any sheet
- */
-function showImportGradesDialog() {
-  const htmlOutput = HtmlService.createHtmlOutputFromFile("ImportGradesDialog")
+function showImportOGSTemplateDialog() {
+  const htmlOutput = HtmlService.createHtmlOutputFromFile("ImportOGSTemplateDialog")
     .setWidth(500)
     .setHeight(550)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Import OGS Template");
+}
 
-  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Import Student Grades");
+function importOGSTemplate(ogsTemplateUrl, academicYearSheet) {
+  const userEmail = Session.getActiveUser().getEmail();
+  const trimmedUrl = ogsTemplateUrl.toString().trim();
+  if (!trimmedUrl) {
+    return { success: false, message: "OGS template URL cannot be empty." };
+  }
+  if (!academicYearSheet || academicYearSheet.toString().trim() === "") {
+    return { success: false, message: "Academic year must be specified." };
+  }
+
+  let sheetNames = [];
+  try {
+    const spreadsheetId = extractSpreadsheetId(trimmedUrl);
+    const ogsSpreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    sheetNames = ogsSpreadsheet.getSheets().map(function(s) { return s.getName(); });
+  } catch (error) {
+    const errMsg = error.message || error.toString();
+    return { success: false, message: "Could not open OGS template. " + errMsg };
+  }
+
+  const hasAttendance = sheetNames.indexOf("Attendance") >= 0;
+  const hasCharacter = sheetNames.indexOf("Character") >= 0;
+  const parts = [];
+  let gradesOk = false;
+  let attendanceOk = false;
+  let characterOk = false;
+  let gradesResult = null;
+
+  try {
+    gradesResult = callApi("importGrades", { ogsTemplateUrl: trimmedUrl, academicYearSheet: academicYearSheet, userEmail: userEmail });
+    if (gradesResult && gradesResult.success !== false) {
+      gradesOk = true;
+      parts.push("Grades: " + (gradesResult.message || "Imported successfully."));
+    } else {
+      parts.push("Grades: Failed. " + (gradesResult && gradesResult.message ? gradesResult.message : "Unknown error."));
+    }
+  } catch (error) {
+    parts.push("Grades: Failed. " + (error.message || error.toString()));
+  }
+
+  if (hasAttendance && CONFIG.ATTENDANCE_DB_WEB_APP_URL) {
+    try {
+      const payload = JSON.stringify({
+        apiKey: CONFIG.API_KEY,
+        action: "importAttendance",
+        payload: { ogsTemplateUrl: trimmedUrl, academicYearSheet: academicYearSheet, userEmail: userEmail }
+      });
+      const resp = UrlFetchApp.fetch(CONFIG.ATTENDANCE_DB_WEB_APP_URL, {
+        method: "post",
+        contentType: "application/json",
+        payload: payload,
+        muteHttpExceptions: true
+      });
+      const text = resp.getContentText();
+      const code = resp.getResponseCode();
+      if (code === 200) {
+        const parsed = JSON.parse(text);
+        const msg = parsed.message;
+        if (msg && msg.success !== false) {
+          attendanceOk = true;
+          parts.push("Attendance: " + (msg.message || "Imported successfully."));
+        } else {
+          parts.push("Attendance: Failed. " + (msg && msg.message ? msg.message : text));
+        }
+      } else {
+        parts.push("Attendance: Failed (HTTP " + code + "). " + text);
+      }
+    } catch (error) {
+      parts.push("Attendance: Failed. " + (error.message || error.toString()));
+    }
+  }
+
+  if (hasCharacter && CONFIG.CHARACTER_DB_WEB_APP_URL) {
+    try {
+      const payload = JSON.stringify({
+        apiKey: CONFIG.API_KEY,
+        action: "importCharacters",
+        payload: { ogsTemplateUrl: trimmedUrl, academicYearSheet: academicYearSheet, userEmail: userEmail }
+      });
+      const resp = UrlFetchApp.fetch(CONFIG.CHARACTER_DB_WEB_APP_URL, {
+        method: "post",
+        contentType: "application/json",
+        payload: payload,
+        muteHttpExceptions: true
+      });
+      const text = resp.getContentText();
+      const code = resp.getResponseCode();
+      if (code === 200) {
+        const parsed = JSON.parse(text);
+        const msg = parsed.message;
+        if (msg && msg.success !== false) {
+          characterOk = true;
+          parts.push("Character: " + (msg.message || "Imported successfully."));
+        } else {
+          parts.push("Character: Failed. " + (msg && msg.message ? msg.message : text));
+        }
+      } else {
+        parts.push("Character: Failed (HTTP " + code + "). " + text);
+      }
+    } catch (error) {
+      parts.push("Character: Failed. " + (error.message || error.toString()));
+    }
+  }
+
+  const allOk = gradesOk && (!hasAttendance || attendanceOk) && (!hasCharacter || characterOk);
+  const gradesSummary = gradesOk && gradesResult && gradesResult.message ? gradesResult.message : (parts[0] || '');
+  const gradeLevel = gradesOk && gradesResult ? (gradesResult.gradeLevel || '') : '';
+  const section = gradesOk && gradesResult ? (gradesResult.section || '') : '';
+  const semester = (gradesOk && gradesResult && gradesResult.semester) ? gradesResult.semester : 'N/A';
+  const strand = (gradesOk && gradesResult && gradesResult.strand) ? gradesResult.strand : 'N/A';
+  const teacher = gradesOk && gradesResult ? (gradesResult.teacher || '') : '';
+  logImport(trimmedUrl, academicYearSheet, userEmail, gradesSummary, hasAttendance && attendanceOk, hasCharacter && characterOk, gradeLevel, section, semester, strand, teacher);
+  return {
+    success: allOk,
+    message: parts.join("\n\n")
+  };
 }
 
 /**
