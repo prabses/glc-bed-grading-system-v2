@@ -229,11 +229,12 @@
 
         google.script.run
           .withSuccessHandler(function(result) {
+            alert('Grades: ' + (result.gradesMessage || ''));
+            alert('Attendance: ' + (result.attendanceMessage || ''));
+            alert('Character: ' + (result.characterMessage || ''));
             if (result.success) {
-              alert('Success!\n\n' + result.message);
               google.script.host.close();
             } else {
-              alert('Import Failed!\n\n' + result.message);
               submitButton.textContent = originalText;
               submitButton.disabled = false;
             }
