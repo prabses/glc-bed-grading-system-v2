@@ -101,32 +101,14 @@ function importOGSTemplate(ogsTemplateUrl, academicYearSheet, spreadsheetId) {
     gradesMsg = "Failed. " + (error.message || error.toString());
   }
 
-  if (hasAttendance && CONFIG.ATTENDANCE_DB_WEB_APP_URL) {
+  if (hasAttendance && CONFIG.ATTENDANCE_DB_SHEET_URL) {
     try {
-      const payload = JSON.stringify({
-        apiKey: CONFIG.API_KEY,
-        action: "importAttendance",
-        payload: { ogsTemplateUrl: trimmedUrl, academicYearSheet: academicYearSheet, userEmail: userEmail }
-      });
-      const resp = UrlFetchApp.fetch(CONFIG.ATTENDANCE_DB_WEB_APP_URL, {
-        method: "post",
-        contentType: "application/json",
-        payload: payload,
-        muteHttpExceptions: true
-      });
-      const text = resp.getContentText();
-      const code = resp.getResponseCode();
-      if (code === 200) {
-        const parsed = JSON.parse(text);
-        const msg = parsed.message;
-        if (msg && msg.success !== false) {
-          attendanceOk = true;
-          attendanceMsg = msg.message || "Imported successfully.";
-        } else {
-          attendanceMsg = "Failed. " + (msg && msg.message ? msg.message : text);
-        }
+      const msg = callApi("importAttendance", { ogsTemplateUrl: trimmedUrl, academicYearSheet: academicYearSheet, userEmail: userEmail });
+      if (msg && msg.success !== false) {
+        attendanceOk = true;
+        attendanceMsg = msg.message || "Imported successfully.";
       } else {
-        attendanceMsg = "Failed (HTTP " + code + "). " + text;
+        attendanceMsg = "Failed. " + (msg && msg.message ? msg.message : "Unknown error.");
       }
     } catch (error) {
       attendanceMsg = "Failed. " + (error.message || error.toString());
@@ -135,32 +117,14 @@ function importOGSTemplate(ogsTemplateUrl, academicYearSheet, spreadsheetId) {
     attendanceMsg = "Not in template.";
   }
 
-  if (hasCharacter && CONFIG.CHARACTER_DB_WEB_APP_URL) {
+  if (hasCharacter && CONFIG.CHARACTER_DB_SHEET_URL) {
     try {
-      const payload = JSON.stringify({
-        apiKey: CONFIG.API_KEY,
-        action: "importCharacters",
-        payload: { ogsTemplateUrl: trimmedUrl, academicYearSheet: academicYearSheet, userEmail: userEmail }
-      });
-      const resp = UrlFetchApp.fetch(CONFIG.CHARACTER_DB_WEB_APP_URL, {
-        method: "post",
-        contentType: "application/json",
-        payload: payload,
-        muteHttpExceptions: true
-      });
-      const text = resp.getContentText();
-      const code = resp.getResponseCode();
-      if (code === 200) {
-        const parsed = JSON.parse(text);
-        const msg = parsed.message;
-        if (msg && msg.success !== false) {
-          characterOk = true;
-          characterMsg = msg.message || "Imported successfully.";
-        } else {
-          characterMsg = "Failed. " + (msg && msg.message ? msg.message : text);
-        }
+      const msg = callApi("importCharacters", { ogsTemplateUrl: trimmedUrl, academicYearSheet: academicYearSheet, userEmail: userEmail });
+      if (msg && msg.success !== false) {
+        characterOk = true;
+        characterMsg = msg.message || "Imported successfully.";
       } else {
-        characterMsg = "Failed (HTTP " + code + "). " + text;
+        characterMsg = "Failed. " + (msg && msg.message ? msg.message : "Unknown error.");
       }
     } catch (error) {
       characterMsg = "Failed. " + (error.message || error.toString());
@@ -306,8 +270,8 @@ function getAttendanceMonths(academicYearSheet, studentNumber, section) {
 }
 
 function _callAttendanceApi(action, payload) {
-  const url = CONFIG.ATTENDANCE_DB_WEB_APP_URL;
-  if (!url) throw new Error("ATTENDANCE_DB_WEB_APP_URL not configured.");
+  const url = CONFIG.WEB_APP_URL;
+  if (!url) throw new Error("WEB_APP_URL not configured.");
   const resp = UrlFetchApp.fetch(url, {
     method: "post",
     contentType: "application/json",
@@ -424,8 +388,8 @@ function getCharacterTraits(academicYearSheet, studentNumber, section) {
 }
 
 function _callCharacterApi(action, payload) {
-  const url = CONFIG.CHARACTER_DB_WEB_APP_URL;
-  if (!url) throw new Error("CHARACTER_DB_WEB_APP_URL not configured.");
+  const url = CONFIG.WEB_APP_URL;
+  if (!url) throw new Error("WEB_APP_URL not configured.");
   const resp = UrlFetchApp.fetch(url, {
     method: "post",
     contentType: "application/json",
