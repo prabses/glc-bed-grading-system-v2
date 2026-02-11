@@ -7,10 +7,10 @@ const CONFIG = {
   // Web App URL - Update this after deploying the script as a web app
   // To deploy: Deploy > New deployment > Select type: Web app > Execute as: Me > Who has access: Anyone
   // Then copy the Web App URL (the one ending with /exec) and paste it below
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxWJodkUTl7ql0JL9bnVqlG79G_IfdSf80d9cK1wiymMUjXksWEpstcFjpYF4ybIx97/exec", // Replace with your /exec URL after deployment
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbyiwk07zzhhemEucl3uF4ijqQEbfU8Nr5SrT2Njw8Fn9AAtr7vH3Hq1eL1A48U-lrgC/exec", // Replace with your /exec URL after deployment
 
   // STUDENTS DB Spreadsheet URL - Full URL to the students database spreadsheet
-  STUDENTS_DB_URL: "https://docs.google.com/spreadsheets/d/1QNN7DAfWY7nZVQ5GccWh1yTGhsCCIb-d-aZV7Thndjk/edit?gid=639124723#gid=639124723",
+  STUDENTS_DB_URL: "https://docs.google.com/spreadsheets/d/1x4dcYyafykjj3MVXRwMIyn8vMLslOV-iSB7bhMnhJ3c/edit?gid=208379206#gid=208379206",
   
   // API Key for securing the API - This is a unique identifier
   // Keep this secret and don't share it publicly
