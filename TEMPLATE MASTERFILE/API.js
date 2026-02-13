@@ -130,7 +130,8 @@ function doPost(e) {
         ));
       case "getActiveSubjectsByLevel":
         return response(200, _getActiveSubjectsByLevel(
-          payload.gradeLevel
+          payload.gradeLevel,
+          payload.strandFilter || null
         ));
       case "getActiveItems":
         return response(200, _getActiveItems(
@@ -475,14 +476,14 @@ function _getSubjectsMetadata(subjectNames) {
 }
 
 /**
- * Internal function to get active subjects filtered by level from SUBJECTS_REF sheet
+ * Internal function to get active subjects filtered by level (and optionally strand) from SUBJECTS_REF sheet
  * @param {string} gradeLevel - The grade level to filter by (e.g., "Grade 11" or "11")
+ * @param {string|null} strandFilter - Optional. When 'ALL', only return subjects with Strand = ALL in SUBJECTS_REF
  * @return {Array} Array of active subject names for the specified level
  */
-function _getActiveSubjectsByLevel(gradeLevel) {
+function _getActiveSubjectsByLevel(gradeLevel, strandFilter) {
   try {
     if (!CONFIG.IS_SHS) {
-      // For non-SHS, return all active subjects (no level filtering)
       return _getActiveItems(CONFIG.SHEET_NAMES.SUBJECTS_REF, 1);
     }
     
@@ -497,40 +498,28 @@ function _getActiveSubjectsByLevel(gradeLevel) {
       return [];
     }
     
-    // Normalize grade level for comparison (extract just the number)
     const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
-    
     const startRow = CONFIG.HEADER_ROWS + 1;
     const numRows = lastRow - CONFIG.HEADER_ROWS;
-    
-    // Read columns B-G (Subject Name, Category, Strand, Semester, Level, Active)
-    // Column A is "No." and is ignored
     const data = sheet.getRange(startRow, 2, numRows, 6).getValues();
     
     const subjects = [];
+    const filterByStrandAll = strandFilter === 'ALL';
     
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
       const rowSubjectName = String(row[CONFIG.SUBJECTS_REF_COLUMNS.SUBJECT_NAME] || '').trim();
       const rowLevel = String(row[CONFIG.SUBJECTS_REF_COLUMNS.LEVEL] || '').trim();
+      const rowStrand = String(row[CONFIG.SUBJECTS_REF_COLUMNS.STRAND] || '').trim();
       const activeValue = row[CONFIG.SUBJECTS_REF_COLUMNS.ACTIVE];
       
-      // Check if subject is active
-      if (!(activeValue === true || activeValue === '✓' || activeValue === 'TRUE')) {
-        continue;
-      }
+      if (!(activeValue === true || activeValue === '✓' || activeValue === 'TRUE')) continue;
+      if (filterByStrandAll && rowStrand !== 'ALL') continue;
       
-      // If level is empty/null, include it (for backward compatibility or non-SHS subjects)
-      // Otherwise, only include if level matches the selected grade level
       if (!rowLevel || rowLevel === '') {
-        // Include subjects with no level specified (backward compatibility)
-        if (rowSubjectName) {
-          subjects.push(rowSubjectName);
-        }
+        if (rowSubjectName) subjects.push(rowSubjectName);
       } else {
-        // Normalize row level for comparison
         const normalizedRowLevel = _normalizeGradeLevel(rowLevel);
-        // Include if level matches
         if (normalizedRowLevel === normalizedGradeLevel && rowSubjectName) {
           subjects.push(rowSubjectName);
         }
@@ -540,7 +529,6 @@ function _getActiveSubjectsByLevel(gradeLevel) {
     return subjects;
   } catch (error) {
     console.error('Error getting subjects by level:', error);
-    // Fallback to all active subjects on error
     return _getActiveItems(CONFIG.SHEET_NAMES.SUBJECTS_REF, 1);
   }
 }
@@ -700,8 +688,10 @@ function _getAssignedTeachers(gradeLevel, section) {
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      const rowSection = row[CONFIG.SUBJECTS_COLUMNS.SECTION];
+      const sectionMatch = rowSection === section || (section === 'ALL' && rowSection === 'ALL');
       if (rowGradeLevel === normalizedGradeLevel &&
-          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+          sectionMatch &&
           row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
         const teacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
         if (teacher && !teacherSet.has(teacher)) {
@@ -743,8 +733,10 @@ function _getAssignedSubjects(gradeLevel, section, teacher) {
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      const rowSection = row[CONFIG.SUBJECTS_COLUMNS.SECTION];
+      const sectionMatch = rowSection === section || (section === 'ALL' && rowSection === 'ALL');
       if (rowGradeLevel === normalizedGradeLevel &&
-          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+          sectionMatch &&
           row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
           row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
         const subject = row[CONFIG.SUBJECTS_COLUMNS.SUBJECT];
@@ -3735,7 +3727,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
       const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
       const rowSection = row[CONFIG.SUBJECTS_COLUMNS.SECTION];
-      const sectionMatches = rowSection === section || (rowStrand === 'ALL' && (rowSection === 'N/A' || rowSection === ''));
+      const sectionMatches = rowSection === section || (rowStrand === 'ALL' && rowSection === 'ALL');
       if (rowGradeLevel === normalizedGradeLevel &&
           sectionMatches &&
           row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher) {
@@ -3752,7 +3744,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
     const formattedGradeLevel = _formatGradeLevel(gradeLevel);
     normalizedSubjects.forEach(subj => {
       const key = `${subj.subject}|${subj.strand}|${subj.category}|${subj.semester}`;
-      const sectionToWrite = subj.strand === 'ALL' ? 'N/A' : section;
+      const sectionToWrite = subj.strand === 'ALL' ? 'ALL' : section;
       if (!existingSubjects.has(key)) {
         for (let i = 1; i < data.length; i++) {
           const row = data[i];
@@ -3770,7 +3762,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
               row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
             const existingTeacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
             if (existingTeacher !== teacher) {
-              conflictErrors.push(`${formattedGradeLevel}${sectionToWrite === 'N/A' ? '' : sectionToWrite} - ${subj.subject} (${subj.strand}, ${subj.category}, ${subj.semester}) is already assigned to ${existingTeacher}`);
+              conflictErrors.push(`${formattedGradeLevel}${sectionToWrite === 'ALL' ? 'All Section' : sectionToWrite} - ${subj.subject} (${subj.strand}, ${subj.category}, ${subj.semester}) is already assigned to ${existingTeacher}`);
               break;
             }
           }
@@ -3794,7 +3786,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
     
     normalizedSubjects.forEach(subj => {
       const key = `${subj.subject}|${subj.strand}|${subj.category}|${subj.semester}`;
-      const sectionToWrite = subj.strand === 'ALL' ? 'N/A' : section;
+      const sectionToWrite = subj.strand === 'ALL' ? 'ALL' : section;
       if (existingSubjects.has(key)) {
         for (let i = 1; i < data.length; i++) {
           const row = data[i];
@@ -3954,11 +3946,16 @@ function _getSubjects(gradeLevel, section) {
         if (rowGradeLevel !== normalizedGradeLevel) continue;
       }
       const strand = String(row[COL_STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
-      if (hasSectionFilter && row[COL_SECTION] !== section && strand !== 'ALL') continue;
+      const rowSection = row[COL_SECTION];
+      if (hasSectionFilter) {
+        if (section === 'ALL') {
+          if (rowSection !== 'ALL') continue;
+        } else if (rowSection !== section && strand !== 'ALL') continue;
+      }
       
       const category = String(row[COL_CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
       const semester = String(row[COL_SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
-      const sectionDisplay = strand === 'ALL' ? 'N/A' : row[COL_SECTION];
+      const sectionDisplay = strand === 'ALL' ? 'ALL' : row[COL_SECTION];
       
       subjects.push({
         gradeLevel: _formatGradeLevel(row[COL_GRADE]),

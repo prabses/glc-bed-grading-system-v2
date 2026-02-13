@@ -523,17 +523,20 @@
           const gradeLevel = this.value;
           loadSections(gradeLevel);
           loadSubjects();
-          // Filter subjects by level when grade level is selected
           if (gradeLevel) {
-            filterSubjectsByLevel(gradeLevel);
+            const section = document.getElementById('section').value;
+            filterSubjectsByLevel(gradeLevel, isSHS && section === 'ALL' ? 'ALL' : null);
           } else {
-            // Show all subjects if no grade level selected
             showAllSubjects();
           }
         });
         
         document.getElementById('section').addEventListener('change', function() {
           loadSubjects();
+          const gradeLevel = document.getElementById('gradeLevel').value;
+          if (gradeLevel) {
+            filterSubjectsByLevel(gradeLevel, isSHS && this.value === 'ALL' ? 'ALL' : null);
+          }
         });
       });
 
@@ -679,21 +682,23 @@
         
         google.script.run
           .withSuccessHandler(function(sections) {
-            // OPTIMIZATION: Use DocumentFragment for faster DOM updates
             const fragment = document.createDocumentFragment();
-            
             const defaultOption = document.createElement('option');
             defaultOption.value = '';
             defaultOption.textContent = 'Select section...';
             fragment.appendChild(defaultOption);
-            
+            if (isSHS) {
+              const allSectionOpt = document.createElement('option');
+              allSectionOpt.value = 'ALL';
+              allSectionOpt.textContent = 'All Section';
+              fragment.appendChild(allSectionOpt);
+            }
             sections.forEach(function(section) {
               const option = document.createElement('option');
               option.value = section;
               option.textContent = section;
               fragment.appendChild(option);
             });
-            
             sectionSelect.innerHTML = '';
             sectionSelect.appendChild(fragment);
             sectionSelect.disabled = false;
@@ -726,7 +731,7 @@
         subjectsCheckboxesContainer.appendChild(subjectsFragment);
       }
       
-      function filterSubjectsByLevel(gradeLevel) {
+      function filterSubjectsByLevel(gradeLevel, strandFilter) {
         google.script.run
           .withSuccessHandler(function(filtered) {
             filteredSubjects = filtered || [];
@@ -734,11 +739,10 @@
           })
           .withFailureHandler(function(error) {
             console.error('Error filtering subjects by level:', error);
-            // Fallback to showing all subjects
             filteredSubjects = subjects;
             updateSubjectsDisplay();
           })
-          .getActiveSubjectsByLevel(gradeLevel);
+          .getActiveSubjectsByLevel(gradeLevel, strandFilter || null);
       }
       
       function showAllSubjects() {
@@ -804,7 +808,7 @@
               const strandDisplay = assignment.strand || 'ALL';
               const categoryDisplay = assignment.category || 'Core';
               const semesterDisplay = assignment.semester || '1ST';
-              const sectionDisplay = assignment.section != null && assignment.section !== '' ? assignment.section : 'N/A';
+              const sectionDisplay = assignment.section != null && assignment.section !== '' ? assignment.section : 'ALL';
               const metadataDisplay = isSHS
                 ? `<br><small style="color: #6c757d;">Section: ${sectionDisplay} | ${strandDisplay} | ${categoryDisplay} | ${semesterDisplay}</small>`
                 : `<br><small style="color: #6c757d;">Section: ${sectionDisplay}</small>`;

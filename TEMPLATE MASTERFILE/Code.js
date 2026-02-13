@@ -74,15 +74,15 @@ function getActiveSubjects() {
  * @param {string} gradeLevel - The grade level to filter by (e.g., "Grade 11" or "11")
  * @return {Array} Array of active subject names for the specified level
  */
-function getActiveSubjectsByLevel(gradeLevel) {
+function getActiveSubjectsByLevel(gradeLevel, strandFilter) {
   try {
     if (!CONFIG.IS_SHS) {
-      // For non-SHS, return all active subjects (no level filtering)
       return getActiveSubjects();
     }
     
     return callApi("getActiveSubjectsByLevel", {
-      gradeLevel: gradeLevel
+      gradeLevel: gradeLevel,
+      strandFilter: strandFilter || null
     });
   } catch (error) {
     console.error('Error getting subjects by level:', error);

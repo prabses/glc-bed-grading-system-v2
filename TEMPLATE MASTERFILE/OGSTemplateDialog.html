@@ -557,7 +557,7 @@
         updateSectionVisibility();
         const gradeLevel = document.getElementById('gradeLevel').value;
         if (isSHS && this.value === 'ALL' && gradeLevel) {
-          loadTeachersForSection(gradeLevel, 'N/A');
+          loadTeachersForSection(gradeLevel, 'ALL');
         } else {
           updateSubjectsDisplay();
         }
@@ -628,7 +628,7 @@
             sectionSelect.appendChild(fragment);
             sectionSelect.disabled = false;
             if (isSHS && document.getElementById('strandFilter').value === 'ALL') {
-              loadTeachersForSection(gradeLevel, 'N/A');
+              loadTeachersForSection(gradeLevel, 'ALL');
             }
           })
           .withFailureHandler(function(error) {
@@ -705,7 +705,7 @@
       function updateSubjectsDisplay() {
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = (isSHS && document.getElementById('strandFilter') && document.getElementById('strandFilter').value === 'ALL')
-          ? 'N/A' : document.getElementById('section').value;
+          ? 'ALL' : document.getElementById('section').value;
         const checkboxes = document.querySelectorAll('input[name="teachers"]:checked');
         const subjectsListDiv = document.getElementById('subjectsList');
         const subjectsInfoDiv = document.getElementById('subjectsInfo');
