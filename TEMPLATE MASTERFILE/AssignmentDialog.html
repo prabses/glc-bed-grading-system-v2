@@ -804,9 +804,10 @@
               const strandDisplay = assignment.strand || 'ALL';
               const categoryDisplay = assignment.category || 'Core';
               const semesterDisplay = assignment.semester || '1ST';
-              
-              // Show SHS metadata if IS_SHS is enabled (metadata comes from SUBJECTS_REF)
-              const metadataDisplay = isSHS ? `<br><small style="color: #6c757d;">${strandDisplay} | ${categoryDisplay} | ${semesterDisplay}</small>` : '';
+              const sectionDisplay = assignment.section != null && assignment.section !== '' ? assignment.section : 'N/A';
+              const metadataDisplay = isSHS
+                ? `<br><small style="color: #6c757d;">Section: ${sectionDisplay} | ${strandDisplay} | ${categoryDisplay} | ${semesterDisplay}</small>`
+                : `<br><small style="color: #6c757d;">Section: ${sectionDisplay}</small>`;
               
               html += `
                 <div class="assignment-item">

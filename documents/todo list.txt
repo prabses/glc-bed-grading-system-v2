@@ -70,13 +70,19 @@ TEMPLATE MASTERFILE
 ✅ add dynamic formula for the attendance school days
 ✅ fix inconsistent display of existing assigned advisory
 ✅ modify the generate ogs template form UI by making it responsive
-
 ✅ add 2 rows in ogs template for strand and semester
 ✅ add strand and semester selection in export ogs form for subject filter
+✅ remove All option for semester and strand in export ogs form
 ✅ change name format for ogs template if shs
 ✅ reduce columns to 2 instead of 4 gradings
 ✅ change grading headers to Mastery and Final
 ✅ change other sheets in ogs template to 2 gradings too
+✅ require strand and semester fields in export ogs form
+
+✅ move strand and semester filter before section in export ogs form
+✅ if strand selected is ALL then dont show the section
+✅ export function should include all sections for the selected grade level
+✅ in the exported ogs file make the section blank and name should not include section
 
 ==========================================
 GRADES DB
@@ -88,6 +94,13 @@ GRADES DB
 ✅ attached a temporary version of the working instruction link to manual menu
 
 ✅ add semester and strand columns
+✅ make the blank semester and strand to "N/A"
 ✅ in import function, only fill the 1st and 2nd initial grades
 ✅ add semester select component update student grades if shs
 ✅ add strand in student information in update student grades form
+✅ combine all importing to one button in grades db
+✅ add import log (date, link of db sheet, other information) in grades db
+✅ split the success alert for grades, attendance, and characters
+✅ add update of attendance and character to grades db
+
+create export function for grades, attendance, and character sheets to csv

@@ -1447,8 +1447,7 @@ function _getStudentsFromDB(schoolYear, gradeLevel, section) {
       const normalizedRowGradeLevel = _normalizeGradeLevel(String(rowGradeLevel || '').trim());
       const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
       
-      // Filter by grade level and section
-      if (normalizedRowGradeLevel === normalizedGradeLevel && rowSection === section) {
+      if (normalizedRowGradeLevel === normalizedGradeLevel && (!section || section === '' || rowSection === section)) {
         students.push({
           studentNumber: row[0] || '', // Column A
           lastName: row[1] || '',      // Column B
@@ -3353,15 +3352,19 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     // Normalize grade level for folder/file naming (extract just the number)
     const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
     
-    // Generate template file name: SHS adds strand and semester; otherwise same as before
-    const sanitizedSection = section.toUpperCase();
     const sanitizedYear = schoolYear.replace(/[^a-zA-Z0-9-]/g, '');
+    const allSectionsMode = !section || section === '';
+    const sanitizedSection = section ? section.toUpperCase() : '';
     let templateFileName;
     if (CONFIG.IS_SHS && subjects && subjects.length > 0) {
       const meta = _getSubjectMetadata(subjects[0]);
       const strand = (meta.strand || CONFIG.SHS_DEFAULTS.STRAND).replace(/[^a-zA-Z0-9]/g, '');
       const semester = (meta.semester || CONFIG.SHS_DEFAULTS.SEMESTER).replace(/[^a-zA-Z0-9]/g, '');
-      templateFileName = `OGS-GRADE-${normalizedGradeLevel}-${sanitizedSection}-${strand}-${semester} Quarter-${sanitizedYear} - ${teacher}`;
+      if (allSectionsMode) {
+        templateFileName = `OGS-GRADE-${normalizedGradeLevel}-${strand}-${semester} Quarter-${sanitizedYear} - ${teacher}`;
+      } else {
+        templateFileName = `OGS-GRADE-${normalizedGradeLevel}-${sanitizedSection}-${strand}-${semester} Quarter-${sanitizedYear} - ${teacher}`;
+      }
     } else {
       templateFileName = `OGS-GRADE-${normalizedGradeLevel}${sanitizedSection}-${sanitizedYear} - ${teacher}`;
     }
@@ -3371,11 +3374,8 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     const parentFolders = masterFile.getParents();
     const baseFolder = parentFolders.hasNext() ? parentFolders.next() : DriveApp.getRootFolder();
     
-    // OPTIMIZATION: Create folder structure: "YYYY-YYYY Grade XY"
-    // Example: "2025-2026 Grade 1A"
-    // Format grade level for display in folder name
     const formattedGradeLevel = _formatGradeLevel(normalizedGradeLevel);
-    const folderName = `${schoolYear} ${formattedGradeLevel}${section}`;
+    const folderName = allSectionsMode ? `${schoolYear} ${formattedGradeLevel}` : `${schoolYear} ${formattedGradeLevel}${section}`;
     const targetFolder = _findOrCreateFolder(baseFolder, folderName);
     
     // Check if template file already exists in the target folder
@@ -3730,16 +3730,17 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
     const data = sheet.getDataRange().getValues();
     const existingSubjects = new Set();
     
-    // Build set of existing subjects for fast lookup (same teacher only)
-    // Use composite key: subject|strand|category|semester
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
+      const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
+      const rowSection = row[CONFIG.SUBJECTS_COLUMNS.SECTION];
+      const sectionMatches = rowSection === section || (rowStrand === 'ALL' && (rowSection === 'N/A' || rowSection === ''));
       if (rowGradeLevel === normalizedGradeLevel &&
-          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+          sectionMatches &&
           row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher) {
         const subject = String(row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] || '').trim();
-        const strand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
+        const strand = rowStrand;
         const category = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.CATEGORIES.CORE;
         const semester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SEMESTERS.FIRST;
         const key = `${subject}|${strand}|${category}|${semester}`;
@@ -3747,12 +3748,11 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
       }
     }
     
-    // VALIDATION: Check for conflicts - same grade/section/subject/strand/category/semester with different teacher
     const conflictErrors = [];
     const formattedGradeLevel = _formatGradeLevel(gradeLevel);
     normalizedSubjects.forEach(subj => {
       const key = `${subj.subject}|${subj.strand}|${subj.category}|${subj.semester}`;
-      // Only check if this is a new subject (not already assigned to this teacher)
+      const sectionToWrite = subj.strand === 'ALL' ? 'N/A' : section;
       if (!existingSubjects.has(key)) {
         for (let i = 1; i < data.length; i++) {
           const row = data[i];
@@ -3760,9 +3760,9 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
           const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
           const rowCategory = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
           const rowSemester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
-          
+          const rowSection = row[CONFIG.SUBJECTS_COLUMNS.SECTION];
           if (rowGradeLevel === normalizedGradeLevel &&
-              row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+              rowSection === sectionToWrite &&
               row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subj.subject &&
               rowStrand === subj.strand &&
               rowCategory === subj.category &&
@@ -3770,7 +3770,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
               row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
             const existingTeacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
             if (existingTeacher !== teacher) {
-              conflictErrors.push(`${formattedGradeLevel}${section} - ${subj.subject} (${subj.strand}, ${subj.category}, ${subj.semester}) is already assigned to ${existingTeacher}`);
+              conflictErrors.push(`${formattedGradeLevel}${sectionToWrite === 'N/A' ? '' : sectionToWrite} - ${subj.subject} (${subj.strand}, ${subj.category}, ${subj.semester}) is already assigned to ${existingTeacher}`);
               break;
             }
           }
@@ -3794,17 +3794,16 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
     
     normalizedSubjects.forEach(subj => {
       const key = `${subj.subject}|${subj.strand}|${subj.category}|${subj.semester}`;
+      const sectionToWrite = subj.strand === 'ALL' ? 'N/A' : section;
       if (existingSubjects.has(key)) {
-        // Find row index for update
         for (let i = 1; i < data.length; i++) {
           const row = data[i];
           const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
           const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
           const rowCategory = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
           const rowSemester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
-          
           if (rowGradeLevel === normalizedGradeLevel &&
-              row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+              row[CONFIG.SUBJECTS_COLUMNS.SECTION] === sectionToWrite &&
               row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
               row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subj.subject &&
               rowStrand === subj.strand &&
@@ -3815,8 +3814,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
           }
         }
       } else {
-        // New assignment (store normalized grade level)
-        newRows.push([normalizedGradeLevel, section, teacher, subj.subject, subj.strand, subj.category, subj.semester, 'Active', timestamp, timestamp, actualUserEmail]);
+        newRows.push([normalizedGradeLevel, sectionToWrite, teacher, subj.subject, subj.strand, subj.category, subj.semester, 'Active', timestamp, timestamp, actualUserEmail]);
       }
     });
     
@@ -3955,18 +3953,16 @@ function _getSubjects(gradeLevel, section) {
         const rowGradeLevel = _normalizeGradeLevel(String(row[COL_GRADE] || '').trim());
         if (rowGradeLevel !== normalizedGradeLevel) continue;
       }
-      if (hasSectionFilter && row[COL_SECTION] !== section) continue;
+      const strand = String(row[COL_STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
+      if (hasSectionFilter && row[COL_SECTION] !== section && strand !== 'ALL') continue;
       
-      // OPTIMIZATION 7: Direct object creation without intermediate variables
-      // Format grade level for display (add "Grade " prefix)
-      // Extract values with defaults for backward compatibility
-        const strand = String(row[COL_STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
-        const category = String(row[COL_CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
-        const semester = String(row[COL_SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
+      const category = String(row[COL_CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
+      const semester = String(row[COL_SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
+      const sectionDisplay = strand === 'ALL' ? 'N/A' : row[COL_SECTION];
       
       subjects.push({
-        gradeLevel: _formatGradeLevel(row[COL_GRADE]), // Format for display
-        section: row[COL_SECTION],
+        gradeLevel: _formatGradeLevel(row[COL_GRADE]),
+        section: sectionDisplay,
         teacher: row[COL_TEACHER],
         subject: row[COL_SUBJECT],
         strand: strand,
