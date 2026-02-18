@@ -105,7 +105,8 @@ function doPost(e) {
       case "getAllGradeInfo":
         return response(200, _getAllGradeInfo(
           payload.studentNumber,
-          payload.academicYearSheet
+          payload.academicYearSheet,
+          payload.gradeLevel
         ));
       case "updateMultipleGrades":
         return response(200, _updateMultipleGrades(
@@ -1719,7 +1720,7 @@ function _updateCharacter(studentNumber, academicYearSheet, section, trait, firs
   }
 }
 
-function _getAllGradeInfo(studentNumber, academicYearSheet) {
+function _getAllGradeInfo(studentNumber, academicYearSheet, gradeLevel) {
   try {
     if (!studentNumber || studentNumber.toString().trim() === '') {
       return { success: false, message: 'Student number cannot be empty' };
@@ -1727,6 +1728,10 @@ function _getAllGradeInfo(studentNumber, academicYearSheet) {
     
     if (!academicYearSheet || academicYearSheet.toString().trim() === '') {
       return { success: false, message: 'Academic year must be specified' };
+    }
+    
+    if (!gradeLevel || gradeLevel.toString().trim() === '') {
+      return { success: false, message: 'Grade level must be specified' };
     }
     
     const targetSheet = getSheet(academicYearSheet);
@@ -1745,6 +1750,7 @@ function _getAllGradeInfo(studentNumber, academicYearSheet) {
     const data = dataRange.getValues();
     const formulas = targetSheet.getRange(2, 1, lastRow - 1, 1).getFormulas();
     
+    const gradeLevelTrim = gradeLevel.toString().trim();
     const allGradeData = [];
     let studentInfo = null;
     
@@ -1755,9 +1761,10 @@ function _getAllGradeInfo(studentNumber, academicYearSheet) {
       }
       
       const rowStudentNum = String(data[i][0] || '').trim();
+      const rowGradeLevel = String(data[i][2] || '').trim();
       const rowSubject = String(data[i][4] || '').trim();
       
-      if (rowStudentNum === studentNumber.toString().trim() && rowSubject) {
+      if (rowStudentNum === studentNumber.toString().trim() && rowGradeLevel === gradeLevelTrim && rowSubject) {
         if (!studentInfo) {
           studentInfo = {
             'Student Number': data[i][0],
@@ -1792,7 +1799,7 @@ function _getAllGradeInfo(studentNumber, academicYearSheet) {
     }
     
     if (allGradeData.length === 0) {
-      return { success: false, message: 'No grade records found for the specified student' };
+      return { success: false, message: 'No grade records found for the specified student and grade level' };
     }
     
     return {

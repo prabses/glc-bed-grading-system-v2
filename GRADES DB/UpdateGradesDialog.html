@@ -420,9 +420,9 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="semesterFilter">Filter by Semester (Optional)</label>
-              <select id="semesterFilter" class="form-control">
-                <option value="">All semesters</option>
+              <label class="form-label" for="gradeLevelFilter">Grade Level</label>
+              <select id="gradeLevelFilter" class="form-control" required disabled>
+                <option value="">Select grade level...</option>
               </select>
             </div>
 
@@ -460,18 +460,13 @@
       let displayedGradeData = null;
       let studentInfo = null;
 
-      document.addEventListener("DOMContentLoaded", function () {
-        google.script.run.withSuccessHandler(function (opts) {
-          const semesterSelect = document.getElementById("semesterFilter");
-          semesterSelect.innerHTML = '<option value="">All semesters</option>';
-          (opts || []).forEach(function (s) {
-            const opt = document.createElement("option");
-            opt.value = s;
-            opt.textContent = s;
-            semesterSelect.appendChild(opt);
-          });
-        }).getSemesterOptions();
+      function isSHSGradeLevel(gradeLevel) {
+        if (!gradeLevel) return false;
+        const v = String(gradeLevel).trim().replace(/^Grade\s+/i, "");
+        return v === "11" || v === "12";
+      }
 
+      document.addEventListener("DOMContentLoaded", function () {
         google.script.run
           .withSuccessHandler(function (sheets) {
             const select = document.getElementById("academicYear");
@@ -491,17 +486,11 @@
           const academicYear = this.value;
           const studentNumberInput = document.getElementById("studentNumber");
           const dropdown = document.getElementById("studentNumberDropdown");
+          const gradeLevelSelect = document.getElementById("gradeLevelFilter");
 
-          document.getElementById("semesterFilter").innerHTML = '<option value="">All semesters</option>';
-          google.script.run.withSuccessHandler(function (opts) {
-            const semesterSelect = document.getElementById("semesterFilter");
-            (opts || []).forEach(function (s) {
-              const opt = document.createElement("option");
-              opt.value = s;
-              opt.textContent = s;
-              semesterSelect.appendChild(opt);
-            });
-          }).getSemesterOptions();
+          gradeLevelSelect.innerHTML = '<option value="">Select grade level...</option>';
+          gradeLevelSelect.disabled = true;
+          gradeLevelSelect.removeAttribute("required");
 
           studentNumberInput.value = "";
           dropdown.style.display = "none";
@@ -529,10 +518,36 @@
         const studentNumberInput = document.getElementById("studentNumber");
         const dropdown = document.getElementById("studentNumberDropdown");
 
+        function loadGradeLevelsForStudent() {
+          const academicYear = document.getElementById("academicYear").value;
+          const studentNumber = studentNumberInput.value.trim();
+          const gradeLevelSelect = document.getElementById("gradeLevelFilter");
+          if (!academicYear || !studentNumber) return;
+          gradeLevelSelect.innerHTML = '<option value="">Select grade level...</option>';
+          gradeLevelSelect.disabled = true;
+          google.script.run
+            .withSuccessHandler(function (levels) {
+              gradeLevelSelect.innerHTML = '<option value="">Select grade level...</option>';
+              (levels || []).forEach(function (l) {
+                const opt = document.createElement("option");
+                opt.value = l;
+                opt.textContent = l;
+                gradeLevelSelect.appendChild(opt);
+              });
+              gradeLevelSelect.disabled = false;
+              gradeLevelSelect.setAttribute("required", "required");
+            })
+            .withFailureHandler(function (err) {
+              console.error("Error loading grade levels for student:", err);
+            })
+            .getGradeLevelsForStudent(academicYear, studentNumber);
+        }
+
         studentNumberInput.addEventListener("input", function() {
           const searchTerm = this.value.toLowerCase().trim();
           highlightedIndex = -1;
-          
+          document.getElementById("gradeLevelFilter").innerHTML = '<option value="">Select grade level...</option>';
+          document.getElementById("gradeLevelFilter").disabled = true;
           if (searchTerm === "" || allStudentNumbers.length === 0) {
             dropdown.style.display = "none";
             return;
@@ -559,11 +574,20 @@
               studentNumberInput.value = studentNumber;
               dropdown.style.display = "none";
               highlightedIndex = -1;
+              loadGradeLevelsForStudent();
             });
             dropdown.appendChild(item);
           });
 
           dropdown.style.display = "block";
+        });
+
+        studentNumberInput.addEventListener("blur", function() {
+          setTimeout(function() {
+            if (studentNumberInput.value.trim() && document.getElementById("gradeLevelFilter").disabled) {
+              loadGradeLevelsForStudent();
+            }
+          }, 200);
         });
 
         studentNumberInput.addEventListener("keydown", function(e) {
@@ -605,6 +629,7 @@
       document.getElementById("loadBtn").addEventListener("click", function () {
         const academicYear = document.getElementById("academicYear").value;
         const studentNumber = document.getElementById("studentNumber").value.trim();
+        const gradeLevel = document.getElementById("gradeLevelFilter").value;
 
         if (!academicYear) {
           alert("Please select an academic year.");
@@ -613,6 +638,11 @@
 
         if (!studentNumber) {
           alert("Please enter a student number.");
+          return;
+        }
+
+        if (!gradeLevel) {
+          alert("Please select a grade level.");
           return;
         }
 
@@ -627,11 +657,10 @@
               allGradeData = result.gradeData;
               displayedGradeData = result.gradeData;
               studentInfo = result.studentInfo;
-              populateFilters();
-              applyFiltersAndDisplay();
               document.getElementById("studentInfoHeader").classList.add("visible");
               document.getElementById("subjectsContainer").classList.add("visible");
               document.getElementById("buttonGroup").style.display = "flex";
+              displayAllGrades(studentInfo, displayedGradeData);
             } else {
               alert("Error: " + result.message);
               allGradeData = null;
@@ -649,22 +678,8 @@
             loadBtn.textContent = originalText;
             loadBtn.disabled = false;
           })
-          .getAllGradeInfo(studentNumber, academicYear);
+          .getAllGradeInfo(studentNumber, academicYear, gradeLevel);
       });
-
-      function populateFilters() {
-        document.getElementById("semesterFilter").value = "";
-      }
-
-      function applyFiltersAndDisplay() {
-        if (!studentInfo || !allGradeData) return;
-        const semesterVal = document.getElementById("semesterFilter").value;
-        let filtered = semesterVal ? allGradeData.filter(function(d) { return (d.Semester || "") === semesterVal; }) : allGradeData;
-        displayedGradeData = filtered;
-        displayAllGrades(studentInfo, filtered);
-      }
-
-      document.getElementById("semesterFilter").addEventListener("change", applyFiltersAndDisplay);
 
       function displayAllGrades(studentInfo, gradeData) {
         const studentInfoGrid = document.getElementById("studentInfoGrid");
@@ -688,10 +703,24 @@
           studentInfoGrid.appendChild(item);
         });
 
+        const gradeLevel = document.getElementById("gradeLevelFilter").value;
+        const isSHS = isSHSGradeLevel(gradeLevel);
         const subjectsContainer = document.getElementById("subjectsContainer");
         subjectsContainer.innerHTML = "";
 
         gradeData.forEach(function(subjectData, index) {
+          const currentGradesLine = isSHS
+            ? "1st Initial: " + (subjectData["1st Initial"] || "-") + " | 2nd Initial: " + (subjectData["2nd Initial"] || "-")
+            : "1st Initial: " + (subjectData["1st Initial"] || "-") + " | 2nd Initial: " + (subjectData["2nd Initial"] || "-") + " | 3rd Initial: " + (subjectData["3rd Initial"] || "-") + " | 4th Initial: " + (subjectData["4th Initial"] || "-");
+          const thirdFourthInputs = isSHS ? "" : `
+            <div class="grade-input-group">
+              <label for="thirdInitial_${index}">3rd Initial:</label>
+              <input type="text" id="thirdInitial_${index}" data-subject="${subjectData.Subject}" data-period="3rd Initial" placeholder="${subjectData["3rd Initial"] || ""}" value="${subjectData["3rd Initial"] || ""}" />
+            </div>
+            <div class="grade-input-group">
+              <label for="fourthInitial_${index}">4th Initial:</label>
+              <input type="text" id="fourthInitial_${index}" data-subject="${subjectData.Subject}" data-period="4th Initial" placeholder="${subjectData["4th Initial"] || ""}" value="${subjectData["4th Initial"] || ""}" />
+            </div>`;
           const subjectCard = document.createElement("div");
           subjectCard.className = "subject-card";
           subjectCard.innerHTML = `
@@ -702,64 +731,20 @@
               </div>
             </div>
             <div class="current-grades-display">
-              <strong>Current Grades:</strong>
-              1st Initial: ${subjectData["1st Initial"] || "-"} | 
-              2nd Initial: ${subjectData["2nd Initial"] || "-"} | 
-              3rd Initial: ${subjectData["3rd Initial"] || "-"} | 
-              4th Initial: ${subjectData["4th Initial"] || "-"}
+              <strong>Current Grades:</strong> ${currentGradesLine}
             </div>
             <div class="grade-input-group">
               <label for="firstInitial_${index}">1st Initial:</label>
-              <input
-                type="text"
-                id="firstInitial_${index}"
-                data-subject="${subjectData.Subject}"
-                data-period="1st Initial"
-                placeholder="${subjectData["1st Initial"] || ""}"
-                value="${subjectData["1st Initial"] || ""}"
-              />
+              <input type="text" id="firstInitial_${index}" data-subject="${subjectData.Subject}" data-period="1st Initial" placeholder="${subjectData["1st Initial"] || ""}" value="${subjectData["1st Initial"] || ""}" />
             </div>
             <div class="grade-input-group">
               <label for="secondInitial_${index}">2nd Initial:</label>
-              <input
-                type="text"
-                id="secondInitial_${index}"
-                data-subject="${subjectData.Subject}"
-                data-period="2nd Initial"
-                placeholder="${subjectData["2nd Initial"] || ""}"
-                value="${subjectData["2nd Initial"] || ""}"
-              />
+              <input type="text" id="secondInitial_${index}" data-subject="${subjectData.Subject}" data-period="2nd Initial" placeholder="${subjectData["2nd Initial"] || ""}" value="${subjectData["2nd Initial"] || ""}" />
             </div>
-            <div class="grade-input-group">
-              <label for="thirdInitial_${index}">3rd Initial:</label>
-              <input
-                type="text"
-                id="thirdInitial_${index}"
-                data-subject="${subjectData.Subject}"
-                data-period="3rd Initial"
-                placeholder="${subjectData["3rd Initial"] || ""}"
-                value="${subjectData["3rd Initial"] || ""}"
-              />
-            </div>
-            <div class="grade-input-group">
-              <label for="fourthInitial_${index}">4th Initial:</label>
-              <input
-                type="text"
-                id="fourthInitial_${index}"
-                data-subject="${subjectData.Subject}"
-                data-period="4th Initial"
-                placeholder="${subjectData["4th Initial"] || ""}"
-                value="${subjectData["4th Initial"] || ""}"
-              />
-            </div>
+            ${thirdFourthInputs}
             <div class="remarks-group">
               <label for="remarks_${index}">Remarks (Optional)</label>
-              <input
-                type="text"
-                id="remarks_${index}"
-                data-subject="${subjectData.Subject}"
-                placeholder="Reason for update or additional notes"
-              />
+              <input type="text" id="remarks_${index}" data-subject="${subjectData.Subject}" placeholder="Reason for update or additional notes" />
             </div>
           `;
           subjectsContainer.appendChild(subjectCard);
@@ -776,16 +761,15 @@
 
         const academicYear = document.getElementById("academicYear").value;
         const studentNumber = document.getElementById("studentNumber").value.trim();
+        const gradeLevel = document.getElementById("gradeLevelFilter").value;
+        const isSHS = isSHSGradeLevel(gradeLevel);
 
         const updates = [];
-        const subjectMap = {};
 
         displayedGradeData.forEach(function(subjectData, index) {
           const subject = subjectData.Subject;
           const firstInitial = document.getElementById(`firstInitial_${index}`).value.trim();
           const secondInitial = document.getElementById(`secondInitial_${index}`).value.trim();
-          const thirdInitial = document.getElementById(`thirdInitial_${index}`).value.trim();
-          const fourthInitial = document.getElementById(`fourthInitial_${index}`).value.trim();
           const remarks = document.getElementById(`remarks_${index}`).value.trim();
 
           const gradeUpdates = {};
@@ -799,13 +783,21 @@
             gradeUpdates["2nd Initial"] = secondInitial;
             hasChanges = true;
           }
-          if (thirdInitial !== (subjectData["3rd Initial"] || "")) {
-            gradeUpdates["3rd Initial"] = thirdInitial;
-            hasChanges = true;
-          }
-          if (fourthInitial !== (subjectData["4th Initial"] || "")) {
-            gradeUpdates["4th Initial"] = fourthInitial;
-            hasChanges = true;
+          if (!isSHS) {
+            const thirdEl = document.getElementById("thirdInitial_" + index);
+            const fourthEl = document.getElementById("fourthInitial_" + index);
+            if (thirdEl && fourthEl) {
+              const thirdInitial = thirdEl.value.trim();
+              const fourthInitial = fourthEl.value.trim();
+              if (thirdInitial !== (subjectData["3rd Initial"] || "")) {
+                gradeUpdates["3rd Initial"] = thirdInitial;
+                hasChanges = true;
+              }
+              if (fourthInitial !== (subjectData["4th Initial"] || "")) {
+                gradeUpdates["4th Initial"] = fourthInitial;
+                hasChanges = true;
+              }
+            }
           }
 
           if (hasChanges && Object.keys(gradeUpdates).length > 0) {

@@ -559,9 +559,9 @@ function updateGrades(studentNumber, academicYearSheet, subject, gradeUpdates, r
   });
 }
 
-function getAllGradeInfo(studentNumber, academicYearSheet) {
+function getAllGradeInfo(studentNumber, academicYearSheet, gradeLevel) {
   console.log("Function getAllGradeInfo executed by: " + Session.getActiveUser().getEmail());
-  return callApi("getAllGradeInfo", { studentNumber, academicYearSheet });
+  return callApi("getAllGradeInfo", { studentNumber, academicYearSheet, gradeLevel });
 }
 
 function updateMultipleGrades(studentNumber, academicYearSheet, updates) {
@@ -630,6 +630,54 @@ function getGradeLevels(academicYearSheet) {
     return Array.from(uniqueLevels).sort();
   } catch (error) {
     console.error('Error getting grade levels:', error);
+    return [];
+  }
+}
+
+/**
+ * Gets unique grade levels for a specific student in an academic year sheet
+ * @param {string} academicYearSheet - The academic year sheet name
+ * @param {string} studentNumber - The student number
+ * @return {Array} Array of unique grade levels for that student
+ */
+function getGradeLevelsForStudent(academicYearSheet, studentNumber) {
+  try {
+    if (!academicYearSheet || academicYearSheet.toString().trim() === '') {
+      return [];
+    }
+    if (!studentNumber || studentNumber.toString().trim() === '') {
+      return [];
+    }
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    const targetSheet = spreadsheet.getSheetByName(academicYearSheet);
+    if (!targetSheet) {
+      return [];
+    }
+    const lastRow = targetSheet.getLastRow();
+    if (lastRow < 2) {
+      return [];
+    }
+    const dataRange = targetSheet.getRange(2, 1, lastRow - 1, 3);
+    const data = dataRange.getValues();
+    const formulas = targetSheet.getRange(2, 1, lastRow - 1, 1).getFormulas();
+    const studentNumTrim = studentNumber.toString().trim();
+    const uniqueLevels = new Set();
+    for (let i = 0; i < data.length; i++) {
+      if (formulas[i][0] && typeof formulas[i][0] === 'string' && formulas[i][0].includes('HYPERLINK')) {
+        continue;
+      }
+      const rowStudentNum = String(data[i][0] || '').trim();
+      if (rowStudentNum !== studentNumTrim) {
+        continue;
+      }
+      const level = String(data[i][2] || '').trim();
+      if (level) {
+        uniqueLevels.add(level);
+      }
+    }
+    return Array.from(uniqueLevels).sort();
+  } catch (error) {
+    console.error('Error getting grade levels for student:', error);
     return [];
   }
 }
