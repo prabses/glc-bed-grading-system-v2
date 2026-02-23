@@ -346,7 +346,7 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
       startRow = 1; // Attendance sheet starts at row 1
     }
     
-    const infoData = infoSheet.getRange(startRow, 1, 4, 2).getValues();
+    const infoData = infoSheet.getRange(startRow, 1, startRow + 3, 2).getValues();
     
     let advisorName = '';
     let schoolYear = '';
@@ -366,6 +366,10 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
       } else if (label.includes('Section')) {
         section = value;
       }
+    }
+
+    if (!section || section.toString().trim() === '') {
+      section = 'ALL';
     }
 
     // Validate extracted information
@@ -1214,6 +1218,7 @@ function _importAttendance(ogsTemplateUrl, academicYearSheet, userEmail) {
       else if (label.includes('Level')) level = value;
       else if (label.includes('Section')) section = value;
     }
+    if (!section || section.toString().trim() === '') section = 'ALL';
     if (!advisorName || !level || !section) {
       return { success: false, message: 'Could not extract required information from Attendance sheet.' };
     }
@@ -1503,6 +1508,7 @@ function _importCharacters(ogsTemplateUrl, academicYearSheet, userEmail) {
       else if (label.includes('Level')) level = value;
       else if (label.includes('Section')) section = value;
     }
+    if (!section || section.toString().trim() === '') section = 'ALL';
     if (!advisorName || !level || !section) return { success: false, message: 'Could not extract required information from Character sheet.' };
     const normalizedGradeLevel = normalizeGradeLevel(level);
     const lastCol = characterSheet.getLastColumn();
