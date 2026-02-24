@@ -102,5 +102,7 @@ GRADES DB
 ✅ add import log (date, link of db sheet, other information) in grades db
 ✅ split the success alert for grades, attendance, and characters
 ✅ add update of attendance and character to grades db
+✅ replace semester dropdown with grade level
+✅ show only 1st and 2nd initials for shs grade levels
 
 create export function for grades, attendance, and character sheets to csv
