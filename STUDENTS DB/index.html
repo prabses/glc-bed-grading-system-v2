@@ -1,636 +1,1799 @@
-<!DOCTYPE html><html><head>
-      <title>STUDENTS DB - WORKING INSTRUCTIONS</title>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      
-      <link rel="stylesheet" href="file:///c:\Users\Ricko\.cursor\extensions\shd101wyy.markdown-preview-enhanced-0.8.20-universal\crossnote\dependencies\katex\katex.min.css">
-      
-      
-      
-      
-      
-      <style>
-      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
-/* Please visit the URL below for more information: */
-/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
-            #backToTop {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #08c;
-            color: #fff;
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 14px;
-            text-decoration: none;
-            display: none;
-            cursor: pointer;
-            z-index: 9999;
-            }
+<!doctype html>
+<html>
+  <head>
+    <title>STUDENTS DB - WORKING INSTRUCTIONS</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-            #backToTop:hover {
-            background: #00a3f5;
-            }
-      </style>
-      <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
-  document.addEventListener("DOMContentLoaded", function () {
-    // your code here
-  });
-</script></head><body for="html-export">
-    
-    
-      <div class="crossnote markdown-preview  ">
-            <a id="top"></a>      
-<h2 id="students-database---working-instructions">Students Database - Working Instructions </h2>
-<h3 id="table-of-contents">Table of Contents </h3>
-<ol>
-<li><a href="#1-system-overview">System Overview</a>
-<ul>
-<li>1.1 <a href="#11-quick-start-guide--prerequisites">Quick Start Guide &amp; Prerequisites</a></li>
-</ul>
-</li>
-<li><a href="#2-import-student-data-instructions">Import Student Data Instructions</a>
-<ul>
-<li>2.1 <a href="#21-accessing-the-import-student-data-form">Accessing the Import Student Data Form</a></li>
-<li>2.2 <a href="#22-step-by-step-import-process">Step-by-Step Import Process</a></li>
-<li>2.3 <a href="#23-import-error-messages-and-solutions">Import Error Messages and Solutions</a></li>
-</ul>
-</li>
-<li><a href="#3-update-student-information-instructions">Update Student Information Instructions</a>
-<ul>
-<li>3.1 <a href="#31-accessing-the-update-student-information-form">Accessing the Update Student Information Form</a></li>
-<li>3.2 <a href="#32-step-by-step-update-process">Step-by-Step Update Process</a></li>
-<li>3.3 <a href="#33-update-error-messages-and-solutions">Update Error Messages and Solutions</a></li>
-</ul>
-</li>
-<li><a href="#4-data-management-instructions">Data Management Instructions</a>
-<ul>
-<li>4.1 <a href="#41-academic-year-sheet-structure">Academic Year Sheet Structure</a></li>
-<li>4.2 <a href="#42-creating-a-new-academic-year-sheet">Creating a New Academic Year Sheet</a></li>
-<li>4.3 <a href="#43-understanding-the-update-log">Understanding the Update Log</a></li>
-</ul>
-</li>
-<li><a href="#5-troubleshooting-guide">Troubleshooting Guide</a>
-<ul>
-<li>5.1 <a href="#51-import-form-loading-problems">Import Form Loading Problems</a></li>
-<li>5.2 <a href="#52-csv-import-failures">CSV Import Failures</a></li>
-<li>5.3 <a href="#53-duplicate-student-number-errors">Duplicate Student Number Errors</a></li>
-<li>5.4 <a href="#54-update-form-not-finding-students">Update Form Not Finding Students</a></li>
-<li>5.5 <a href="#55-update-failures">Update Failures</a></li>
-<li>5.6 <a href="#56-academic-year-sheet-not-appearing">Academic Year Sheet Not Appearing</a></li>
-<li>5.7 <a href="#57-permission-errors">Permission Errors</a></li>
-<li>5.8 <a href="#58-update-log-not-appearing">Update Log Not Appearing</a></li>
-<li>5.9 <a href="#59-data-formatting-issues">Data Formatting Issues</a></li>
-<li>5.10 <a href="#510-script-execution-errors">Script Execution Errors</a></li>
-</ul>
-</li>
-</ol>
-<hr>
-<h3 id="1-system-overview">1. System Overview </h3>
-<p>The Students Database is a Google Apps Script application that manages student information across multiple academic years. The system provides two main interfaces:</p>
-<ul>
-<li><strong>Import Student Data Form</strong>: For importing student records from CSV files into academic year sheets</li>
-<li><strong>Update Student Information Form</strong>: For searching and modifying existing student records</li>
-</ul>
-<p>Both forms are accessible through the <strong>Upload</strong> menu in the Google Sheets interface.</p>
-<hr>
-<h4 id="11-quick-start-guide--prerequisites">1.1 Quick Start Guide &amp; Prerequisites </h4>
-<p>Before using the Students Database, ensure you have the following:</p>
-<ul>
-<li>A Google account with access to the Students Database spreadsheet</li>
-<li>Edit permissions for the spreadsheet (contact your administrator if needed)</li>
-<li>For importing: A properly formatted CSV file containing student data</li>
-<li>A stable internet connection</li>
-</ul>
-<p><strong>To import student data:</strong></p>
-<ol>
-<li>Open the spreadsheet → Click <strong>Upload</strong> menu → Select <strong>Import Student Data</strong></li>
-<li>Choose an academic year from the dropdown</li>
-<li>Click <strong>Choose File</strong> and select your CSV file</li>
-<li>Click <strong>Import Data</strong> and wait for confirmation</li>
-</ol>
-<p><strong>To update student information:</strong></p>
-<ol>
-<li>Open the spreadsheet → Click <strong>Upload</strong> menu → Select <strong>Update Student Information</strong></li>
-<li>Choose an academic year and enter the student number</li>
-<li>Click <strong>Load Student</strong> to retrieve the student's information</li>
-<li>Select the field to update, enter the new information, and click <strong>Update Information</strong></li>
-</ol>
-<hr>
-<h3 id="2-import-student-data-instructions">2. Import Student Data Instructions </h3>
-<h4 id="21-accessing-the-import-student-data-form">2.1 Accessing the Import Student Data Form </h4>
-<p><img src="assets/cSDB-1.png" alt="Image"></p>
-<blockquote>
-<p><strong>Important</strong>: You must create the academic year sheet manually before you can import data into it. If you need to create a new academic year sheet, see <a href="#42-creating-a-new-academic-year-sheet">Section 4.2: Creating a New Academic Year Sheet</a> for step-by-step instructions.</p>
-</blockquote>
-<ol>
-<li>Open the main Google Sheets document containing the Students Database</li>
-<li>Click the <strong>Upload</strong> menu in the top menu bar</li>
-<li>Select <strong>Import Student Data</strong> from the dropdown menu</li>
-<li>The Import Student Data Form will open in a modal dialog window</li>
-</ol>
-<p><img src="assets/1sdb.png" alt="Image"></p>
-<hr>
-<h4 id="22-step-by-step-import-process">2.2 Step-by-Step Import Process </h4>
-<h3 id="step-1-select-academic-year"><strong>Step 1: Select Academic Year</strong> </h3>
-<ol>
-<li>Click the <strong>Academic Year</strong> dropdown</li>
-</ol>
-<p><img src="assets/2sdb.png" alt="Image"></p>
-<ol start="2">
-<li>Select the academic year sheet where you want to import the data</li>
-</ol>
-<p><img src="assets/2.1sdb.png" alt="Image"></p>
-<blockquote>
-<p><strong>Note</strong>: If the year you need doesn't appear, see <a href="#42-creating-a-new-academic-year-sheet">Section 4.2</a> to create a new academic year sheet.</p>
-</blockquote>
-<hr>
-<h3 id="step-2-prepare-your-students-information-csv-file"><strong>Step 2: Prepare Your Students Information CSV File</strong> </h3>
-<p>Your CSV file must have the following headers in this exact order:</p>
-<table>
-<thead>
-<tr>
-<th>Column 1</th>
-<th>Column 2</th>
-<th>Column 3</th>
-<th>Column 4</th>
-<th>Column 5</th>
-<th>Column 6</th>
-<th>Column 7</th>
-<th>Column 8</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Student Number</td>
-<td>Last Name</td>
-<td>First Name</td>
-<td>Middle Name</td>
-<td>Grade Level</td>
-<td>Section</td>
-<td>Strand</td>
-<td>Gender</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Sample CSV File Format with Students Data:</strong></p>
-<p><img src="assets/asampleCSVFile.png" alt="Sample CSV File"></p>
-<p><strong>Important Requirements:</strong></p>
-<ul>
-<li>The first row must contain these exact headers (spelling and capitalization matter)</li>
-<li>Student data rows should start from the second row</li>
-<li>Each student number must be unique within the file</li>
-<li>Save your file in CSV (.csv) format</li>
-</ul>
-<blockquote>
-<p><strong>Tip</strong>: You can create a CSV file by exporting from Excel (<strong>File → Save As → CSV</strong>) or Google Sheets (<strong>File → Download → Comma-separated values</strong>).</p>
-</blockquote>
-<hr>
-<h3 id="step-3-upload-the-students-information-csv-file"><strong>Step 3: Upload the Students Information CSV File</strong> </h3>
-<ol>
-<li>Click the <strong>Choose File</strong> button</li>
-</ol>
-<p><img src="assets/3.1sdb.png" alt="Image"></p>
-<ol start="2">
-<li>Navigate to your CSV file and select it</li>
-</ol>
-<p><img src="assets/4.1sdb.png" alt="Image"></p>
-<ol start="3">
-<li>The file name will appear in the input field once selected</li>
-</ol>
-<p><img src="assets/5.1sdb.png" alt="Image"></p>
-<hr>
-<h3 id="step-4-import-the-data"><strong>Step 4: Import the Data</strong> </h3>
-<ol>
-<li>Click the <strong>Import Data</strong> button</li>
-</ol>
-<p><img src="assets/6.1sdb.png" alt="Image"></p>
-<ol start="2">
-<li>The button will display <strong>Importing...</strong> while processing</li>
-</ol>
-<p><img src="assets/7sdb.png" alt="Image"></p>
-<ol start="3">
-<li>Wait for the success confirmation message</li>
-</ol>
-<p><img src="assets/sdb1.1.png" alt="Image"></p>
-<ol start="4">
-<li>The form will automatically close upon successful import</li>
-</ol>
-<hr>
-<h3 id="step-5-verify-the-import"><strong>Step 5: Verify the Import</strong> </h3>
-<p><img src="assets/sdb2.png" alt="Image"></p>
-<ol>
-<li>Navigate to the selected academic year sheet in your spreadsheet</li>
-<li>Verify that the student data appears starting from row 3 (rows 1-2 contain headers)</li>
-<li>Confirm that all columns are properly populated</li>
-</ol>
-<hr>
-<h4 id="23-import-error-messages-and-solutions">2.3 Import Error Messages and Solutions </h4>
-<h5 id="duplicate-student-numbers">Duplicate Student Numbers </h5>
-<p><img src="assets/sdb1.png" alt="Image"></p>
-<p><strong>What it means:</strong> The CSV file contains one or more students with the same student number.</p>
-<p><strong>How to fix it:</strong></p>
-<ol>
-<li>Open your CSV file in Excel or Google Sheets</li>
-<li>Find and remove the duplicate student numbers listed in the error message</li>
-<li>Save the file and try importing again</li>
-</ol>
-<hr>
-<h5 id="csv-format-errors">CSV Format Errors </h5>
-<p><img src="assets/sdb3.1.png" alt="Image"></p>
-<p><strong>What it means:</strong> The headers in your CSV file don't match the required format.</p>
-<p><strong>How to fix it:</strong></p>
-<ol>
-<li>Verify that your headers are exactly: Student Number, Last Name, First Name, Middle Name, Grade Level, Section, Strand, Gender</li>
-<li>Check for extra spaces before or after header names</li>
-<li>Ensure your file is saved as CSV format (not Excel or other formats)</li>
-</ol>
-<hr>
-<h5 id="empty-csv-file">Empty CSV File </h5>
-<p><img src="assets/sdb3.2.png" alt="Image"></p>
-<p><strong>What it means:</strong> The CSV file contains no student data or headers.</p>
-<p><strong>How to fix it:</strong></p>
-<ol>
-<li>Open your CSV file and ensure it contains data rows below the header row</li>
-<li>Save the file and try importing again</li>
-</ol>
-<hr>
-<h5 id="missing-academic-year">Missing Academic Year </h5>
-<p><img src="assets/sdb3.3.png" alt="Image"></p>
-<p><strong>What it means:</strong> You clicked Import Data without selecting an academic year.</p>
-<p><strong>How to fix it:</strong></p>
-<ol>
-<li>Select an academic year from the dropdown</li>
-<li>Click <strong>Import Data</strong> after selecting an academic year</li>
-</ol>
-<hr>
-<h3 id="3-update-student-information-instructions">3. Update Student Information Instructions </h3>
-<h4 id="31-accessing-the-update-student-information-form">3.1 Accessing the Update Student Information Form </h4>
-<p><img src="assets/sdb4.1.png" alt="Image"></p>
-<ol>
-<li>Open the Google Sheets document containing the Students Database</li>
-<li>Click the <strong>Upload</strong> menu in the top menu bar</li>
-<li>Select <strong>Update Student Information</strong> from the dropdown menu</li>
-<li>The Update Student Information Form will open in a modal dialog window</li>
-</ol>
-<hr>
-<h4 id="32-step-by-step-update-process">3.2 Step-by-Step Update Process </h4>
-<h3 id="step-1-select-academic-year-1"><strong>Step 1: Select Academic Year</strong> </h3>
-<p><img src="assets/sdb5.png" alt="Image"></p>
-<ol>
-<li>Click the <strong>Academic Year</strong> dropdown</li>
-<li>Select the academic year sheet where the student is enrolled</li>
-</ol>
-<hr>
-<h3 id="step-2-enter-student-number"><strong>Step 2: Enter Student Number</strong> </h3>
-<p><img src="assets/sdb5.1.png" alt="Image"></p>
-<ol>
-<li>Type the student number in the <strong>Student Number</strong> field</li>
-<li>As you type, matching student numbers will appear in a dropdown list</li>
-<li>Click on a suggestion to select it, or continue typing the full number</li>
-</ol>
-<blockquote>
-<p><strong>Tip</strong>: Use the arrow keys to navigate through suggestions and press Enter to select.</p>
-</blockquote>
-<hr>
-<h3 id="step-3-load-student-information"><strong>Step 3: Load Student Information</strong> </h3>
-<ol>
-<li>Click the <strong>Load Student</strong> button</li>
-</ol>
-<p><img src="assets/sdb5.2.png" alt="Image"></p>
-<ol start="2">
-<li>The button will display <strong>Loading...</strong> while processing</li>
-</ol>
-<p><img src="assets/sdb9.1.png" alt="Image"></p>
-<ol start="3">
-<li>If found, the student information will appear in the Current Student Information panel</li>
-</ol>
-<p><img src="assets/sdb6.png" alt="Image"></p>
-<ol start="4">
-<li>The Update Section will become visible below</li>
-</ol>
-<p><strong>If the student is found:</strong></p>
-<p><img src="assets/sdb01.png" alt="Image"></p>
-<p>All student fields will be displayed, and you can proceed to update.</p>
-<p><strong>If the student is not found:</strong></p>
-<p><img src="assets/sdb02.png" alt="Image"></p>
-<p>An error message will appear. Verify that:</p>
-<ul>
-<li>The student number is correct</li>
-<li>You selected the correct academic year</li>
-<li>The student exists in that academic year's sheet</li>
-</ul>
-<hr>
-<h3 id="step-4-select-field-to-update"><strong>Step 4: Select Field to Update</strong> </h3>
-<ol>
-<li>Click the <strong>Field to Update</strong> dropdown</li>
-</ol>
-<p><img src="assets/sdb7.png" alt="Image"></p>
-<ol start="2">
-<li>Select the field you want to modify (e.g., Last Name, First Name, Grade Level, etc.)</li>
-</ol>
-<p><img src="assets/sdb8.png" alt="Image"></p>
-<ol start="3">
-<li>The current value will automatically appear in the Current Value display</li>
-</ol>
-<blockquote>
-<p><strong>Note</strong>: Student Number cannot be updated because it serves as the unique identifier for each student.</p>
-</blockquote>
-<hr>
-<h3 id="step-5-enter-new-information"><strong>Step 5: Enter New Information</strong> </h3>
-<ol>
-<li>Type the new information in the <strong>New Value</strong> field</li>
-</ol>
-<p><img src="assets/sdb8.1.png" alt="Image"></p>
-<ol start="2">
-<li>Double-check that the new information is correct before proceeding</li>
-</ol>
-<hr>
-<h3 id="step-6-add-remarks-optional"><strong>Step 6: Add Remarks (Optional)</strong> </h3>
-<ol>
-<li>Enter any notes explaining the reason for the update in the <strong>Remarks</strong> field</li>
-</ol>
-<p><img src="assets/sdb8.2.png" alt="Image"></p>
-<ol start="2">
-<li>This information will be recorded in the Update Log for audit purposes</li>
-</ol>
-<blockquote>
-<p><strong>Recommendation</strong>: Always add remarks to maintain a clear record of why changes were made.</p>
-</blockquote>
-<hr>
-<h3 id="step-7-save-the-changes"><strong>Step 7: Save the Changes</strong> </h3>
-<ol>
-<li>Click the <strong>Update Information</strong> button</li>
-</ol>
-<p><img src="assets/sdb9.png" alt="Image"></p>
-<ol start="2">
-<li>The button will display <strong>Updating...</strong> while processing</li>
-</ol>
-<p><img src="assets/001sdb.png" alt="Image"></p>
-<ol start="3">
-<li>A success message will confirm the update, showing both the old and new information</li>
-</ol>
-<p><img src="assets/002sdb.png" alt="Image"></p>
-<ol start="4">
-<li>The change is automatically recorded in the Update Log sheet</li>
-</ol>
-<hr>
-<h4 id="33-update-error-messages-and-solutions">3.3 Update Error Messages and Solutions </h4>
-<h5 id="no-field-selected">No Field Selected </h5>
-<p><img src="assets/1sdb1.png" alt="Image"></p>
-<p><strong>What it means:</strong> You clicked Update Information without selecting a field to update.</p>
-<p><strong>How to fix it:</strong> Select a field from the "Field to Update" dropdown before proceeding.</p>
-<hr>
-<h5 id="same-value-error">Same Value Error </h5>
-<p><img src="assets/2sdb2.png" alt="Image"></p>
-<p><strong>What it means:</strong> The new information you entered is identical to the current value.</p>
-<p><strong>How to fix it:</strong> Enter information that is different from the current value.</p>
-<hr>
-<h5 id="student-not-loaded">Student Not Loaded </h5>
-<p><img src="assets/sdb03.png" alt="Image"></p>
-<p><strong>What it means:</strong> You attempted to update without first loading a student's information.</p>
-<p><strong>How to fix it:</strong> Enter a student number and click Load Student before attempting to update.</p>
-<hr>
-<h3 id="4-data-management-instructions">4. Data Management Instructions </h3>
-<h4 id="41-academic-year-sheet-structure">4.1 Academic Year Sheet Structure </h4>
-<p><img src="assets/dbsheet2.png" alt="Image"></p>
-<p>Each academic year sheet follows this structure:</p>
-<ul>
-<li><strong>Rows 1–2:</strong> Header rows (managed by the system)</li>
-<li><strong>Row 3 onwards:</strong> Student data rows</li>
-<li><strong>Columns:</strong> Student Number, Last Name, First Name, Middle Name, Grade Level, Section, Strand, Gender</li>
-</ul>
-<hr>
-<h4 id="42-creating-a-new-academic-year-sheet">4.2 Creating a New Academic Year Sheet </h4>
-<p><img src="assets/newsdb1.png" alt="Image"></p>
-<p>Follow these steps to create a new academic year sheet:</p>
-<h3 id="step-1-duplicate-an-existing-sheet"><strong>Step 1: Duplicate an Existing Sheet</strong> </h3>
-<p><img src="assets/Csdb1.png" alt="Image"></p>
-<ol>
-<li>Right-click an existing academic year sheet</li>
-<li>Select <strong>Duplicate</strong></li>
-</ol>
-<p>A copy of the sheet will be created.</p>
-<p><img src="assets/Csdb2.1.png" alt="Image"></p>
-<hr>
-<h3 id="step-2-rename-the-sheet"><strong>Step 2: Rename the Sheet</strong> </h3>
-<p><img src="assets/csdb3.png" alt="Image"></p>
-<ol>
-<li>Right-click the copied sheet</li>
-<li>Select <strong>Rename</strong></li>
-<li>Enter the new academic year in "YYYY-YYYY" format (e.g., "2025-2026")</li>
-</ol>
-<hr>
-<h3 id="step-3-protect-the-sheet"><strong>Step 3: Protect the Sheet</strong> </h3>
-<p><img src="assets/csdb4.png" alt="Image"></p>
-<ol>
-<li>Right-click the renamed sheet</li>
-<li>Select <strong>Protect sheet</strong></li>
-<li>In the sidebar that appears, click <strong>Set permissions</strong></li>
-</ol>
-<p><img src="assets/csdb5.png" alt="Image"></p>
-<ol start="4">
-<li>Select <strong>Restrict who can edit this range</strong></li>
-<li>Choose <strong>Only you</strong> from the dropdown (or select <strong>Custom</strong> to add specific collaborators)</li>
-<li>Click <strong>Done</strong></li>
-</ol>
-<p><img src="assets/csdb6.png" alt="Image"></p>
-<hr>
-<h3 id="step-4-clear-existing-student-data"><strong>Step 4: Clear Existing Student Data</strong> </h3>
-<ol>
-<li>Select all student data rows (row 3 onwards)</li>
-</ol>
-<p><img src="assets/rsdb1.png" alt="Image"></p>
-<ol start="2">
-<li>Delete the content (do not delete the header rows 1–2)</li>
-<li>The new academic year sheet is now ready for student data import</li>
-</ol>
-<p><img src="assets/lsdb1.png" alt="Image"></p>
-<hr>
-<h4 id="43-understanding-the-update-log">4.3 Understanding the Update Log </h4>
-<p><img src="assets/updatelogsheet1.1.png" alt="Image"></p>
-<p>The Update Log automatically records every change made to student information, providing a complete audit trail for all modifications. This sheet is created automatically when the first update is made.</p>
-<p><strong>Log Entry Fields:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Timestamp</td>
-<td>Date and time when the update was made</td>
-</tr>
-<tr>
-<td>Updated By</td>
-<td>Email address of the user who made the update</td>
-</tr>
-<tr>
-<td>Student Number</td>
-<td>The student's identification number</td>
-</tr>
-<tr>
-<td>Academic Year</td>
-<td>The academic year sheet where the update occurred</td>
-</tr>
-<tr>
-<td>Field Updated</td>
-<td>Which field was changed</td>
-</tr>
-<tr>
-<td>Old Value</td>
-<td>The previous value before the update</td>
-</tr>
-<tr>
-<td>New Value</td>
-<td>The new value after the update</td>
-</tr>
-<tr>
-<td>Remarks</td>
-<td>Notes provided during the update</td>
-</tr>
-</tbody>
-</table>
-<blockquote>
-<p><strong>Tip:</strong> You can use filters to search for specific students, date ranges, or types of changes in the Update Log.</p>
-</blockquote>
-<hr>
-<h3 id="5-troubleshooting-guide">5. Troubleshooting Guide </h3>
-<h4 id="51-import-form-loading-problems">5.1 Import Form Loading Problems </h4>
-<p><strong>Problem</strong>: Import form doesn't open or shows errors</p>
-<p><strong>Solutions</strong>:</p>
-<ol>
-<li>Check your internet connection</li>
-<li>Refresh the browser page</li>
-<li>Close and reopen the form from the Google Sheets menu</li>
-<li>Ensure you have proper permissions to access the spreadsheet</li>
-<li>Check that the script is properly deployed</li>
-</ol>
-<hr>
-<h4 id="52-csv-import-failures">5.2 CSV Import Failures </h4>
-<p><strong>Problem</strong>: CSV file doesn't import or shows format errors</p>
-<p><strong>Solutions</strong>:</p>
-<ol>
-<li>Verify CSV headers match exactly: Student Number, Last Name, First Name, Middle Name, Grade Level, Section, Strand, Gender</li>
-<li>Check that the CSV file is saved in UTF-8 encoding</li>
-<li>Ensure there are no special characters causing parsing issues</li>
-<li>Check that student numbers are unique within the file</li>
-<li>Ensure data rows start from row 2 (row 1 is headers)</li>
-</ol>
-<hr>
-<h4 id="53-duplicate-student-number-errors">5.3 Duplicate Student Number Errors </h4>
-<p><strong>Problem</strong>: Import fails due to duplicate student numbers</p>
-<p><strong>Solutions</strong>:</p>
-<ol>
-<li>Review the error message to identify duplicate student numbers</li>
-<li>Remove duplicate entries from your CSV file</li>
-<li>Check the academic year sheet for existing student numbers</li>
-<li>Re-import the corrected CSV file</li>
-</ol>
-<hr>
-<h4 id="54-update-form-not-finding-students">5.4 Update Form Not Finding Students </h4>
-<p><strong>Problem</strong>: Student search doesn't return results</p>
-<p><strong>Solutions</strong>:</p>
-<ol>
-<li>Verify the student number is correct</li>
-<li>Check that the correct academic year is selected</li>
-<li>Ensure the student exists in the selected academic year sheet</li>
-<li>Try typing the full student number without spaces</li>
-</ol>
-<hr>
-<h4 id="55-update-failures">5.5 Update Failures </h4>
-<p><strong>Problem</strong>: Student information doesn't update or shows errors</p>
-<p><strong>Solutions</strong>:</p>
-<ol>
-<li>Ensure all required fields are filled (field selection and new information)</li>
-<li>Check that the new information is different from the current value</li>
-<li>Verify you have write permissions to the spreadsheet</li>
-<li>Ensure your internet connection is stable</li>
-<li>Try refreshing the form and updating again</li>
-</ol>
-<hr>
-<h4 id="56-academic-year-sheet-not-appearing">5.6 Academic Year Sheet Not Appearing </h4>
-<p><strong>Problem</strong>: Academic year doesn't appear in the dropdown</p>
-<p><strong>Solutions</strong>:</p>
-<ol>
-<li>Verify the sheet name follows the format "YYYY-YYYY" (e.g., "2024-2025")</li>
-<li>Check that the sheet exists in the spreadsheet</li>
-<li>Ensure there are no extra spaces in the sheet name</li>
-<li>Create the sheet manually if needed (see <a href="#42-creating-a-new-academic-year-sheet">Section 4.2</a>)</li>
-<li>Refresh the form to reload available sheets</li>
-</ol>
-<hr>
-<h4 id="57-permission-errors">5.7 Permission Errors </h4>
-<p><strong>Problem</strong>: "Access denied" or permission-related error messages</p>
-<p><strong>Solutions</strong>:</p>
-<ol>
-<li>Verify you're logged into the correct Google account</li>
-<li>Check with your administrator about access permissions</li>
-<li>Ensure you have edit access to the spreadsheet</li>
-<li>Contact your systems administrator for permission updates</li>
-</ol>
-<hr>
-<h4 id="58-update-log-not-appearing">5.8 Update Log Not Appearing </h4>
-<p><strong>Problem</strong>: Update Log sheet doesn't exist or updates aren't logged</p>
-<p><strong>Solutions</strong>:</p>
-<ol>
-<li>The Update Log sheet is created automatically on the first update</li>
-<li>Check if the sheet exists in your spreadsheet</li>
-<li>Verify updates are being saved (check the academic year sheet)</li>
-</ol>
-<hr>
-<h4 id="59-data-formatting-issues">5.9 Data Formatting Issues </h4>
-<p><strong>Problem</strong>: Imported data appears incorrectly formatted</p>
-<p><strong>Solutions</strong>:</p>
-<ol>
-<li>Data is intentionally left-aligned to prevent auto-formatting</li>
-<li>Check the CSV file encoding (should be UTF-8)</li>
-<li>Verify special characters are properly handled</li>
-<li>Re-import if necessary after fixing the CSV file</li>
-</ol>
-<hr>
-<h4 id="510-script-execution-errors">5.10 Script Execution Errors </h4>
-<p><strong>Problem</strong>: Scripts fail to execute or timeout</p>
-<p><strong>Solutions</strong>:</p>
-<ol>
-<li>Contact your systems developer</li>
-</ol>
-<hr>
-<p><em>This working instruction document covers the complete functionality of the Students Database system. For additional support or system modifications, contact your systems developer.</em></p>
+    <link
+      rel="stylesheet"
+      href="file:///c:\Users\Ricko\.cursor\extensions\shd101wyy.markdown-preview-enhanced-0.8.20-universal\crossnote\dependencies\katex\katex.min.css"
+    />
 
-      </div>
-      
-      
-    
-    
-    
-    
-    
-    
-      <a id="backToTop" href="#top" style="display:none">Back to Top</a>
+    <style>
+      code[class*="language-"],
+      pre[class*="language-"] {
+        color: #333;
+        background: 0 0;
+        font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        text-align: left;
+        white-space: pre;
+        word-spacing: normal;
+        word-break: normal;
+        word-wrap: normal;
+        line-height: 1.4;
+        -moz-tab-size: 8;
+        -o-tab-size: 8;
+        tab-size: 8;
+        -webkit-hyphens: none;
+        -moz-hyphens: none;
+        -ms-hyphens: none;
+        hyphens: none;
+      }
+      pre[class*="language-"] {
+        padding: 0.8em;
+        overflow: auto;
+        border-radius: 3px;
+        background: #f5f5f5;
+      }
+      :not(pre) > code[class*="language-"] {
+        padding: 0.1em;
+        border-radius: 0.3em;
+        white-space: normal;
+        background: #f5f5f5;
+      }
+      .token.blockquote,
+      .token.comment {
+        color: #969896;
+      }
+      .token.cdata {
+        color: #183691;
+      }
+      .token.doctype,
+      .token.macro.property,
+      .token.punctuation,
+      .token.variable {
+        color: #333;
+      }
+      .token.builtin,
+      .token.important,
+      .token.keyword,
+      .token.operator,
+      .token.rule {
+        color: #a71d5d;
+      }
+      .token.attr-value,
+      .token.regex,
+      .token.string,
+      .token.url {
+        color: #183691;
+      }
+      .token.atrule,
+      .token.boolean,
+      .token.code,
+      .token.command,
+      .token.constant,
+      .token.entity,
+      .token.number,
+      .token.property,
+      .token.symbol {
+        color: #0086b3;
+      }
+      .token.prolog,
+      .token.selector,
+      .token.tag {
+        color: #63a35c;
+      }
+      .token.attr-name,
+      .token.class,
+      .token.class-name,
+      .token.function,
+      .token.id,
+      .token.namespace,
+      .token.pseudo-class,
+      .token.pseudo-element,
+      .token.url-reference .token.variable {
+        color: #795da3;
+      }
+      .token.entity {
+        cursor: help;
+      }
+      .token.title,
+      .token.title .token.punctuation {
+        font-weight: 700;
+        color: #1d3e81;
+      }
+      .token.list {
+        color: #ed6a43;
+      }
+      .token.inserted {
+        background-color: #eaffea;
+        color: #55a532;
+      }
+      .token.deleted {
+        background-color: #ffecec;
+        color: #bd2c00;
+      }
+      .token.bold {
+        font-weight: 700;
+      }
+      .token.italic {
+        font-style: italic;
+      }
+      .language-json .token.property {
+        color: #183691;
+      }
+      .language-markup .token.tag .token.punctuation {
+        color: #333;
+      }
+      .language-css .token.function,
+      code.language-css {
+        color: #0086b3;
+      }
+      .language-yaml .token.atrule {
+        color: #63a35c;
+      }
+      code.language-yaml {
+        color: #183691;
+      }
+      .language-ruby .token.function {
+        color: #333;
+      }
+      .language-markdown .token.url {
+        color: #795da3;
+      }
+      .language-makefile .token.symbol {
+        color: #795da3;
+      }
+      .language-makefile .token.variable {
+        color: #183691;
+      }
+      .language-makefile .token.builtin {
+        color: #0086b3;
+      }
+      .language-bash .token.keyword {
+        color: #0086b3;
+      }
+      pre[data-line] {
+        position: relative;
+        padding: 1em 0 1em 3em;
+      }
+      pre[data-line] .line-highlight-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color: transparent;
+        display: block;
+        width: 100%;
+      }
+      pre[data-line] .line-highlight {
+        position: absolute;
+        left: 0;
+        right: 0;
+        padding: inherit 0;
+        margin-top: 1em;
+        background: hsla(24, 20%, 50%, 0.08);
+        background: linear-gradient(
+          to right,
+          hsla(24, 20%, 50%, 0.1) 70%,
+          hsla(24, 20%, 50%, 0)
+        );
+        pointer-events: none;
+        line-height: inherit;
+        white-space: pre;
+      }
+      pre[data-line] .line-highlight:before,
+      pre[data-line] .line-highlight[data-end]:after {
+        content: attr(data-start);
+        position: absolute;
+        top: 0.4em;
+        left: 0.6em;
+        min-width: 1em;
+        padding: 0 0.5em;
+        background-color: hsla(24, 20%, 50%, 0.4);
+        color: #f4f1ef;
+        font: bold 65%/1.5 sans-serif;
+        text-align: center;
+        vertical-align: 0.3em;
+        border-radius: 999px;
+        text-shadow: none;
+        box-shadow: 0 1px #fff;
+      }
+      pre[data-line] .line-highlight[data-end]:after {
+        content: attr(data-end);
+        top: auto;
+        bottom: 0.4em;
+      }
+      html body {
+        font-family:
+          "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        color: #333;
+        background-color: #fff;
+        overflow: initial;
+        box-sizing: border-box;
+        word-wrap: break-word;
+      }
+      html body > :first-child {
+        margin-top: 0;
+      }
+      html body h1,
+      html body h2,
+      html body h3,
+      html body h4,
+      html body h5,
+      html body h6 {
+        line-height: 1.2;
+        margin-top: 1em;
+        margin-bottom: 16px;
+        color: #000;
+      }
+      html body h1 {
+        font-size: 2.25em;
+        font-weight: 300;
+        padding-bottom: 0.3em;
+      }
+      html body h2 {
+        font-size: 1.75em;
+        font-weight: 400;
+        padding-bottom: 0.3em;
+      }
+      html body h3 {
+        font-size: 1.5em;
+        font-weight: 500;
+      }
+      html body h4 {
+        font-size: 1.25em;
+        font-weight: 600;
+      }
+      html body h5 {
+        font-size: 1.1em;
+        font-weight: 600;
+      }
+      html body h6 {
+        font-size: 1em;
+        font-weight: 600;
+      }
+      html body h1,
+      html body h2,
+      html body h3,
+      html body h4,
+      html body h5 {
+        font-weight: 600;
+      }
+      html body h5 {
+        font-size: 1em;
+      }
+      html body h6 {
+        color: #5c5c5c;
+      }
+      html body strong {
+        color: #000;
+      }
+      html body del {
+        color: #5c5c5c;
+      }
+      html body a:not([href]) {
+        color: inherit;
+        text-decoration: none;
+      }
+      html body a {
+        color: #08c;
+        text-decoration: none;
+      }
+      html body a:hover {
+        color: #00a3f5;
+        text-decoration: none;
+      }
+      html body img {
+        max-width: 100%;
+      }
+      html body > p {
+        margin-top: 0;
+        margin-bottom: 16px;
+        word-wrap: break-word;
+      }
+      html body > ol,
+      html body > ul {
+        margin-bottom: 16px;
+      }
+      html body ol,
+      html body ul {
+        padding-left: 2em;
+      }
+      html body ol.no-list,
+      html body ul.no-list {
+        padding: 0;
+        list-style-type: none;
+      }
+      html body ol ol,
+      html body ol ul,
+      html body ul ol,
+      html body ul ul {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+      html body li {
+        margin-bottom: 0;
+      }
+      html body li.task-list-item {
+        list-style: none;
+      }
+      html body li > p {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+      html body .task-list-item-checkbox {
+        margin: 0 0.2em 0.25em -1.8em;
+        vertical-align: middle;
+      }
+      html body .task-list-item-checkbox:hover {
+        cursor: pointer;
+      }
+      html body blockquote {
+        margin: 16px 0;
+        font-size: inherit;
+        padding: 0 15px;
+        color: #5c5c5c;
+        background-color: #f0f0f0;
+        border-left: 4px solid #d6d6d6;
+      }
+      html body blockquote > :first-child {
+        margin-top: 0;
+      }
+      html body blockquote > :last-child {
+        margin-bottom: 0;
+      }
+      html body hr {
+        height: 4px;
+        margin: 32px 0;
+        background-color: #d6d6d6;
+        border: 0 none;
+      }
+      html body table {
+        margin: 10px 0 15px 0;
+        border-collapse: collapse;
+        border-spacing: 0;
+        display: block;
+        width: 100%;
+        overflow: auto;
+        word-break: normal;
+        word-break: keep-all;
+      }
+      html body table th {
+        font-weight: 700;
+        color: #000;
+      }
+      html body table td,
+      html body table th {
+        border: 1px solid #d6d6d6;
+        padding: 6px 13px;
+      }
+      html body dl {
+        padding: 0;
+      }
+      html body dl dt {
+        padding: 0;
+        margin-top: 16px;
+        font-size: 1em;
+        font-style: italic;
+        font-weight: 700;
+      }
+      html body dl dd {
+        padding: 0 16px;
+        margin-bottom: 16px;
+      }
+      html body code {
+        font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+        font-size: 0.85em;
+        color: #000;
+        background-color: #f0f0f0;
+        border-radius: 3px;
+        padding: 0.2em 0;
+      }
+      html body code::after,
+      html body code::before {
+        letter-spacing: -0.2em;
+        content: "\00a0";
+      }
+      html body pre > code {
+        padding: 0;
+        margin: 0;
+        word-break: normal;
+        white-space: pre;
+        background: 0 0;
+        border: 0;
+      }
+      html body .highlight {
+        margin-bottom: 16px;
+      }
+      html body .highlight pre,
+      html body pre {
+        padding: 1em;
+        overflow: auto;
+        line-height: 1.45;
+        border: #d6d6d6;
+        border-radius: 3px;
+      }
+      html body .highlight pre {
+        margin-bottom: 0;
+        word-break: normal;
+      }
+      html body pre code,
+      html body pre tt {
+        display: inline;
+        max-width: initial;
+        padding: 0;
+        margin: 0;
+        overflow: initial;
+        line-height: inherit;
+        word-wrap: normal;
+        background-color: transparent;
+        border: 0;
+      }
+      html body pre code:after,
+      html body pre code:before,
+      html body pre tt:after,
+      html body pre tt:before {
+        content: normal;
+      }
+      html body blockquote,
+      html body dl,
+      html body ol,
+      html body p,
+      html body pre,
+      html body ul {
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      html body kbd {
+        color: #000;
+        border: 1px solid #d6d6d6;
+        border-bottom: 2px solid #c7c7c7;
+        padding: 2px 4px;
+        background-color: #f0f0f0;
+        border-radius: 3px;
+      }
+      @media print {
+        html body {
+          background-color: #fff;
+        }
+        html body h1,
+        html body h2,
+        html body h3,
+        html body h4,
+        html body h5,
+        html body h6 {
+          color: #000;
+          page-break-after: avoid;
+        }
+        html body blockquote {
+          color: #5c5c5c;
+        }
+        html body pre {
+          page-break-inside: avoid;
+        }
+        html body table {
+          display: table;
+        }
+        html body img {
+          display: block;
+          max-width: 100%;
+          max-height: 100%;
+        }
+        html body code,
+        html body pre {
+          word-wrap: break-word;
+          white-space: pre;
+        }
+      }
+      .markdown-preview {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+      }
+      .markdown-preview ul {
+        list-style: disc;
+      }
+      .markdown-preview ul ul {
+        list-style: circle;
+      }
+      .markdown-preview ul ul ul {
+        list-style: square;
+      }
+      .markdown-preview ol {
+        list-style: decimal;
+      }
+      .markdown-preview ol ol,
+      .markdown-preview ul ol {
+        list-style-type: lower-roman;
+      }
+      .markdown-preview ol ol ol,
+      .markdown-preview ol ul ol,
+      .markdown-preview ul ol ol,
+      .markdown-preview ul ul ol {
+        list-style-type: lower-alpha;
+      }
+      .markdown-preview .newpage,
+      .markdown-preview .pagebreak {
+        page-break-before: always;
+      }
+      .markdown-preview pre.line-numbers {
+        position: relative;
+        padding-left: 3.8em;
+        counter-reset: linenumber;
+      }
+      .markdown-preview pre.line-numbers > code {
+        position: relative;
+      }
+      .markdown-preview pre.line-numbers .line-numbers-rows {
+        position: absolute;
+        pointer-events: none;
+        top: 1em;
+        font-size: 100%;
+        left: 0;
+        width: 3em;
+        letter-spacing: -1px;
+        border-right: 1px solid #999;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      .markdown-preview pre.line-numbers .line-numbers-rows > span {
+        pointer-events: none;
+        display: block;
+        counter-increment: linenumber;
+      }
+      .markdown-preview pre.line-numbers .line-numbers-rows > span:before {
+        content: counter(linenumber);
+        color: #999;
+        display: block;
+        padding-right: 0.8em;
+        text-align: right;
+      }
+      .markdown-preview .mathjax-exps .MathJax_Display {
+        text-align: center !important;
+      }
+      .markdown-preview:not([data-for="preview"])
+        .code-chunk
+        .code-chunk-btn-group {
+        display: none;
+      }
+      .markdown-preview:not([data-for="preview"]) .code-chunk .status {
+        display: none;
+      }
+      .markdown-preview:not([data-for="preview"]) .code-chunk .output-div {
+        margin-bottom: 16px;
+      }
+      .markdown-preview .md-toc {
+        padding: 0;
+      }
+      .markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link {
+        display: inline;
+        padding: 0.25rem 0;
+      }
+      .markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,
+      .markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p {
+        display: inline;
+      }
+      .markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link {
+        font-weight: 800;
+      }
+      .scrollbar-style::-webkit-scrollbar {
+        width: 8px;
+      }
+      .scrollbar-style::-webkit-scrollbar-track {
+        border-radius: 10px;
+        background-color: transparent;
+      }
+      .scrollbar-style::-webkit-scrollbar-thumb {
+        border-radius: 5px;
+        background-color: rgba(150, 150, 150, 0.66);
+        border: 4px solid rgba(150, 150, 150, 0.66);
+        background-clip: content-box;
+      }
+      html body[for="html-export"]:not([data-presentation-mode]) {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+      }
+      html
+        body[for="html-export"]:not([data-presentation-mode])
+        .markdown-preview {
+        position: relative;
+        top: 0;
+        min-height: 100vh;
+      }
+      @media screen and (min-width: 914px) {
+        html
+          body[for="html-export"]:not([data-presentation-mode])
+          .markdown-preview {
+          padding: 2em calc(50% - 457px + 2em);
+        }
+      }
+      @media screen and (max-width: 914px) {
+        html
+          body[for="html-export"]:not([data-presentation-mode])
+          .markdown-preview {
+          padding: 2em;
+        }
+      }
+      @media screen and (max-width: 450px) {
+        html
+          body[for="html-export"]:not([data-presentation-mode])
+          .markdown-preview {
+          font-size: 14px !important;
+          padding: 1em;
+        }
+      }
+      @media print {
+        html
+          body[for="html-export"]:not([data-presentation-mode])
+          #sidebar-toc-btn {
+          display: none;
+        }
+      }
+      html
+        body[for="html-export"]:not([data-presentation-mode])
+        #sidebar-toc-btn {
+        position: fixed;
+        bottom: 8px;
+        left: 8px;
+        font-size: 28px;
+        cursor: pointer;
+        color: inherit;
+        z-index: 99;
+        width: 32px;
+        text-align: center;
+        opacity: 0.4;
+      }
+      html
+        body[for="html-export"]:not(
+          [data-presentation-mode]
+        )[html-show-sidebar-toc]
+        #sidebar-toc-btn {
+        opacity: 1;
+      }
+      html
+        body[for="html-export"]:not(
+          [data-presentation-mode]
+        )[html-show-sidebar-toc]
+        .md-sidebar-toc {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 300px;
+        height: 100%;
+        padding: 32px 0 48px 0;
+        font-size: 14px;
+        box-shadow: 0 0 4px rgba(150, 150, 150, 0.33);
+        box-sizing: border-box;
+        overflow: auto;
+        background-color: inherit;
+      }
+      html
+        body[for="html-export"]:not(
+          [data-presentation-mode]
+        )[html-show-sidebar-toc]
+        .md-sidebar-toc::-webkit-scrollbar {
+        width: 8px;
+      }
+      html
+        body[for="html-export"]:not(
+          [data-presentation-mode]
+        )[html-show-sidebar-toc]
+        .md-sidebar-toc::-webkit-scrollbar-track {
+        border-radius: 10px;
+        background-color: transparent;
+      }
+      html
+        body[for="html-export"]:not(
+          [data-presentation-mode]
+        )[html-show-sidebar-toc]
+        .md-sidebar-toc::-webkit-scrollbar-thumb {
+        border-radius: 5px;
+        background-color: rgba(150, 150, 150, 0.66);
+        border: 4px solid rgba(150, 150, 150, 0.66);
+        background-clip: content-box;
+      }
+      html
+        body[for="html-export"]:not(
+          [data-presentation-mode]
+        )[html-show-sidebar-toc]
+        .md-sidebar-toc
+        a {
+        text-decoration: none;
+      }
+      html
+        body[for="html-export"]:not(
+          [data-presentation-mode]
+        )[html-show-sidebar-toc]
+        .md-sidebar-toc
+        .md-toc {
+        padding: 0 16px;
+      }
+      html
+        body[for="html-export"]:not(
+          [data-presentation-mode]
+        )[html-show-sidebar-toc]
+        .md-sidebar-toc
+        .md-toc
+        .md-toc-link-wrapper
+        .md-toc-link {
+        display: inline;
+        padding: 0.25rem 0;
+      }
+      html
+        body[for="html-export"]:not(
+          [data-presentation-mode]
+        )[html-show-sidebar-toc]
+        .md-sidebar-toc
+        .md-toc
+        .md-toc-link-wrapper
+        .md-toc-link
+        div,
+      html
+        body[for="html-export"]:not(
+          [data-presentation-mode]
+        )[html-show-sidebar-toc]
+        .md-sidebar-toc
+        .md-toc
+        .md-toc-link-wrapper
+        .md-toc-link
+        p {
+        display: inline;
+      }
+      html
+        body[for="html-export"]:not(
+          [data-presentation-mode]
+        )[html-show-sidebar-toc]
+        .md-sidebar-toc
+        .md-toc
+        .md-toc-link-wrapper.highlighted
+        .md-toc-link {
+        font-weight: 800;
+      }
+      html
+        body[for="html-export"]:not(
+          [data-presentation-mode]
+        )[html-show-sidebar-toc]
+        .markdown-preview {
+        left: 300px;
+        width: calc(100% - 300px);
+        padding: 2em calc(50% - 457px - 300px / 2);
+        margin: 0;
+        box-sizing: border-box;
+      }
+      @media screen and (max-width: 1274px) {
+        html
+          body[for="html-export"]:not(
+            [data-presentation-mode]
+          )[html-show-sidebar-toc]
+          .markdown-preview {
+          padding: 2em;
+        }
+      }
+      @media screen and (max-width: 450px) {
+        html
+          body[for="html-export"]:not(
+            [data-presentation-mode]
+          )[html-show-sidebar-toc]
+          .markdown-preview {
+          width: 100%;
+        }
+      }
+      html
+        body[for="html-export"]:not([data-presentation-mode]):not(
+          [html-show-sidebar-toc]
+        )
+        .markdown-preview {
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      html
+        body[for="html-export"]:not([data-presentation-mode]):not(
+          [html-show-sidebar-toc]
+        )
+        .md-sidebar-toc {
+        display: none;
+      }
+      /* Please visit the URL below for more information: */
+      /*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+      #backToTop {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #08c;
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 14px;
+        text-decoration: none;
+        display: none;
+        cursor: pointer;
+        z-index: 9999;
+      }
 
-      <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const btn = document.getElementById('backToTop');
-    if (!btn) return;
-  
-    // show/hide on scroll
-    function toggleButton() {
-      btn.style.display = window.scrollY > 300 ? 'block' : 'none';
-    }
-    document.addEventListener('scroll', toggleButton);
-    toggleButton(); // initial state
-  
-    // smooth scroll without the browser instant-jump
-    btn.addEventListener('click', function (e) {
-      e.preventDefault(); // IMPORTANT: stop the instant anchor jump
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
+      #backToTop:hover {
+        background: #00a3f5;
+      }
+    </style>
+    <!-- The content below will be included at the end of the <head> element. -->
+    <script type="text/javascript">
+      document.addEventListener("DOMContentLoaded", function () {
+        // your code here
       });
-    });
-  });
-  </script>  
-    </body></html>
+    </script>
+  </head>
+  <body for="html-export">
+    <div class="crossnote markdown-preview">
+      <a id="top"></a>
+      <h2 id="students-database---working-instructions">
+        Students Database - Working Instructions
+      </h2>
+      <h3 id="table-of-contents">Table of Contents</h3>
+      <ol>
+        <li>
+          <a href="#1-system-overview">System Overview</a>
+          <ul>
+            <li>
+              1.1
+              <a href="#11-quick-start-guide--prerequisites"
+                >Quick Start Guide &amp; Prerequisites</a
+              >
+            </li>
+          </ul>
+        </li>
+        <li>
+          <a href="#2-import-student-data-instructions"
+            >Import Student Data Instructions</a
+          >
+          <ul>
+            <li>
+              2.1
+              <a href="#21-accessing-the-import-student-data-form"
+                >Accessing the Import Student Data Form</a
+              >
+            </li>
+            <li>
+              2.2
+              <a href="#22-step-by-step-import-process"
+                >Step-by-Step Import Process</a
+              >
+            </li>
+            <li>
+              2.3
+              <a href="#23-import-error-messages-and-solutions"
+                >Import Error Messages and Solutions</a
+              >
+            </li>
+          </ul>
+        </li>
+        <li>
+          <a href="#3-update-student-information-instructions"
+            >Update Student Information Instructions</a
+          >
+          <ul>
+            <li>
+              3.1
+              <a href="#31-accessing-the-update-student-information-form"
+                >Accessing the Update Student Information Form</a
+              >
+            </li>
+            <li>
+              3.2
+              <a href="#32-step-by-step-update-process"
+                >Step-by-Step Update Process</a
+              >
+            </li>
+            <li>
+              3.3
+              <a href="#33-update-error-messages-and-solutions"
+                >Update Error Messages and Solutions</a
+              >
+            </li>
+          </ul>
+        </li>
+        <li>
+          <a href="#4-data-management-instructions"
+            >Data Management Instructions</a
+          >
+          <ul>
+            <li>
+              4.1
+              <a href="#41-academic-year-sheet-structure"
+                >Academic Year Sheet Structure</a
+              >
+            </li>
+            <li>
+              4.2
+              <a href="#42-creating-a-new-academic-year-sheet"
+                >Creating a New Academic Year Sheet</a
+              >
+            </li>
+            <li>
+              4.3
+              <a href="#43-understanding-the-update-log"
+                >Understanding the Update Log</a
+              >
+            </li>
+          </ul>
+        </li>
+        <li>
+          <a href="#5-troubleshooting-guide">Troubleshooting Guide</a>
+          <ul>
+            <li>
+              5.1
+              <a href="#51-import-form-loading-problems"
+                >Import Form Loading Problems</a
+              >
+            </li>
+            <li>
+              5.2 <a href="#52-csv-import-failures">CSV Import Failures</a>
+            </li>
+            <li>
+              5.3
+              <a href="#53-duplicate-student-number-errors"
+                >Duplicate Student Number Errors</a
+              >
+            </li>
+            <li>
+              5.4
+              <a href="#54-update-form-not-finding-students"
+                >Update Form Not Finding Students</a
+              >
+            </li>
+            <li>5.5 <a href="#55-update-failures">Update Failures</a></li>
+            <li>
+              5.6
+              <a href="#56-academic-year-sheet-not-appearing"
+                >Academic Year Sheet Not Appearing</a
+              >
+            </li>
+            <li>5.7 <a href="#57-permission-errors">Permission Errors</a></li>
+            <li>
+              5.8
+              <a href="#58-update-log-not-appearing"
+                >Update Log Not Appearing</a
+              >
+            </li>
+            <li>
+              5.9
+              <a href="#59-data-formatting-issues">Data Formatting Issues</a>
+            </li>
+            <li>
+              5.10
+              <a href="#510-script-execution-errors">Script Execution Errors</a>
+            </li>
+          </ul>
+        </li>
+      </ol>
+      <hr />
+      <h3 id="1-system-overview">1. System Overview</h3>
+      <p>
+        The Students Database is a Google Apps Script application that manages
+        student information across multiple academic years. The system provides
+        two main interfaces:
+      </p>
+      <ul>
+        <li>
+          <strong>Import Student Data Form</strong>: For importing student
+          records from CSV files into academic year sheets
+        </li>
+        <li>
+          <strong>Update Student Information Form</strong>: For searching and
+          modifying existing student records
+        </li>
+      </ul>
+      <p>
+        Both forms are accessible through the <strong>Upload</strong> menu in
+        the Google Sheets interface.
+      </p>
+      <hr />
+      <h4 id="11-quick-start-guide--prerequisites">
+        1.1 Quick Start Guide &amp; Prerequisites
+      </h4>
+      <p>Before using the Students Database, ensure you have the following:</p>
+      <ul>
+        <li>
+          A Google account with access to the Students Database spreadsheet
+        </li>
+        <li>
+          Edit permissions for the spreadsheet (contact your administrator if
+          needed)
+        </li>
+        <li>
+          For importing: A properly formatted CSV file containing student data
+        </li>
+        <li>A stable internet connection</li>
+      </ul>
+      <p><strong>To import student data:</strong></p>
+      <ol>
+        <li>
+          Open the spreadsheet → Click <strong>Upload</strong> menu → Select
+          <strong>Import Student Data</strong>
+        </li>
+        <li>Choose an academic year from the dropdown</li>
+        <li>Click <strong>Choose File</strong> and select your CSV file</li>
+        <li>Click <strong>Import Data</strong> and wait for confirmation</li>
+      </ol>
+      <p><strong>To update student information:</strong></p>
+      <ol>
+        <li>
+          Open the spreadsheet → Click <strong>Upload</strong> menu → Select
+          <strong>Update Student Information</strong>
+        </li>
+        <li>Choose an academic year and enter the student number</li>
+        <li>
+          Click <strong>Load Student</strong> to retrieve the student's
+          information
+        </li>
+        <li>
+          Select the field to update, enter the new information, and click
+          <strong>Update Information</strong>
+        </li>
+      </ol>
+      <hr />
+      <h3 id="2-import-student-data-instructions">
+        2. Import Student Data Instructions
+      </h3>
+      <h4 id="21-accessing-the-import-student-data-form">
+        2.1 Accessing the Import Student Data Form
+      </h4>
+      <p><img src="assets/cSDB-1.png" alt="Image" /></p>
+      <blockquote>
+        <p>
+          <strong>Important</strong>: You must create the academic year sheet
+          manually before you can import data into it. If you need to create a
+          new academic year sheet, see
+          <a href="#42-creating-a-new-academic-year-sheet"
+            >Section 4.2: Creating a New Academic Year Sheet</a
+          >
+          for step-by-step instructions.
+        </p>
+      </blockquote>
+      <ol>
+        <li>
+          Open the main Google Sheets document containing the Students Database
+        </li>
+        <li>Click the <strong>Upload</strong> menu in the top menu bar</li>
+        <li>
+          Select <strong>Import Student Data</strong> from the dropdown menu
+        </li>
+        <li>The Import Student Data Form will open in a modal dialog window</li>
+      </ol>
+      <p><img src="assets/1sdb.png" alt="Image" /></p>
+      <hr />
+      <h4 id="22-step-by-step-import-process">
+        2.2 Step-by-Step Import Process
+      </h4>
+      <h3 id="step-1-select-academic-year">
+        <strong>Step 1: Select Academic Year</strong>
+      </h3>
+      <ol>
+        <li>Click the <strong>Academic Year</strong> dropdown</li>
+      </ol>
+      <p><img src="assets/2sdb.png" alt="Image" /></p>
+      <ol start="2">
+        <li>
+          Select the academic year sheet where you want to import the data
+        </li>
+      </ol>
+      <p><img src="assets/2.1sdb.png" alt="Image" /></p>
+      <blockquote>
+        <p>
+          <strong>Note</strong>: If the year you need doesn't appear, see
+          <a href="#42-creating-a-new-academic-year-sheet">Section 4.2</a> to
+          create a new academic year sheet.
+        </p>
+      </blockquote>
+      <hr />
+      <h3 id="step-2-prepare-your-students-information-csv-file">
+        <strong>Step 2: Prepare Your Students Information CSV File</strong>
+      </h3>
+      <p>Your CSV file must have the following headers in this exact order:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Column 1</th>
+            <th>Column 2</th>
+            <th>Column 3</th>
+            <th>Column 4</th>
+            <th>Column 5</th>
+            <th>Column 6</th>
+            <th>Column 7</th>
+            <th>Column 8</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Student Number</td>
+            <td>Last Name</td>
+            <td>First Name</td>
+            <td>Middle Name</td>
+            <td>Grade Level</td>
+            <td>Section</td>
+            <td>Strand</td>
+            <td>Gender</td>
+          </tr>
+        </tbody>
+      </table>
+      <p><strong>Sample CSV File Format with Students Data:</strong></p>
+      <p><img src="assets/asampleCSVFile.png" alt="Sample CSV File" /></p>
+      <p><strong>Important Requirements:</strong></p>
+      <ul>
+        <li>
+          The first row must contain these exact headers (spelling and
+          capitalization matter)
+        </li>
+        <li>Student data rows should start from the second row</li>
+        <li>Each student number must be unique within the file</li>
+        <li>Save your file in CSV (.csv) format</li>
+      </ul>
+      <blockquote>
+        <p>
+          <strong>Tip</strong>: You can create a CSV file by exporting from
+          Excel (<strong>File → Save As → CSV</strong>) or Google Sheets
+          (<strong>File → Download → Comma-separated values</strong>).
+        </p>
+      </blockquote>
+      <hr />
+      <h3 id="step-3-upload-the-students-information-csv-file">
+        <strong>Step 3: Upload the Students Information CSV File</strong>
+      </h3>
+      <ol>
+        <li>Click the <strong>Choose File</strong> button</li>
+      </ol>
+      <p><img src="assets/3.1sdb.png" alt="Image" /></p>
+      <ol start="2">
+        <li>Navigate to your CSV file and select it</li>
+      </ol>
+      <p><img src="assets/4.1sdb.png" alt="Image" /></p>
+      <ol start="3">
+        <li>The file name will appear in the input field once selected</li>
+      </ol>
+      <p><img src="assets/5.1sdb.png" alt="Image" /></p>
+      <hr />
+      <h3 id="step-4-import-the-data">
+        <strong>Step 4: Import the Data</strong>
+      </h3>
+      <ol>
+        <li>Click the <strong>Import Data</strong> button</li>
+      </ol>
+      <p><img src="assets/6.1sdb.png" alt="Image" /></p>
+      <ol start="2">
+        <li>
+          The button will display <strong>Importing...</strong> while processing
+        </li>
+      </ol>
+      <p><img src="assets/7sdb.png" alt="Image" /></p>
+      <ol start="3">
+        <li>Wait for the success confirmation message</li>
+      </ol>
+      <p><img src="assets/sdb1.1.png" alt="Image" /></p>
+      <ol start="4">
+        <li>The form will automatically close upon successful import</li>
+      </ol>
+      <hr />
+      <h3 id="step-5-verify-the-import">
+        <strong>Step 5: Verify the Import</strong>
+      </h3>
+      <p><img src="assets/sdb2.png" alt="Image" /></p>
+      <ol>
+        <li>
+          Navigate to the selected academic year sheet in your spreadsheet
+        </li>
+        <li>
+          Verify that the student data appears starting from row 3 (rows 1-2
+          contain headers)
+        </li>
+        <li>Confirm that all columns are properly populated</li>
+      </ol>
+      <hr />
+      <h4 id="23-import-error-messages-and-solutions">
+        2.3 Import Error Messages and Solutions
+      </h4>
+      <h5 id="duplicate-student-numbers">Duplicate Student Numbers</h5>
+      <p><img src="assets/sdb1.png" alt="Image" /></p>
+      <p>
+        <strong>What it means:</strong> The CSV file contains one or more
+        students with the same student number.
+      </p>
+      <p><strong>How to fix it:</strong></p>
+      <ol>
+        <li>Open your CSV file in Excel or Google Sheets</li>
+        <li>
+          Find and remove the duplicate student numbers listed in the error
+          message
+        </li>
+        <li>Save the file and try importing again</li>
+      </ol>
+      <hr />
+      <h5 id="csv-format-errors">CSV Format Errors</h5>
+      <p><img src="assets/sdb3.1.png" alt="Image" /></p>
+      <p>
+        <strong>What it means:</strong> The headers in your CSV file don't match
+        the required format.
+      </p>
+      <p><strong>How to fix it:</strong></p>
+      <ol>
+        <li>
+          Verify that your headers are exactly: Student Number, Last Name, First
+          Name, Middle Name, Grade Level, Section, Strand, Gender
+        </li>
+        <li>Check for extra spaces before or after header names</li>
+        <li>
+          Ensure your file is saved as CSV format (not Excel or other formats)
+        </li>
+      </ol>
+      <hr />
+      <h5 id="empty-csv-file">Empty CSV File</h5>
+      <p><img src="assets/sdb3.2.png" alt="Image" /></p>
+      <p>
+        <strong>What it means:</strong> The CSV file contains no student data or
+        headers.
+      </p>
+      <p><strong>How to fix it:</strong></p>
+      <ol>
+        <li>
+          Open your CSV file and ensure it contains data rows below the header
+          row
+        </li>
+        <li>Save the file and try importing again</li>
+      </ol>
+      <hr />
+      <h5 id="missing-academic-year">Missing Academic Year</h5>
+      <p><img src="assets/sdb3.3.png" alt="Image" /></p>
+      <p>
+        <strong>What it means:</strong> You clicked Import Data without
+        selecting an academic year.
+      </p>
+      <p><strong>How to fix it:</strong></p>
+      <ol>
+        <li>Select an academic year from the dropdown</li>
+        <li>
+          Click <strong>Import Data</strong> after selecting an academic year
+        </li>
+      </ol>
+      <hr />
+      <h3 id="3-update-student-information-instructions">
+        3. Update Student Information Instructions
+      </h3>
+      <h4 id="31-accessing-the-update-student-information-form">
+        3.1 Accessing the Update Student Information Form
+      </h4>
+      <p><img src="assets/sdb4.1.png" alt="Image" /></p>
+      <ol>
+        <li>
+          Open the Google Sheets document containing the Students Database
+        </li>
+        <li>Click the <strong>Upload</strong> menu in the top menu bar</li>
+        <li>
+          Select <strong>Update Student Information</strong> from the dropdown
+          menu
+        </li>
+        <li>
+          The Update Student Information Form will open in a modal dialog window
+        </li>
+      </ol>
+      <hr />
+      <h4 id="32-step-by-step-update-process">
+        3.2 Step-by-Step Update Process
+      </h4>
+      <h3 id="step-1-select-academic-year-1">
+        <strong>Step 1: Select Academic Year</strong>
+      </h3>
+      <p><img src="assets/sdb5.png" alt="Image" /></p>
+      <ol>
+        <li>Click the <strong>Academic Year</strong> dropdown</li>
+        <li>Select the academic year sheet where the student is enrolled</li>
+      </ol>
+      <hr />
+      <h3 id="step-2-enter-student-number">
+        <strong>Step 2: Enter Student Number</strong>
+      </h3>
+      <p><img src="assets/sdb5.1.png" alt="Image" /></p>
+      <ol>
+        <li>
+          Type the student number in the <strong>Student Number</strong> field
+        </li>
+        <li>
+          As you type, matching student numbers will appear in a dropdown list
+        </li>
+        <li>
+          Click on a suggestion to select it, or continue typing the full number
+        </li>
+      </ol>
+      <blockquote>
+        <p>
+          <strong>Tip</strong>: Use the arrow keys to navigate through
+          suggestions and press Enter to select.
+        </p>
+      </blockquote>
+      <hr />
+      <h3 id="step-3-load-student-information">
+        <strong>Step 3: Load Student Information</strong>
+      </h3>
+      <ol>
+        <li>Click the <strong>Load Student</strong> button</li>
+      </ol>
+      <p><img src="assets/sdb5.2.png" alt="Image" /></p>
+      <ol start="2">
+        <li>
+          The button will display <strong>Loading...</strong> while processing
+        </li>
+      </ol>
+      <p><img src="assets/sdb9.1.png" alt="Image" /></p>
+      <ol start="3">
+        <li>
+          If found, the student information will appear in the Current Student
+          Information panel
+        </li>
+      </ol>
+      <p><img src="assets/sdb6.png" alt="Image" /></p>
+      <ol start="4">
+        <li>The Update Section will become visible below</li>
+      </ol>
+      <p><strong>If the student is found:</strong></p>
+      <p><img src="assets/sdb01.png" alt="Image" /></p>
+      <p>
+        All student fields will be displayed, and you can proceed to update.
+      </p>
+      <p><strong>If the student is not found:</strong></p>
+      <p><img src="assets/sdb02.png" alt="Image" /></p>
+      <p>An error message will appear. Verify that:</p>
+      <ul>
+        <li>The student number is correct</li>
+        <li>You selected the correct academic year</li>
+        <li>The student exists in that academic year's sheet</li>
+      </ul>
+      <hr />
+      <h3 id="step-4-select-field-to-update">
+        <strong>Step 4: Select Field to Update</strong>
+      </h3>
+      <ol>
+        <li>Click the <strong>Field to Update</strong> dropdown</li>
+      </ol>
+      <p><img src="assets/sdb7.png" alt="Image" /></p>
+      <ol start="2">
+        <li>
+          Select the field you want to modify (e.g., Last Name, First Name,
+          Grade Level, etc.)
+        </li>
+      </ol>
+      <p><img src="assets/sdb8.png" alt="Image" /></p>
+      <ol start="3">
+        <li>
+          The current value will automatically appear in the Current Value
+          display
+        </li>
+      </ol>
+      <blockquote>
+        <p>
+          <strong>Note</strong>: Student Number cannot be updated because it
+          serves as the unique identifier for each student.
+        </p>
+      </blockquote>
+      <hr />
+      <h3 id="step-5-enter-new-information">
+        <strong>Step 5: Enter New Information</strong>
+      </h3>
+      <ol>
+        <li>
+          Type the new information in the <strong>New Value</strong> field
+        </li>
+      </ol>
+      <p><img src="assets/sdb8.1.png" alt="Image" /></p>
+      <ol start="2">
+        <li>
+          Double-check that the new information is correct before proceeding
+        </li>
+      </ol>
+      <hr />
+      <h3 id="step-6-add-remarks-optional">
+        <strong>Step 6: Add Remarks (Optional)</strong>
+      </h3>
+      <ol>
+        <li>
+          Enter any notes explaining the reason for the update in the
+          <strong>Remarks</strong> field
+        </li>
+      </ol>
+      <p><img src="assets/sdb8.2.png" alt="Image" /></p>
+      <ol start="2">
+        <li>
+          This information will be recorded in the Update Log for audit purposes
+        </li>
+      </ol>
+      <blockquote>
+        <p>
+          <strong>Recommendation</strong>: Always add remarks to maintain a
+          clear record of why changes were made.
+        </p>
+      </blockquote>
+      <hr />
+      <h3 id="step-7-save-the-changes">
+        <strong>Step 7: Save the Changes</strong>
+      </h3>
+      <ol>
+        <li>Click the <strong>Update Information</strong> button</li>
+      </ol>
+      <p><img src="assets/sdb9.png" alt="Image" /></p>
+      <ol start="2">
+        <li>
+          The button will display <strong>Updating...</strong> while processing
+        </li>
+      </ol>
+      <p><img src="assets/001sdb.png" alt="Image" /></p>
+      <ol start="3">
+        <li>
+          A success message will confirm the update, showing both the old and
+          new information
+        </li>
+      </ol>
+      <p><img src="assets/002sdb.png" alt="Image" /></p>
+      <ol start="4">
+        <li>The change is automatically recorded in the Update Log sheet</li>
+      </ol>
+      <hr />
+      <h4 id="33-update-error-messages-and-solutions">
+        3.3 Update Error Messages and Solutions
+      </h4>
+      <h5 id="no-field-selected">No Field Selected</h5>
+      <p><img src="assets/1sdb1.png" alt="Image" /></p>
+      <p>
+        <strong>What it means:</strong> You clicked Update Information without
+        selecting a field to update.
+      </p>
+      <p>
+        <strong>How to fix it:</strong> Select a field from the "Field to
+        Update" dropdown before proceeding.
+      </p>
+      <hr />
+      <h5 id="same-value-error">Same Value Error</h5>
+      <p><img src="assets/2sdb2.png" alt="Image" /></p>
+      <p>
+        <strong>What it means:</strong> The new information you entered is
+        identical to the current value.
+      </p>
+      <p>
+        <strong>How to fix it:</strong> Enter information that is different from
+        the current value.
+      </p>
+      <hr />
+      <h5 id="student-not-loaded">Student Not Loaded</h5>
+      <p><img src="assets/sdb03.png" alt="Image" /></p>
+      <p>
+        <strong>What it means:</strong> You attempted to update without first
+        loading a student's information.
+      </p>
+      <p>
+        <strong>How to fix it:</strong> Enter a student number and click Load
+        Student before attempting to update.
+      </p>
+      <hr />
+      <h3 id="4-data-management-instructions">
+        4. Data Management Instructions
+      </h3>
+      <h4 id="41-academic-year-sheet-structure">
+        4.1 Academic Year Sheet Structure
+      </h4>
+      <p><img src="assets/dbsheet2.png" alt="Image" /></p>
+      <p>Each academic year sheet follows this structure:</p>
+      <ul>
+        <li><strong>Rows 1–2:</strong> Header rows (managed by the system)</li>
+        <li><strong>Row 3 onwards:</strong> Student data rows</li>
+        <li>
+          <strong>Columns:</strong> Student Number, Last Name, First Name,
+          Middle Name, Grade Level, Section, Strand, Gender
+        </li>
+      </ul>
+      <hr />
+      <h4 id="42-creating-a-new-academic-year-sheet">
+        4.2 Creating a New Academic Year Sheet
+      </h4>
+      <p><img src="assets/newsdb1.png" alt="Image" /></p>
+      <p>Follow these steps to create a new academic year sheet:</p>
+      <h3 id="step-1-duplicate-an-existing-sheet">
+        <strong>Step 1: Duplicate an Existing Sheet</strong>
+      </h3>
+      <p><img src="assets/Csdb1.png" alt="Image" /></p>
+      <ol>
+        <li>Right-click an existing academic year sheet</li>
+        <li>Select <strong>Duplicate</strong></li>
+      </ol>
+      <p>A copy of the sheet will be created.</p>
+      <p><img src="assets/Csdb2.1.png" alt="Image" /></p>
+      <hr />
+      <h3 id="step-2-rename-the-sheet">
+        <strong>Step 2: Rename the Sheet</strong>
+      </h3>
+      <p><img src="assets/csdb3.png" alt="Image" /></p>
+      <ol>
+        <li>Right-click the copied sheet</li>
+        <li>Select <strong>Rename</strong></li>
+        <li>
+          Enter the new academic year in "YYYY-YYYY" format (e.g., "2025-2026")
+        </li>
+      </ol>
+      <hr />
+      <h3 id="step-3-protect-the-sheet">
+        <strong>Step 3: Protect the Sheet</strong>
+      </h3>
+      <p><img src="assets/csdb4.png" alt="Image" /></p>
+      <ol>
+        <li>Right-click the renamed sheet</li>
+        <li>Select <strong>Protect sheet</strong></li>
+        <li>
+          In the sidebar that appears, click <strong>Set permissions</strong>
+        </li>
+      </ol>
+      <p><img src="assets/csdb5.png" alt="Image" /></p>
+      <ol start="4">
+        <li>Select <strong>Restrict who can edit this range</strong></li>
+        <li>
+          Choose <strong>Only you</strong> from the dropdown (or select
+          <strong>Custom</strong> to add specific collaborators)
+        </li>
+        <li>Click <strong>Done</strong></li>
+      </ol>
+      <p><img src="assets/csdb6.png" alt="Image" /></p>
+      <hr />
+      <h3 id="step-4-clear-existing-student-data">
+        <strong>Step 4: Clear Existing Student Data</strong>
+      </h3>
+      <ol>
+        <li>Select all student data rows (row 3 onwards)</li>
+      </ol>
+      <p><img src="assets/rsdb1.png" alt="Image" /></p>
+      <ol start="2">
+        <li>Delete the content (do not delete the header rows 1–2)</li>
+        <li>
+          The new academic year sheet is now ready for student data import
+        </li>
+      </ol>
+      <p><img src="assets/lsdb1.png" alt="Image" /></p>
+      <hr />
+      <h4 id="43-understanding-the-update-log">
+        4.3 Understanding the Update Log
+      </h4>
+      <p><img src="assets/updatelogsheet1.1.png" alt="Image" /></p>
+      <p>
+        The Update Log automatically records every change made to student
+        information, providing a complete audit trail for all modifications.
+        This sheet is created automatically when the first update is made.
+      </p>
+      <p><strong>Log Entry Fields:</strong></p>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Timestamp</td>
+            <td>Date and time when the update was made</td>
+          </tr>
+          <tr>
+            <td>Updated By</td>
+            <td>Email address of the user who made the update</td>
+          </tr>
+          <tr>
+            <td>Student Number</td>
+            <td>The student's identification number</td>
+          </tr>
+          <tr>
+            <td>Academic Year</td>
+            <td>The academic year sheet where the update occurred</td>
+          </tr>
+          <tr>
+            <td>Field Updated</td>
+            <td>Which field was changed</td>
+          </tr>
+          <tr>
+            <td>Old Value</td>
+            <td>The previous value before the update</td>
+          </tr>
+          <tr>
+            <td>New Value</td>
+            <td>The new value after the update</td>
+          </tr>
+          <tr>
+            <td>Remarks</td>
+            <td>Notes provided during the update</td>
+          </tr>
+        </tbody>
+      </table>
+      <blockquote>
+        <p>
+          <strong>Tip:</strong> You can use filters to search for specific
+          students, date ranges, or types of changes in the Update Log.
+        </p>
+      </blockquote>
+      <hr />
+      <h3 id="5-troubleshooting-guide">5. Troubleshooting Guide</h3>
+      <h4 id="51-import-form-loading-problems">
+        5.1 Import Form Loading Problems
+      </h4>
+      <p><strong>Problem</strong>: Import form doesn't open or shows errors</p>
+      <p><strong>Solutions</strong>:</p>
+      <ol>
+        <li>Check your internet connection</li>
+        <li>Refresh the browser page</li>
+        <li>Close and reopen the form from the Google Sheets menu</li>
+        <li>Ensure you have proper permissions to access the spreadsheet</li>
+        <li>Check that the script is properly deployed</li>
+      </ol>
+      <hr />
+      <h4 id="52-csv-import-failures">5.2 CSV Import Failures</h4>
+      <p>
+        <strong>Problem</strong>: CSV file doesn't import or shows format errors
+      </p>
+      <p><strong>Solutions</strong>:</p>
+      <ol>
+        <li>
+          Verify CSV headers match exactly: Student Number, Last Name, First
+          Name, Middle Name, Grade Level, Section, Strand, Gender
+        </li>
+        <li>Check that the CSV file is saved in UTF-8 encoding</li>
+        <li>Ensure there are no special characters causing parsing issues</li>
+        <li>Check that student numbers are unique within the file</li>
+        <li>Ensure data rows start from row 2 (row 1 is headers)</li>
+      </ol>
+      <hr />
+      <h4 id="53-duplicate-student-number-errors">
+        5.3 Duplicate Student Number Errors
+      </h4>
+      <p>
+        <strong>Problem</strong>: Import fails due to duplicate student numbers
+      </p>
+      <p><strong>Solutions</strong>:</p>
+      <ol>
+        <li>Review the error message to identify duplicate student numbers</li>
+        <li>Remove duplicate entries from your CSV file</li>
+        <li>Check the academic year sheet for existing student numbers</li>
+        <li>Re-import the corrected CSV file</li>
+      </ol>
+      <hr />
+      <h4 id="54-update-form-not-finding-students">
+        5.4 Update Form Not Finding Students
+      </h4>
+      <p><strong>Problem</strong>: Student search doesn't return results</p>
+      <p><strong>Solutions</strong>:</p>
+      <ol>
+        <li>Verify the student number is correct</li>
+        <li>Check that the correct academic year is selected</li>
+        <li>Ensure the student exists in the selected academic year sheet</li>
+        <li>Try typing the full student number without spaces</li>
+      </ol>
+      <hr />
+      <h4 id="55-update-failures">5.5 Update Failures</h4>
+      <p>
+        <strong>Problem</strong>: Student information doesn't update or shows
+        errors
+      </p>
+      <p><strong>Solutions</strong>:</p>
+      <ol>
+        <li>
+          Ensure all required fields are filled (field selection and new
+          information)
+        </li>
+        <li>
+          Check that the new information is different from the current value
+        </li>
+        <li>Verify you have write permissions to the spreadsheet</li>
+        <li>Ensure your internet connection is stable</li>
+        <li>Try refreshing the form and updating again</li>
+      </ol>
+      <hr />
+      <h4 id="56-academic-year-sheet-not-appearing">
+        5.6 Academic Year Sheet Not Appearing
+      </h4>
+      <p>
+        <strong>Problem</strong>: Academic year doesn't appear in the dropdown
+      </p>
+      <p><strong>Solutions</strong>:</p>
+      <ol>
+        <li>
+          Verify the sheet name follows the format "YYYY-YYYY" (e.g.,
+          "2024-2025")
+        </li>
+        <li>Check that the sheet exists in the spreadsheet</li>
+        <li>Ensure there are no extra spaces in the sheet name</li>
+        <li>
+          Create the sheet manually if needed (see
+          <a href="#42-creating-a-new-academic-year-sheet">Section 4.2</a>)
+        </li>
+        <li>Refresh the form to reload available sheets</li>
+      </ol>
+      <hr />
+      <h4 id="57-permission-errors">5.7 Permission Errors</h4>
+      <p>
+        <strong>Problem</strong>: "Access denied" or permission-related error
+        messages
+      </p>
+      <p><strong>Solutions</strong>:</p>
+      <ol>
+        <li>Verify you're logged into the correct Google account</li>
+        <li>Check with your administrator about access permissions</li>
+        <li>Ensure you have edit access to the spreadsheet</li>
+        <li>Contact your systems administrator for permission updates</li>
+      </ol>
+      <hr />
+      <h4 id="58-update-log-not-appearing">5.8 Update Log Not Appearing</h4>
+      <p>
+        <strong>Problem</strong>: Update Log sheet doesn't exist or updates
+        aren't logged
+      </p>
+      <p><strong>Solutions</strong>:</p>
+      <ol>
+        <li>
+          The Update Log sheet is created automatically on the first update
+        </li>
+        <li>Check if the sheet exists in your spreadsheet</li>
+        <li>Verify updates are being saved (check the academic year sheet)</li>
+      </ol>
+      <hr />
+      <h4 id="59-data-formatting-issues">5.9 Data Formatting Issues</h4>
+      <p>
+        <strong>Problem</strong>: Imported data appears incorrectly formatted
+      </p>
+      <p><strong>Solutions</strong>:</p>
+      <ol>
+        <li>Data is intentionally left-aligned to prevent auto-formatting</li>
+        <li>Check the CSV file encoding (should be UTF-8)</li>
+        <li>Verify special characters are properly handled</li>
+        <li>Re-import if necessary after fixing the CSV file</li>
+      </ol>
+      <hr />
+      <h4 id="510-script-execution-errors">5.10 Script Execution Errors</h4>
+      <p><strong>Problem</strong>: Scripts fail to execute or timeout</p>
+      <p><strong>Solutions</strong>:</p>
+      <ol>
+        <li>Contact your systems developer</li>
+      </ol>
+      <hr />
+      <p>
+        <em
+          >This working instruction document covers the complete functionality
+          of the Students Database system. For additional support or system
+          modifications, contact your systems developer.</em
+        >
+      </p>
+    </div>
+
+    <a id="backToTop" href="#top" style="display: none">Back to Top</a>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const btn = document.getElementById("backToTop");
+        if (!btn) return;
+
+        // show/hide on scroll
+        function toggleButton() {
+          btn.style.display = window.scrollY > 300 ? "block" : "none";
+        }
+        document.addEventListener("scroll", toggleButton);
+        toggleButton(); // initial state
+
+        // smooth scroll without the browser instant-jump
+        btn.addEventListener("click", function (e) {
+          e.preventDefault(); // IMPORTANT: stop the instant anchor jump
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
