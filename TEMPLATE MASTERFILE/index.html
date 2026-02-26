@@ -5,11 +5,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link
-      rel="stylesheet"
-      href="file:///c:\Users\Ghie\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.20\crossnote\dependencies\katex\katex.min.css"
-    />
-
     <style>
       code[class*="language-"],
       pre[class*="language-"] {
@@ -1071,14 +1066,22 @@
           Choose <strong>Export OGS</strong>
         </li>
         <li>
-          Type in the school year, then pick the grade level, section, and
-          teacher
+          Select <strong>School Year</strong> (from the dropdown; options come
+          from STUDENTS DB), then <strong>Grade Level</strong>. For SHS, select
+          <strong>Strand</strong> and <strong>Semester</strong>, then
+          <strong>Section</strong> (or "All Section" when strand is ALL).
         </li>
         <li>
-          Check that the subjects are correct and click
-          <strong>Generate Template</strong>
+          Select one or more <strong>Teachers</strong> (checkboxes). Review the
+          assigned subjects on the right, then click
+          <strong>Generate Template</strong> (you can generate multiple
+          templates at once).
         </li>
       </ol>
+      <p>
+        <strong>To open this guide from the sheet:</strong>
+        <strong>Manual</strong> → <strong>Open Working Instruction</strong>.
+      </p>
       <hr />
       <h3 id="2-manage-subjects-instructions">
         2. Manage Subjects Instructions
@@ -1615,20 +1618,25 @@
       </ol>
       <hr />
       <h4 id="42-creating-an-ogs-template">4.2 Creating an OGS Template</h4>
-      <h3 id="step-1-type-the-school-year">
-        <strong>Step 1: Type the School Year</strong>
+      <h3 id="step-1-select-the-school-year">
+        <strong>Step 1: Select the School Year</strong>
       </h3>
       <p><img src="assets/ogsSchoolYear.jpg" alt="OGS School Year" /></p>
       <ol>
-        <li>Click in the <strong>School Year</strong> box</li>
-        <li>Type the school year using this format: "YYYY-YYYY"</li>
-        <li>For example, type "2024-2025" for school year 2024-2025</li>
-        <li>Make sure to include the hyphen (-) between the years</li>
+        <li>Click on the <strong>School Year</strong> dropdown</li>
+        <li>
+          Select the school year (e.g. 2024-2025). The list is loaded from the
+          STUDENTS DB spreadsheet
+        </li>
+        <li>
+          If no school years appear, ensure the STUDENTS DB has sheets named in
+          "YYYY-YYYY" format
+        </li>
       </ol>
       <blockquote>
         <p>
-          <strong>Important</strong>: This field is required - you must fill it
-          in.
+          <strong>Important</strong>: School year options come from the linked
+          STUDENTS DB. This field is required.
         </p>
       </blockquote>
       <hr />
@@ -1637,92 +1645,107 @@
       </h3>
       <p><img src="assets/ogsGradeLevel.jpg" alt="OGS Grade Level" /></p>
       <ol>
-        <li>Click on the <strong>Grade Level</strong> box</li>
-        <li>Select the grade level (like Grade 1, Grade 7, Grade 11, etc.)</li>
-        <li>After you select this, the Section box will become available</li>
         <li>
-          The Teacher box will stay grayed out until you also select a section
+          Click on the <strong>Grade Level</strong> box and select the grade
+          (e.g. Grade 1, Grade 7, Grade 11)
+        </li>
+        <li>
+          For SHS, the <strong>Strand</strong> and
+          <strong>Semester</strong> filters will appear next
         </li>
       </ol>
       <hr />
-      <h3 id="step-3-choose-the-section-1">
-        <strong>Step 3: Choose the Section</strong>
+      <h3 id="step-3-strand-and-semester-shs">
+        <strong>Step 3: Filter by Strand and Semester (SHS only)</strong>
+      </h3>
+      <p><img src="assets/ogsSection.jpg" alt="OGS Strand and Semester" /></p>
+      <ol>
+        <li>
+          For Senior High School, select <strong>Strand</strong> (e.g. STEM,
+          HUMSS, ALL) and <strong>Semester</strong> (1ST, 2ND)
+        </li>
+        <li>
+          When Strand is <strong>ALL</strong>, the Section dropdown is hidden
+          and teachers for all sections of that grade are shown
+        </li>
+      </ol>
+      <hr />
+      <h3 id="step-4-choose-the-section-1">
+        <strong>Step 4: Choose the Section</strong>
       </h3>
       <p><img src="assets/ogsSection.jpg" alt="OGS Section" /></p>
       <ol>
         <li>
-          Click on the <strong>Section</strong> box (it should now be clickable)
+          Select <strong>Section</strong> (e.g. A, B, C). For SHS with Strand
+          "ALL", this step is skipped
         </li>
-        <li>Select the section (like A, B, C, etc.)</li>
         <li>
-          The list only shows sections that belong to your selected grade level
+          After section is selected, the <strong>Teachers</strong> list
+          (checkboxes) will load
         </li>
-        <li>After you select this, the Teacher box will become available</li>
       </ol>
       <hr />
-      <h3 id="step-4-choose-the-teacher">
-        <strong>Step 4: Choose the Teacher</strong>
+      <h3 id="step-5-choose-one-or-more-teachers">
+        <strong>Step 5: Choose One or More Teachers</strong>
       </h3>
-      <p><img src="assets/ogsTeacher.jpg" alt="OGS Teacher" /></p>
+      <p><img src="assets/ogsTeacher.jpg" alt="OGS Teachers" /></p>
       <ol>
-        <li>Click in the <strong>Teacher</strong> box</li>
-        <li>Start typing the teacher's name</li>
         <li>
-          You'll see matching names appear - these are teachers who teach the
-          grade level and section you selected
+          You'll see a list of teachers assigned to that grade level and section
+          (or all sections when strand is ALL)
         </li>
-        <li>Click on the correct name or use arrow keys and press Enter</li>
+        <li>
+          Check one or more teachers. You can generate multiple templates in one
+          go
+        </li>
+        <li>
+          Only teachers with at least one subject assignment for the selected
+          filters will appear
+        </li>
       </ol>
       <blockquote>
         <p>
-          <strong>Note</strong>: You'll only see teachers who have subjects
-          assigned to them for this specific grade level and section.
+          <strong>Note</strong>: Assigned subjects are shown in the right panel
+          and are filtered by Strand/Semester for SHS.
         </p>
       </blockquote>
       <hr />
-      <h3 id="step-5-review-the-subjects">
-        <strong>Step 5: Review the Subjects</strong>
+      <h3 id="step-6-review-the-subjects">
+        <strong>Step 6: Review the Subjects</strong>
       </h3>
       <p><img src="assets/ogsAssigned.jpg" alt="OGS Assigned Subjects" /></p>
       <ol>
         <li>
-          After you select a teacher, a section called
-          <strong>Assigned Subjects</strong> will appear
+          The right panel shows <strong>Assigned Subjects</strong> for each
+          selected teacher
         </li>
         <li>
-          This shows all the subjects that teacher teaches for this grade level
-          and section
-        </li>
-        <li>
-          Check this list carefully to make sure all the expected subjects are
-          there
-        </li>
-        <li>
-          If a subject is missing, you'll need to go back and assign it first
-          using the Manage Subjects form
+          Verify the subjects listed; if something is missing, add it first via
+          <strong>Manage Subjects</strong>
         </li>
       </ol>
       <hr />
-      <h3 id="step-6-create-the-template">
-        <strong>Step 6: Create the Template</strong>
+      <h3 id="step-7-create-the-template">
+        <strong>Step 7: Create the Template(s)</strong>
       </h3>
       <p><img src="assets/ogsGenerate.jpg" alt="OGS Generate" /></p>
       <ol>
+        <li>Click the green <strong>Generate Template</strong> button</li>
         <li>
-          When everything looks correct, click the green
-          <strong>Generate Template</strong> button
+          The button shows <strong>Generating X template(s)...</strong> while
+          the system runs
         </li>
         <li>
-          The button will change to say <strong>Generating...</strong> while the
-          system works
+          Each selected teacher gets one template; wait for the success message
         </li>
-        <li>This might take a few moments - please wait</li>
-        <li>A success message will appear with a link to your new template</li>
-        <li>The template file is automatically saved to your Google Drive</li>
+        <li>
+          Templates are saved to your Google Drive and recorded in the
+          MASTER_DATA sheet
+        </li>
       </ol>
       <hr />
-      <h3 id="step-7-what-happens-next">
-        <strong>Step 7: What Happens Next</strong>
+      <h3 id="step-8-what-happens-next">
+        <strong>Step 8: What Happens Next</strong>
       </h3>
       <p>After the template is created:</p>
       <ol>
@@ -1754,11 +1777,16 @@
       </p>
       <p><strong>How to fix it:</strong></p>
       <ol>
-        <li>Make sure you typed in the school year</li>
-        <li>Make sure you selected a grade level</li>
-        <li>Make sure you selected a section</li>
-        <li>Make sure you selected a teacher</li>
-        <li>All four must be filled in before you can generate a template</li>
+        <li>Select <strong>School Year</strong> from the dropdown</li>
+        <li>Select <strong>Grade Level</strong></li>
+        <li>
+          For SHS: select <strong>Strand</strong> and <strong>Semester</strong>;
+          select <strong>Section</strong> unless strand is ALL
+        </li>
+        <li>
+          Select at least one <strong>Teacher</strong> (check the box next to
+          each teacher)
+        </li>
       </ol>
       <hr />
       <h5 id="template-already-exists">Template Already Exists</h5>
@@ -1810,7 +1838,7 @@
       </ol>
       <hr />
       <h3 id="5-managing-your-data">5. Managing Your Data</h3>
-      <h4 id="51-reference-shee">5.1 Reference Shee</h4>
+      <h4 id="51-reference-sheets">5.1 Reference Sheets</h4>
       <p>
         The system uses several sheets in your spreadsheet where you can add or
         update information directly. Think of these as your master lists.
@@ -2083,8 +2111,9 @@
           and make sure there's a DEFAULT row that's marked as active
         </li>
         <li>
-          <strong>Check all fields:</strong> Make sure you filled in school
-          year, grade level, section, and teacher
+          <strong>Check all fields:</strong> Make sure you selected school year,
+          grade level, for SHS strand and semester, section (if required), and
+          at least one teacher
         </li>
         <li>
           <strong>Check Google Drive:</strong> Make sure you have permission to
@@ -2188,9 +2217,10 @@
           column
         </li>
         <li>
-          <strong>Select grade/section first:</strong> In the Generate OGS form,
-          you must select a grade level and section before teacher names will
-          appear
+          <strong>Select grade and section (or strand) first:</strong> In the
+          Generate OGS form, select grade level, and for SHS strand/semester,
+          then section (or use "All Section"). The teachers list (checkboxes)
+          will then appear
         </li>
         <li>
           <strong>Check spelling:</strong> Make sure you're typing the name

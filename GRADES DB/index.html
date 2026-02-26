@@ -915,7 +915,9 @@
           </ul>
         </li>
         <li>
-          <a href="#35-update-attendance-and-character">Update Attendance &amp; Character</a>
+          <a href="#35-update-attendance-and-character"
+            >Update Attendance &amp; Character</a
+          >
         </li>
         <li>
           <a href="#36-export-student-grades">Export Student Grades</a>
@@ -984,33 +986,37 @@
       </h4>
       <p>
         The Grades Database is a tool built into Google Sheets that helps you
-        manage student grades, attendance, and character for multiple school years.
-        You can:
+        manage student grades, attendance, and character for multiple school
+        years. You can:
       </p>
       <ul>
         <li>
-          <strong>Upload</strong>: Import OGS Template (grades to this sheet; attendance and character to their DBs if configured), Update Student Grades, Update Student Attendance, Update Student Character
+          <strong>Upload</strong>: Import OGS Template (grades to this sheet;
+          attendance and character to their DBs if configured), Update Student
+          Grades, Update Student Attendance, Update Student Character
         </li>
+        <li><strong>Export</strong>: Export Student Grades to CSV</li>
+        <li><strong>Manual</strong>: Open Working Instruction (this guide)</li>
         <li>
-          <strong>Export</strong>: Export Student Grades to CSV
+          Keep track of who changed what and when (UPDATE LOG, IMPORT LOG)
         </li>
-        <li>
-          <strong>Manual</strong>: Open Working Instruction (this guide)
-        </li>
-        <li>Keep track of who changed what and when (UPDATE LOG, IMPORT LOG)</li>
       </ul>
       <hr />
       <h4 id="12-quick-start-guide">1.2 Quick Start Guide</h4>
       <p><strong>To import from a teacher's OGS template:</strong></p>
       <ol>
         <li>
-          Open your spreadsheet → <strong>Upload</strong> → <strong>Import OGS Template</strong>
+          Open your spreadsheet → <strong>Upload</strong> →
+          <strong>Import OGS Template</strong>
         </li>
         <li>
-          Pick the <strong>Academic Year</strong>, paste the <strong>Google Sheet Link</strong> to the OGS template
+          Pick the <strong>Academic Year</strong>, paste the
+          <strong>Google Sheet Link</strong> to the OGS template
         </li>
         <li>
-          Click <strong>Import OGS Template</strong> and wait for it to finish (grades to Grades DB; attendance/character to their DBs if present in template and configured)
+          Click <strong>Import OGS Template</strong> and wait for it to finish
+          (grades to Grades DB; attendance/character to their DBs if present in
+          template and configured)
         </li>
       </ol>
       <p><strong>To update a student's grades:</strong></p>
@@ -1019,10 +1025,16 @@
           <strong>Upload</strong> → <strong>Update Student Grades</strong>
         </li>
         <li>
-          Pick Academic Year, type Student Number, pick Subject → <strong>Load Grades</strong> → edit → <strong>Update Grades</strong>
+          Pick Academic Year, type Student Number, pick Subject →
+          <strong>Load Grades</strong> → edit → <strong>Update Grades</strong>
         </li>
       </ol>
-      <p><strong>To update attendance or character:</strong> <strong>Upload</strong> → <strong>Update Student Attendance</strong> or <strong>Update Student Character</strong>. To export: <strong>Export</strong> → <strong>Export Student Grades</strong>.</p>
+      <p>
+        <strong>To update attendance or character:</strong>
+        <strong>Upload</strong> → <strong>Update Student Attendance</strong> or
+        <strong>Update Student Character</strong>. To export:
+        <strong>Export</strong> → <strong>Export Student Grades</strong>.
+      </p>
       <p><strong>Before you start:</strong></p>
       <ul>
         <li>
@@ -1041,7 +1053,12 @@
       <h4 id="21-opening-the-import-ogs-template-form">
         2.1 Opening the Import OGS Template Form
       </h4>
-      <p><img src="assetsGradesDB/openImportStuGrades.jpg" alt="Open Import OGS Template" /></p>
+      <p>
+        <img
+          src="assetsGradesDB/openImportStuGrades.jpg"
+          alt="Open Import OGS Template"
+        />
+      </p>
       <ol>
         <li>Open the Google Sheets file for your Grades Database</li>
         <li>Click <strong>Upload</strong> in the menu</li>
@@ -1116,12 +1133,15 @@
           Click the <strong>Import OGS Template</strong> button at the bottom
         </li>
         <li>
-          The button will show <strong>Importing...</strong> while the system runs
+          The button will show <strong>Importing...</strong> while the system
+          runs
         </li>
+        <li>Wait; it may take a minute or two depending on data size</li>
         <li>
-          Wait; it may take a minute or two depending on data size
+          When done, you'll see a success message (grades; attendance and
+          character if those sheets exist in the template and DBs are
+          configured)
         </li>
-        <li>When done, you'll see a success message (grades; attendance and character if those sheets exist in the template and DBs are configured)</li>
         <li>The form will close automatically</li>
       </ol>
       <hr />
@@ -1141,22 +1161,32 @@
       <p>When you run Import OGS Template, the system:</p>
       <ul>
         <li>
-          <strong>Grades</strong>: Imports grades into this Grades DB (academic year sheet). Reads teacher name, school year, grade level, section (and for SHS: semester, strand) from the OGS template.
+          <strong>Grades</strong>: Imports grades into this Grades DB (academic
+          year sheet). Reads teacher name, school year, grade level, section
+          (and for SHS: semester, strand) from the OGS template.
         </li>
         <li>
-          <strong>Subject sheets</strong>: Imports from every subject sheet (excluding Attendance, Character, Characters, MAPEH as standalone). MAPEH: only Final Grading and Final EQ.
+          <strong>Subject sheets</strong>: Imports from every subject sheet
+          (excluding Attendance, Character, Characters, MAPEH as standalone).
+          MAPEH: only Final Grading and Final EQ.
         </li>
         <li>
-          <strong>Attendance</strong>: If the OGS template has an Attendance sheet and Attendance DB is configured, attendance is imported there.
+          <strong>Attendance</strong>: If the OGS template has an Attendance
+          sheet and Attendance DB is configured, attendance is imported there.
         </li>
         <li>
-          <strong>Character</strong>: If the OGS template has a Character sheet and Character DB is configured, character data is imported there.
+          <strong>Character</strong>: If the OGS template has a Character sheet
+          and Character DB is configured, character data is imported there.
         </li>
         <li>
-          <strong>Updates or adds</strong>: Existing student-subject rows are updated; new ones are inserted. Divider rows with OGS template links separate import blocks.
+          <strong>Updates or adds</strong>: Existing student-subject rows are
+          updated; new ones are inserted. Divider rows with OGS template links
+          separate import blocks.
         </li>
         <li>
-          <strong>IMPORT LOG</strong>: Each import is logged (timestamp, user, academic year, grade level, section, semester, strand, teacher, links to OGS and DBs).
+          <strong>IMPORT LOG</strong>: Each import is logged (timestamp, user,
+          academic year, grade level, section, semester, strand, teacher, links
+          to OGS and DBs).
         </li>
       </ul>
       <hr />
@@ -1164,9 +1194,12 @@
         2.4 Error Messages and Solutions
       </h4>
       <h5 id="missing-school-year">Missing School Year</h5>
-      <p><img src="assetsGradesDB/errorAcadYear.jpg" alt="Error academic year" /></p>
       <p>
-        <strong>What this means:</strong> You did not select an academic year before importing.
+        <img src="assetsGradesDB/errorAcadYear.jpg" alt="Error academic year" />
+      </p>
+      <p>
+        <strong>What this means:</strong> You did not select an academic year
+        before importing.
       </p>
       <p><strong>How to fix it:</strong></p>
       <ol>
@@ -1277,10 +1310,17 @@
       <h4 id="31-opening-the-update-student-grades-form">
         3.1 Opening the Update Student Grades Form
       </h4>
-      <p><img src="assetsGradesDB/updateOpenForm.jpg" alt="Update Student Grades form" /></p>
+      <p>
+        <img
+          src="assetsGradesDB/updateOpenForm.jpg"
+          alt="Update Student Grades form"
+        />
+      </p>
       <ol>
         <li>Open the Grades Database spreadsheet</li>
-        <li>Click <strong>Upload</strong> → <strong>Update Student Grades</strong></li>
+        <li>
+          Click <strong>Upload</strong> → <strong>Update Student Grades</strong>
+        </li>
         <li>A pop-up window will appear with the form</li>
       </ol>
       <hr />
@@ -1543,17 +1583,30 @@
         <li>The student might not have grades for that subject yet</li>
       </ol>
       <hr />
-      <h3 id="35-update-attendance-and-character">3.5 Update Attendance &amp; Character</h3>
+      <h3 id="35-update-attendance-and-character">
+        3.5 Update Attendance &amp; Character
+      </h3>
       <p>
-        <strong>Update Student Attendance</strong>: <strong>Upload</strong> → <strong>Update Student Attendance</strong>. Choose Academic Year (from Attendance DB), Student Number, Section, Month, then <strong>Load</strong>. Edit School DAYS / Days PRESENT and save. Changes are logged in the Attendance DB's UPDATE LOG.
+        <strong>Update Student Attendance</strong>: <strong>Upload</strong> →
+        <strong>Update Student Attendance</strong>. Choose Academic Year (from
+        Attendance DB), Student Number, Section, Month, then
+        <strong>Load</strong>. Edit School DAYS / Days PRESENT and save. Changes
+        are logged in the Attendance DB's UPDATE LOG.
       </p>
       <p>
-        <strong>Update Student Character</strong>: <strong>Upload</strong> → <strong>Update Student Character</strong>. Choose Academic Year (from Character DB), Student Number, Section, Trait, then <strong>Load</strong>. Edit 1st–4th Grade and save. Changes are logged in the Character DB's UPDATE LOG.
+        <strong>Update Student Character</strong>: <strong>Upload</strong> →
+        <strong>Update Student Character</strong>. Choose Academic Year (from
+        Character DB), Student Number, Section, Trait, then
+        <strong>Load</strong>. Edit 1st–4th Grade and save. Changes are logged
+        in the Character DB's UPDATE LOG.
       </p>
       <hr />
       <h3 id="36-export-student-grades">3.6 Export Student Grades</h3>
       <p>
-        <strong>Export</strong> → <strong>Export Student Grades</strong>. Select Academic Year, Grade Level, Section, and Subject, then export. You get a CSV with Student Number, Grade Level, Section, Subject, Strand, Teacher, and 1st–4th Transmuted grades.
+        <strong>Export</strong> → <strong>Export Student Grades</strong>. Select
+        Academic Year, Grade Level, Section, and Subject, then export. You get a
+        CSV with Student Number, Grade Level, Section, Subject, Strand, Teacher,
+        and 1st–4th Transmuted grades.
       </p>
       <hr />
       <h3 id="4-managing-your-data">4. Managing Your Data</h3>
@@ -1582,7 +1635,8 @@
       <p><strong>Row 1</strong> - Headers (column names):</p>
       <ul>
         <li>
-          Student Number, Full Name, Grade Level, Section, Subject, Semester, Strand, Teacher
+          Student Number, Full Name, Grade Level, Section, Subject, Semester,
+          Strand, Teacher
         </li>
         <li>1st Initial, 1st Transmuted, 1st EQ</li>
         <li>2nd Initial, 2nd Transmuted, 2nd EQ</li>
@@ -1616,18 +1670,20 @@
       <hr />
       <h4 id="42-import-log-sheet">4.2 IMPORT LOG Sheet</h4>
       <p>
-        Created automatically in the Grades DB spreadsheet. Each Import OGS Template run appends a row: Timestamp, Imported By, Academic Year, Grade Level, Section, Semester, Strand, Teacher, OGS Template Link, Grades DB Link, Attendance DB Link, Character DB Link.
+        Created automatically in the Grades DB spreadsheet. Each Import OGS
+        Template run appends a row: Timestamp, Imported By, Academic Year, Grade
+        Level, Section, Semester, Strand, Teacher, OGS Template Link, Grades DB
+        Link, Attendance DB Link, Character DB Link.
       </p>
       <hr />
       <h4 id="43-update-log-sheet">4.3 UPDATE LOG Sheet</h4>
       <h3 id="what-this-sheet-does"><strong>What This Sheet Does</strong></h3>
       <ol>
         <li>
-          Every time you update a grade using Update Student Grades, it is recorded here automatically.
+          Every time you update a grade using Update Student Grades, it is
+          recorded here automatically.
         </li>
-        <li>
-          The sheet is created the first time you update a grade.
-        </li>
+        <li>The sheet is created the first time you update a grade.</li>
         <li>Each grading period you change gets its own log entry.</li>
       </ol>
       <hr />
@@ -1635,10 +1691,16 @@
         <strong>What Information is Saved</strong>
       </h3>
       <p><img src="assetsGradesDB/updateSuccess.jpg" alt="Update Log" /></p>
-      <p>For each change: Timestamp, Updated By, Student Number, Full Name, School Year, Subject, Period, Original Grade, Updated Grade, Remarks.</p>
+      <p>
+        For each change: Timestamp, Updated By, Student Number, Full Name,
+        School Year, Subject, Period, Original Grade, Updated Grade, Remarks.
+      </p>
       <hr />
       <h3 id="how-to-use-the-log"><strong>How to Use the Log</strong></h3>
-      <p>Open the "UPDATE LOG" tab; newest entries are at the bottom. Each row is one period change. Use sheet filters to search by student or date.</p>
+      <p>
+        Open the "UPDATE LOG" tab; newest entries are at the bottom. Each row is
+        one period change. Use sheet filters to search by student or date.
+      </p>
       <hr />
       <h4 id="44-important-rules-about-data">4.4 Important Rules About Data</h4>
       <h3 id="one-student-one-subject-one-record">
@@ -1748,10 +1810,12 @@
           exists in your database (look at the tabs at the bottom)
         </li>
         <li>
-          <strong>Try again</strong>: Close the form and run Import OGS Template again
+          <strong>Try again</strong>: Close the form and run Import OGS Template
+          again
         </li>
         <li>
-          <strong>Check format</strong>: OGS template should have subject sheets with grades starting around row 10 (or 12 for SHS)
+          <strong>Check format</strong>: OGS template should have subject sheets
+          with grades starting around row 10 (or 12 for SHS)
         </li>
       </ol>
       <hr />
@@ -1893,24 +1957,31 @@
         </li>
       </ol>
       <hr />
-      <h4 id="57-update-log-is-missing">5.7 UPDATE LOG or IMPORT LOG is Missing</h4>
+      <h4 id="57-update-log-is-missing">
+        5.7 UPDATE LOG or IMPORT LOG is Missing
+      </h4>
       <p>
-        <strong>Problem:</strong> You can't find UPDATE LOG (grade updates) or IMPORT LOG (imports), or changes aren't being logged.
+        <strong>Problem:</strong> You can't find UPDATE LOG (grade updates) or
+        IMPORT LOG (imports), or changes aren't being logged.
       </p>
       <p><strong>Try these solutions:</strong></p>
       <ol>
         <li>
-          <strong>Look at the tabs</strong>: UPDATE LOG and IMPORT LOG appear at the bottom of the Grades DB spreadsheet
+          <strong>Look at the tabs</strong>: UPDATE LOG and IMPORT LOG appear at
+          the bottom of the Grades DB spreadsheet
         </li>
         <li>
-          <strong>UPDATE LOG</strong>: Created the first time you use Update Student Grades. IMPORT LOG is created the first time you use Import OGS Template.
+          <strong>UPDATE LOG</strong>: Created the first time you use Update
+          Student Grades. IMPORT LOG is created the first time you use Import
+          OGS Template.
         </li>
         <li>
           <strong>Check the sheet</strong>: Open the school year sheet to see if
           your update actually saved there
         </li>
         <li>
-          <strong>Check for renaming</strong>: Look for sheets with update or import records if UPDATE LOG or IMPORT LOG were renamed
+          <strong>Check for renaming</strong>: Look for sheets with update or
+          import records if UPDATE LOG or IMPORT LOG were renamed
         </li>
         <li>
           <strong>Wait for it</strong>: The sheet is created automatically when
@@ -2063,7 +2134,12 @@
       </ol>
       <hr />
       <p>
-        <em>This guide covers the Grades Database (Upload: Import OGS Template, Update Grades/Attendance/Character; Export: Export Grades; Manual: Open Working Instruction). For help, contact your systems developer.</em>
+        <em
+          >This guide covers the Grades Database (Upload: Import OGS Template,
+          Update Grades/Attendance/Character; Export: Export Grades; Manual:
+          Open Working Instruction). For help, contact your systems
+          developer.</em
+        >
       </p>
     </div>
 
