@@ -847,7 +847,6 @@ function exportGrades(academicYearSheet, gradeLevel, section, subject) {
           data[i][2] || '', // Grade Level
           data[i][3] || '', // Section
           data[i][4] || '', // Subject
-          data[i][5] || '', // Semester
           data[i][6] || '', // Strand
           data[i][7] || '', // Teacher
           data[i][9] || '', // 1st Transmuted
@@ -867,8 +866,7 @@ function exportGrades(academicYearSheet, gradeLevel, section, subject) {
       'Grade Level',
       'Section',
       'Subject',
-      'Semester',
-      'Strand', 
+      'Strand',
       'Teacher',
       '1st Transmuted',
       '2nd Transmuted',
