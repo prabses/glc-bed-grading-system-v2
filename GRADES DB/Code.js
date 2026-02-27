@@ -872,11 +872,14 @@ function exportCharacters(academicYearSheet, gradeLevel, section) {
     if (filteredRows.length === 0) {
       return { success: false, message: 'No matching records found for the selected criteria' };
     }
-    const headers = headerRow.map(function(h) { return h !== null && h !== undefined ? String(h) : ''; });
+    const rawHeaders = headerRow.map(function(h) { return h !== null && h !== undefined ? String(h) : ''; });
+    const keepIndex = function(i) { return rawHeaders[i].indexOf(' EQ') === -1; };
+    const headers = rawHeaders.filter(function(_, i) { return keepIndex(i); });
     const csvRows = [headers];
     for (let i = 0; i < filteredRows.length; i++) {
       const row = filteredRows[i];
-      const csvRow = row.map(function(cell) {
+      const kept = row.filter(function(_, colIdx) { return keepIndex(colIdx); });
+      const csvRow = kept.map(function(cell) {
         const value = cell !== null && cell !== undefined ? String(cell) : '';
         if (value.includes(',') || value.includes('"') || value.includes('\n')) {
           return '"' + value.replace(/"/g, '""') + '"';
