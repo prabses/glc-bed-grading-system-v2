@@ -106,4 +106,4 @@ GRADES DB
 ✅ show only 1st and 2nd initials for shs grade levels
 
 ✅ remove the semester column in exported file
-create export function for grades, attendance, and character sheets to csv
+create export function for grades and character sheets to csv

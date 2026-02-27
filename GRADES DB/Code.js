@@ -18,6 +18,7 @@ function onOpen() {
 
   ui.createMenu("Export")
     .addItem("Export Student Grades", "showExportGradesDialog")
+    .addItem("Export Student Characters", "showExportCharactersDialog")
     .addToUi();
 
   ui.createMenu("Manual")
@@ -587,6 +588,14 @@ function showExportGradesDialog() {
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Export Student Grades");
 }
 
+function showExportCharactersDialog() {
+  const htmlOutput = HtmlService.createHtmlOutputFromFile("ExportCharactersDialog")
+    .setWidth(500)
+    .setHeight(550)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Export Student Characters");
+}
+
 /**
  * Gets unique grade levels from an academic year sheet
  * @param {string} academicYearSheet - The academic year sheet name
@@ -781,6 +790,112 @@ function getSubjectsForExport(academicYearSheet, gradeLevel, section) {
   } catch (error) {
     console.error('Error getting subjects:', error);
     return [];
+  }
+}
+
+function getCharacterGradeLevels(academicYearSheet) {
+  if (!academicYearSheet || academicYearSheet.toString().trim() === '') return [];
+  const spreadsheet = _getCharacterSpreadsheet();
+  if (!spreadsheet) return [];
+  const targetSheet = spreadsheet.getSheetByName(academicYearSheet);
+  if (!targetSheet || targetSheet.getLastRow() < 2) return [];
+  const lastRow = targetSheet.getLastRow();
+  const data = targetSheet.getRange(2, 1, lastRow, 4).getValues();
+  const formulas = targetSheet.getRange(2, 1, lastRow, 1).getFormulas();
+  const unique = new Set();
+  for (let i = 0; i < data.length; i++) {
+    if (formulas[i][0] && typeof formulas[i][0] === 'string' && formulas[i][0].includes('HYPERLINK')) continue;
+    const level = String(data[i][2] || '').trim();
+    if (level) unique.add(level);
+  }
+  return Array.from(unique).sort();
+}
+
+function getCharacterSectionsForExport(academicYearSheet, gradeLevel) {
+  if (!academicYearSheet || !gradeLevel) return [];
+  const spreadsheet = _getCharacterSpreadsheet();
+  if (!spreadsheet) return [];
+  const targetSheet = spreadsheet.getSheetByName(academicYearSheet);
+  if (!targetSheet || targetSheet.getLastRow() < 2) return [];
+  const lastRow = targetSheet.getLastRow();
+  const data = targetSheet.getRange(2, 1, lastRow, 4).getValues();
+  const formulas = targetSheet.getRange(2, 1, lastRow, 1).getFormulas();
+  const unique = new Set();
+  const gl = gradeLevel.toString().trim();
+  for (let i = 0; i < data.length; i++) {
+    if (formulas[i][0] && typeof formulas[i][0] === 'string' && formulas[i][0].includes('HYPERLINK')) continue;
+    if (String(data[i][2] || '').trim() !== gl) continue;
+    const sec = String(data[i][3] || '').trim();
+    if (sec) unique.add(sec);
+  }
+  return Array.from(unique).sort();
+}
+
+/**
+ * Exports character DB sheet to CSV for the given academic year, grade level, and section.
+ */
+function exportCharacters(academicYearSheet, gradeLevel, section) {
+  try {
+    if (!academicYearSheet || academicYearSheet.toString().trim() === '') {
+      return { success: false, message: 'Academic year must be specified' };
+    }
+    if (!gradeLevel || gradeLevel.toString().trim() === '') {
+      return { success: false, message: 'Grade level must be specified' };
+    }
+    if (!section || section.toString().trim() === '') {
+      return { success: false, message: 'Section must be specified' };
+    }
+    const spreadsheet = _getCharacterSpreadsheet();
+    if (!spreadsheet) {
+      return { success: false, message: 'Character DB not configured or unavailable' };
+    }
+    const targetSheet = spreadsheet.getSheetByName(academicYearSheet);
+    if (!targetSheet) {
+      return { success: false, message: 'Academic year sheet not found in Character DB' };
+    }
+    const lastRow = targetSheet.getLastRow();
+    if (lastRow < 2) {
+      return { success: false, message: 'No character data found in the sheet' };
+    }
+    const numCols = Math.max(16, targetSheet.getLastColumn());
+    const headerRow = targetSheet.getRange(1, 1, 1, numCols).getValues()[0];
+    const data = targetSheet.getRange(2, 1, lastRow, numCols).getValues();
+    const formulas = targetSheet.getRange(2, 1, lastRow, 1).getFormulas();
+    const gl = gradeLevel.toString().trim();
+    const sec = section.toString().trim();
+    const filteredRows = [];
+    for (let i = 0; i < data.length; i++) {
+      if (formulas[i][0] && typeof formulas[i][0] === 'string' && formulas[i][0].includes('HYPERLINK')) continue;
+      if (String(data[i][2] || '').trim() !== gl || String(data[i][3] || '').trim() !== sec) continue;
+      filteredRows.push(data[i]);
+    }
+    if (filteredRows.length === 0) {
+      return { success: false, message: 'No matching records found for the selected criteria' };
+    }
+    const headers = headerRow.map(function(h) { return h !== null && h !== undefined ? String(h) : ''; });
+    const csvRows = [headers];
+    for (let i = 0; i < filteredRows.length; i++) {
+      const row = filteredRows[i];
+      const csvRow = row.map(function(cell) {
+        const value = cell !== null && cell !== undefined ? String(cell) : '';
+        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+          return '"' + value.replace(/"/g, '""') + '"';
+        }
+        return value;
+      });
+      csvRows.push(csvRow);
+    }
+    const csvContent = csvRows.map(function(row) { return row.join(','); }).join('\n');
+    const safeName = `${academicYearSheet}_${gradeLevel}_${section}_characters`.replace(/[^a-zA-Z0-9._-]/g, '_');
+    return {
+      success: true,
+      csvContent: csvContent,
+      filename: safeName + '.csv',
+      recordCount: filteredRows.length
+    };
+  } catch (error) {
+    console.error('Error exporting characters:', error);
+    return { success: false, message: 'Error exporting characters: ' + error.toString() };
   }
 }
 
