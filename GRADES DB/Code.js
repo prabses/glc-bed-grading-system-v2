@@ -449,6 +449,15 @@ function showExportCharactersDialog() {
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Export Student Characters");
 }
 
+function _sortGradeLevels(arr) {
+  return arr.slice().sort(function(a, b) {
+    const na = parseInt(a, 10);
+    const nb = parseInt(b, 10);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return String(a).localeCompare(String(b));
+  });
+}
+
 /**
  * Gets unique grade levels from an academic year sheet
  * @param {string} academicYearSheet - The academic year sheet name
@@ -489,7 +498,7 @@ function getGradeLevels(academicYearSheet) {
       }
     }
     
-    return Array.from(uniqueLevels).sort();
+    return _sortGradeLevels(Array.from(uniqueLevels));
   } catch (error) {
     console.error('Error getting grade levels:', error);
     return [];
@@ -537,7 +546,7 @@ function getGradeLevelsForStudent(academicYearSheet, studentNumber) {
         uniqueLevels.add(level);
       }
     }
-    return Array.from(uniqueLevels).sort();
+    return _sortGradeLevels(Array.from(uniqueLevels));
   } catch (error) {
     console.error('Error getting grade levels for student:', error);
     return [];
@@ -661,7 +670,7 @@ function getCharacterGradeLevels(academicYearSheet) {
     const level = String(data[i][2] || '').trim();
     if (level) unique.add(level);
   }
-  return Array.from(unique).sort();
+  return _sortGradeLevels(Array.from(unique));
 }
 
 function getCharacterSectionsForExport(academicYearSheet, gradeLevel) {
