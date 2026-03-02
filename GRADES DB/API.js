@@ -26,16 +26,6 @@ function getSheet(sheetName) {
   return getSpreadsheet().getSheetByName(sheetName);
 }
 
-function getAttendanceSpreadsheet() {
-  const url = CONFIG.ATTENDANCE_DB_SHEET_URL;
-  if (!url) return null;
-  try {
-    return SpreadsheetApp.openById(extractSpreadsheetId(url));
-  } catch (e) {
-    return null;
-  }
-}
-
 function getCharacterSpreadsheet() {
   const url = CONFIG.CHARACTER_DB_SHEET_URL;
   if (!url) return null;
@@ -44,11 +34,6 @@ function getCharacterSpreadsheet() {
   } catch (e) {
     return null;
   }
-}
-
-function getAttendanceSheet(sheetName) {
-  const ss = getAttendanceSpreadsheet();
-  return ss ? ss.getSheetByName(sheetName) : null;
 }
 
 function getCharacterSheet(sheetName) {
@@ -113,31 +98,6 @@ function doPost(e) {
           payload.studentNumber,
           payload.academicYearSheet,
           payload.updates,
-          payload.userEmail
-        ));
-      case "importAttendance":
-        return response(200, _importAttendance(
-          payload.ogsTemplateUrl,
-          payload.academicYearSheet,
-          payload.userEmail
-        ));
-      case "getAttendanceInfo":
-        return response(200, _getAttendanceInfo(
-          payload.studentNumber,
-          payload.academicYearSheet,
-          payload.section,
-          payload.month
-        ));
-      case "updateAttendance":
-        return response(200, _updateAttendance(
-          payload.studentNumber,
-          payload.academicYearSheet,
-          payload.section,
-          payload.month,
-          payload.schoolDays,
-          payload.daysPresent,
-          payload.daysAbsent,
-          payload.remarks,
           payload.userEmail
         ));
       case "importCharacters":
@@ -299,35 +259,26 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
     // Subject sheets typically don't have names like "Attendance", "Character", "Characters", "MAPEH"
     const excludedSheetNames = ['Attendance', 'Character', 'Characters', 'MAPEH'];
     let infoSheet = null;
-    let attendanceSheet = null;
     let subjectSheets = [];
     
     for (let i = 0; i < ogsSheets.length; i++) {
       const sheetName = ogsSheets[i].getName();
-      if (sheetName === 'Attendance') {
-        attendanceSheet = ogsSheets[i];
-        // Attendance sheet is only used for info extraction, not as a subject sheet
-      } else if (!excludedSheetNames.includes(sheetName)) {
+      if (!excludedSheetNames.includes(sheetName)) {
         if (!infoSheet) {
-          infoSheet = ogsSheets[i]; // Use first subject sheet for info
+          infoSheet = ogsSheets[i];
         }
         subjectSheets.push({
           name: sheetName,
           sheet: ogsSheets[i],
-          isMAPEH: sheetName === 'MAPEH' // Flag to identify MAPEH sheet
+          isMAPEH: sheetName === 'MAPEH'
         });
       }
-    }
-
-    // Use Attendance sheet for info if no subject sheets found, otherwise use first subject sheet
-    if (!infoSheet && attendanceSheet) {
-      infoSheet = attendanceSheet;
     }
 
     if (!infoSheet) {
       return { 
         success: false, 
-        message: 'No subject sheets or Attendance sheet found in OGS template. Please ensure the template contains at least one subject sheet.' 
+        message: 'No subject sheets found in OGS template. Please ensure the template contains at least one subject sheet.' 
       };
     }
 
@@ -338,15 +289,7 @@ function _importGrades(ogsTemplateUrl, academicYearSheet, userEmail) {
       };
     }
 
-    // Extract header information from the info sheet
-    // For subject sheets: Row 2: Teacher Name, Row 3: School Year, Row 4: Level, Row 5: Section
-    // For Attendance sheet: Row 1: Advisor Name, Row 2: School Year, Row 3: Level, Row 4: Section
-    let startRow = 2; // Default for subject sheets
-    if (infoSheet.getName() === 'Attendance') {
-      startRow = 1; // Attendance sheet starts at row 1
-    }
-    
-    const infoData = infoSheet.getRange(startRow, 1, startRow + 3, 2).getValues();
+    const infoData = infoSheet.getRange(2, 1, 5, 2).getValues();
     
     let advisorName = '';
     let schoolYear = '';
@@ -1126,7 +1069,7 @@ function logImport(ogsTemplateUrl, academicYearSheet, userEmail, gradeLevel, sec
     let logSheet = spreadsheet.getSheetByName('IMPORT LOG');
     if (!logSheet) {
       logSheet = spreadsheet.insertSheet('IMPORT LOG');
-      const headers = ['Timestamp', 'Imported By', 'Academic Year', 'Grade Level', 'Section', 'Semester', 'Strand', 'Teacher', 'OGS Template Link', 'Grades DB Link', 'Attendance DB Link', 'Character DB Link'];
+      const headers = ['Timestamp', 'Imported By', 'Academic Year', 'Grade Level', 'Section', 'Semester', 'Strand', 'Teacher', 'OGS Template Link', 'Grades DB Link', 'Character DB Link'];
       logSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
       logSheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
       logSheet.setFrozenRows(1);
@@ -1134,7 +1077,6 @@ function logImport(ogsTemplateUrl, academicYearSheet, userEmail, gradeLevel, sec
     const timestamp = new Date();
     const ogsLink = _importLogHyperlink(ogsTemplateUrl, 'OGS Template');
     const gradesDbLink = _importLogHyperlink(CONFIG.GRADES_DB_SHEET_URL || '', CONFIG.GRADES_DB_SHEET_LABEL || 'Grades DB');
-    const attendanceDbLink = _importLogHyperlink(CONFIG.ATTENDANCE_DB_SHEET_URL || '', CONFIG.ATTENDANCE_DB_SHEET_LABEL || 'Attendance DB');
     const characterDbLink = _importLogHyperlink(CONFIG.CHARACTER_DB_SHEET_URL || '', CONFIG.CHARACTER_DB_SHEET_LABEL || 'Character DB');
     const logEntry = [
       timestamp,
@@ -1147,7 +1089,6 @@ function logImport(ogsTemplateUrl, academicYearSheet, userEmail, gradeLevel, sec
       teacher || '',
       ogsLink,
       gradesDbLink,
-      attendanceDbLink,
       characterDbLink
     ];
     const lastRow = logSheet.getLastRow();
@@ -1157,300 +1098,6 @@ function logImport(ogsTemplateUrl, academicYearSheet, userEmail, gradeLevel, sec
     logSheet.getRange(nextRow, 1).setNumberFormat('yyyy-MM-dd HH:mm:ss');
   } catch (error) {
     console.error('Error logging import:', error);
-  }
-}
-
-function logAttendanceUpdate(studentNumber, fullName, academicYear, month, period, originalValue, updatedValue, remarks, userEmail) {
-  try {
-    const spreadsheet = getAttendanceSpreadsheet();
-    if (!spreadsheet) return;
-    let logSheet = spreadsheet.getSheetByName('UPDATE LOG');
-    if (!logSheet) {
-      logSheet = spreadsheet.insertSheet('UPDATE LOG');
-      const headers = ['Timestamp', 'Updated By', 'Student Number', 'Full Name', 'School Year', 'Month', 'Period', 'Original Value', 'Updated Value', 'Remarks'];
-      logSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      logSheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-      logSheet.setFrozenRows(1);
-    }
-    const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
-    const logEntry = [new Date(), actualUserEmail, studentNumber, fullName, academicYear, month || '', period || '', originalValue, updatedValue, remarks || ''];
-    const nextRow = logSheet.getLastRow() + 1;
-    logSheet.getRange(nextRow, 1, 1, logEntry.length).setValues([logEntry]);
-    logSheet.getRange(nextRow, 1, 1, logEntry.length).setHorizontalAlignment('left');
-    logSheet.getRange(nextRow, 1).setNumberFormat('yyyy-MM-dd HH:mm:ss');
-  } catch (error) {
-    console.error('Error logging attendance update:', error);
-  }
-}
-
-function _importAttendance(ogsTemplateUrl, academicYearSheet, userEmail) {
-  const expectedColumnCount = 9;
-  try {
-    if (!ogsTemplateUrl || ogsTemplateUrl.toString().trim() === '') {
-      return { success: false, message: 'OGS template URL cannot be empty' };
-    }
-    if (!academicYearSheet || academicYearSheet.toString().trim() === '') {
-      return { success: false, message: 'Academic year must be specified' };
-    }
-    const spreadsheetId = extractSpreadsheetId(ogsTemplateUrl);
-    let ogsSpreadsheet;
-    let ogsSpreadsheetName = '';
-    try {
-      ogsSpreadsheet = SpreadsheetApp.openById(spreadsheetId);
-      ogsSpreadsheetName = ogsSpreadsheet.getName();
-    } catch (error) {
-      return { success: false, message: `Cannot access OGS template. Error: ${error.message}` };
-    }
-    const attendanceSheet = ogsSpreadsheet.getSheetByName('Attendance');
-    if (!attendanceSheet) {
-      return { success: false, message: 'Attendance sheet not found in OGS template.' };
-    }
-    const infoData = attendanceSheet.getRange(1, 1, 5, 2).getValues();
-    let advisorName = '';
-    let schoolYear = '';
-    let level = '';
-    let section = '';
-    for (let i = 0; i < infoData.length; i++) {
-      const label = String(infoData[i][0] || '').trim();
-      const value = String(infoData[i][1] || '').trim();
-      if (label.includes('Advisor Name') || label.includes('Teacher Name')) advisorName = value;
-      else if (label.includes('School Year')) schoolYear = value;
-      else if (label.includes('Level')) level = value;
-      else if (label.includes('Section')) section = value;
-    }
-    if (!section || section.toString().trim() === '') section = 'ALL';
-    if (!advisorName || !level || !section) {
-      return { success: false, message: 'Could not extract required information from Attendance sheet.' };
-    }
-    const normalizedGradeLevel = normalizeGradeLevel(level);
-    const lastCol = attendanceSheet.getLastColumn();
-    const lastRow = attendanceSheet.getLastRow();
-    if (lastRow < 8) {
-      return { success: false, message: 'No student attendance data found in Attendance sheet.' };
-    }
-    const monthRow = attendanceSheet.getRange(6, 1, 6, lastCol).getValues()[0];
-    const ogsMonths = [];
-    for (let c = 2; c < lastCol; c += 3) {
-      const monthVal = String(monthRow[c] || '').trim();
-      if (monthVal) ogsMonths.push({ name: monthVal, ogsStartCol: c });
-    }
-    if (ogsMonths.length === 0) {
-      return { success: false, message: 'No month columns found in Attendance sheet (row 6).' };
-    }
-    const targetSheet = getAttendanceSheet(academicYearSheet);
-    if (!targetSheet) {
-      return { success: false, message: `Academic year sheet "${academicYearSheet}" not found in Attendance DB.` };
-    }
-    const headerRow = targetSheet.getRange(1, 1, 1, targetSheet.getLastColumn()).getValues()[0];
-    const numColumns = headerRow.length;
-    if (numColumns < expectedColumnCount) {
-      return { success: false, message: `Target sheet should have at least ${expectedColumnCount} columns. Found ${numColumns}.` };
-    }
-    const dataStartRow = 8;
-    const studentData = attendanceSheet.getRange(dataStartRow, 1, lastRow, lastCol).getValues();
-    const allRows = [];
-    for (let j = 0; j < studentData.length; j++) {
-      const row = studentData[j];
-      const studentNumber = String(row[0] || '').trim();
-      const studentName = String(row[1] || '').trim();
-      if (!studentNumber) continue;
-      for (let m = 0; m < ogsMonths.length; m++) {
-        const ogsCol = ogsMonths[m].ogsStartCol;
-        const schoolDays = row[ogsCol] !== null && row[ogsCol] !== undefined ? String(row[ogsCol]).trim() : '';
-        const daysPresent = row[ogsCol + 1] !== null && row[ogsCol + 1] !== undefined ? String(row[ogsCol + 1]).trim() : '';
-        allRows.push([studentNumber, studentName, normalizedGradeLevel, section, advisorName, ogsMonths[m].name, schoolDays, daysPresent, '']);
-      }
-    }
-    if (allRows.length === 0) {
-      return { success: false, message: 'No student attendance records found in Attendance sheet.' };
-    }
-    allRows.sort((a, b) => String(a[0] || '').localeCompare(String(b[0] || '')));
-    const sheetLastRow = targetSheet.getLastRow();
-    const rangeEnd = Math.max(2, sheetLastRow);
-    const studentNumberColumn = targetSheet.getRange(2, 1, rangeEnd, 1).getValues();
-    const lastRowFormulas = targetSheet.getRange(2, 1, rangeEnd, 1).getFormulas();
-    let lastDataRow = 1;
-    for (let i = studentNumberColumn.length - 1; i >= 0; i--) {
-      if (lastRowFormulas[i][0] && typeof lastRowFormulas[i][0] === 'string' && lastRowFormulas[i][0].includes('HYPERLINK')) continue;
-      const studentNum = String(studentNumberColumn[i][0] || '').trim();
-      if (studentNum) { lastDataRow = i + 2; break; }
-    }
-    const existingKeys = new Map();
-    const existingDataMap = new Map();
-    let isReImport = false;
-    let existingDividerRow = null;
-    let existingImportEndRow = null;
-    if (lastDataRow > 1) {
-      const existingRange = targetSheet.getRange(2, 1, lastDataRow, numColumns);
-      const existingValues = existingRange.getValues();
-      const existingFormulas = targetSheet.getRange(2, 1, lastDataRow, 1).getFormulas();
-      const normalizedImportUrl = ogsTemplateUrl.trim().split('#')[0].replace(/\/$/, '').toLowerCase();
-      for (let i = 0; i < existingFormulas.length; i++) {
-        const formula = existingFormulas[i][0];
-        if (formula && typeof formula === 'string' && formula.includes('HYPERLINK')) {
-          const urlMatch = formula.match(/HYPERLINK\("([^"]+)"/) || formula.match(/HYPERLINK\('([^']+)'/);
-          if (urlMatch && urlMatch[1]) {
-            const extractedUrl = urlMatch[1].trim().replace(/^["']|["']$/g, '');
-            const normalizedExistingUrl = extractedUrl.split('#')[0].replace(/\/$/, '').toLowerCase();
-            const importId = extractSpreadsheetId(ogsTemplateUrl);
-            const existingId = extractedUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)?.[1];
-            if (normalizedExistingUrl === normalizedImportUrl || (importId && existingId && importId === existingId)) {
-              isReImport = true;
-              existingDividerRow = i + 2;
-              existingImportEndRow = lastDataRow + 1;
-              for (let j = i + 1; j < existingFormulas.length; j++) {
-                if (existingFormulas[j][0] && typeof existingFormulas[j][0] === 'string' && existingFormulas[j][0].includes('HYPERLINK')) {
-                  existingImportEndRow = j + 2;
-                  break;
-                }
-              }
-              break;
-            }
-          }
-        }
-      }
-      for (let i = 0; i < existingValues.length; i++) {
-        const studentNum = String(existingValues[i][0] || '').trim();
-        const rowSection = String(existingValues[i][3] || '').trim();
-        const month = String(existingValues[i][5] || '').trim();
-        if (studentNum && rowSection && month) {
-          existingKeys.set(`${studentNum}|${rowSection}|${month}`, i + 2);
-          existingDataMap.set(`${studentNum}|${rowSection}|${month}`, existingValues[i]);
-        }
-      }
-    }
-    const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
-    const rowsToUpdate = [];
-    const rowsToInsert = [];
-    const attendanceChangesToLog = [];
-    for (let i = 0; i < allRows.length; i++) {
-      const rowData = allRows[i];
-      const studentNumber = String(rowData[0] || '').trim();
-      const month = String(rowData[5] || '').trim();
-      const key = `${studentNumber}|${section}|${month}`;
-      if (existingKeys.has(key)) {
-        const existingRowNum = existingKeys.get(key);
-        const existingRow = existingDataMap.get(key);
-        const isFromSameImport = isReImport && existingDividerRow && existingImportEndRow && existingRowNum > existingDividerRow && existingRowNum < existingImportEndRow;
-        let hasChanges = false;
-        const changes = [];
-        for (let col = 6; col < 8; col++) {
-          const oldVal = existingRow[col] !== null && existingRow[col] !== undefined ? String(existingRow[col]).trim() : '';
-          const newVal = rowData[col] !== null && rowData[col] !== undefined ? String(rowData[col]).trim() : '';
-          if (oldVal !== newVal) {
-            hasChanges = true;
-            if (isFromSameImport) changes.push({ period: ['School DAYS', 'Days PRESENT'][col - 6], oldValue: oldVal, newValue: newVal });
-          }
-        }
-        if (hasChanges) {
-          const dataToWrite = rowData.slice();
-          dataToWrite[8] = existingRow[8] !== undefined ? existingRow[8] : '';
-          rowsToUpdate.push({ row: existingRowNum, data: dataToWrite });
-          if (isFromSameImport && changes.length > 0) {
-            changes.forEach(c => {
-              attendanceChangesToLog.push({ studentNumber, fullName: String(rowData[1] || '').trim(), month, period: c.period, oldValue: c.oldValue, newValue: c.newValue });
-            });
-          }
-        }
-      } else {
-        rowsToInsert.push(rowData);
-      }
-    }
-    for (let i = 0; i < rowsToUpdate.length; i++) {
-      const update = rowsToUpdate[i];
-      const padData = update.data.slice();
-      while (padData.length < numColumns) padData.push('');
-      targetSheet.getRange(update.row, 1, 1, numColumns).setValues([padData.slice(0, numColumns)]);
-    }
-    for (let i = 0; i < attendanceChangesToLog.length; i++) {
-      const c = attendanceChangesToLog[i];
-      logAttendanceUpdate(c.studentNumber, c.fullName, academicYearSheet, c.month, c.period, c.oldValue, c.newValue, `Re-imported from: ${ogsSpreadsheetName || 'OGS Template'}`, actualUserEmail);
-    }
-    if (rowsToInsert.length > 0) {
-      const insertRow = lastDataRow + 1;
-      const linkLabel = ogsSpreadsheetName || 'OGS Template';
-      const dividerRow = new Array(numColumns).fill('');
-      targetSheet.getRange(insertRow, 1, 1, numColumns).setValues([dividerRow]);
-      targetSheet.getRange(insertRow, 1, 1, numColumns).merge();
-      targetSheet.getRange(insertRow, 1).setFormula(`=HYPERLINK("${ogsTemplateUrl}","${linkLabel}")`);
-      targetSheet.getRange(insertRow, 1).setBackground('#d9d9d9').setFontStyle('italic').setFontColor('#1155cc').setFontSize(10).setHorizontalAlignment('left').setVerticalAlignment('middle');
-      targetSheet.setRowHeight(insertRow, 25);
-      const dataInsertRow = insertRow + 1;
-      const paddedRows = rowsToInsert.map(r => { const arr = r.slice(); while (arr.length < numColumns) arr.push(''); return arr.slice(0, numColumns); });
-      targetSheet.getRange(dataInsertRow, 1, paddedRows.length, numColumns).setValues(paddedRows);
-    }
-    return { success: true, message: `Successfully imported attendance.\n\nUpdated: ${rowsToUpdate.length} row(s)\nInserted: ${rowsToInsert.length} row(s)\n\nAdvisor: ${advisorName}\nSchool Year: ${schoolYear}\nLevel: ${level}\nSection: ${section}` };
-  } catch (error) {
-    console.error('Error importing attendance:', error);
-    return { success: false, message: `Error importing attendance: ${error.toString()}` };
-  }
-}
-
-function _getAttendanceInfo(studentNumber, academicYearSheet, section, month) {
-  try {
-    if (!studentNumber || studentNumber.toString().trim() === '') return { success: false, message: 'Student number cannot be empty' };
-    if (!academicYearSheet || academicYearSheet.toString().trim() === '') return { success: false, message: 'Academic year must be specified' };
-    if (!section || section.toString().trim() === '') return { success: false, message: 'Section must be specified' };
-    if (!month || month.toString().trim() === '') return { success: false, message: 'Month must be specified' };
-    const targetSheet = getAttendanceSheet(academicYearSheet);
-    if (!targetSheet) return { success: false, message: 'Academic year sheet not found' };
-    const lastRow = targetSheet.getLastRow();
-    if (lastRow < 2) return { success: false, message: 'No attendance data found in the sheet' };
-    const numCols = Math.max(9, targetSheet.getLastColumn());
-    const data = targetSheet.getRange(2, 1, lastRow, numCols).getValues();
-    const formulas = targetSheet.getRange(2, 1, lastRow, 1).getFormulas();
-    const studentNum = studentNumber.toString().trim();
-    const sectionTrim = section.toString().trim();
-    const monthTrim = month.toString().trim();
-    for (let i = 0; i < data.length; i++) {
-      if (formulas[i][0] && typeof formulas[i][0] === 'string' && formulas[i][0].includes('HYPERLINK')) continue;
-      const row = data[i];
-      if (String(row[0] || '').trim() === studentNum && String(row[3] || '').trim() === sectionTrim && String(row[5] || '').trim() === monthTrim) {
-        return { success: true, attendanceData: { 'Student Number': row[0], 'Full Name': row[1], 'Grade Level': row[2], 'Section': row[3], 'Advisor': row[4], 'Month': row[5], 'School DAYS': row[6] || '', 'Days PRESENT': row[7] || '', 'Days ABSENT': row[8] || '' }, rowIndex: i + 2 };
-      }
-    }
-    return { success: false, message: 'Attendance record not found for the specified student, section, and month' };
-  } catch (error) {
-    console.error('Error getting attendance info:', error);
-    return { success: false, message: `Error retrieving attendance: ${error.toString()}` };
-  }
-}
-
-function _updateAttendance(studentNumber, academicYearSheet, section, month, schoolDays, daysPresent, daysAbsent, remarks, userEmail) {
-  try {
-    if (!studentNumber || studentNumber.toString().trim() === '') return { success: false, message: 'Student number cannot be empty' };
-    if (!academicYearSheet || academicYearSheet.toString().trim() === '') return { success: false, message: 'Academic year must be specified' };
-    if (!section || section.toString().trim() === '') return { success: false, message: 'Section must be specified' };
-    if (!month || month.toString().trim() === '') return { success: false, message: 'Month must be specified' };
-    const info = _getAttendanceInfo(studentNumber, academicYearSheet, section, month);
-    if (!info.success) return info;
-    const targetSheet = getAttendanceSheet(academicYearSheet);
-    const rowIndex = info.rowIndex;
-    const updates = [];
-    const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
-    if (schoolDays !== undefined && schoolDays !== null) {
-      const oldVal = String(info.attendanceData['School DAYS'] || '').trim();
-      const newVal = String(schoolDays).trim();
-      if (oldVal !== newVal) {
-        targetSheet.getRange(rowIndex, 7).setValue(newVal);
-        logAttendanceUpdate(studentNumber, info.attendanceData['Full Name'], academicYearSheet, info.attendanceData['Month'], 'School DAYS', oldVal, newVal, remarks || '', actualUserEmail);
-        updates.push('School DAYS');
-      }
-    }
-    if (daysPresent !== undefined && daysPresent !== null) {
-      const oldVal = String(info.attendanceData['Days PRESENT'] || '').trim();
-      const newVal = String(daysPresent).trim();
-      if (oldVal !== newVal) {
-        targetSheet.getRange(rowIndex, 8).setValue(newVal);
-        logAttendanceUpdate(studentNumber, info.attendanceData['Full Name'], academicYearSheet, info.attendanceData['Month'], 'Days PRESENT', oldVal, newVal, remarks || '', actualUserEmail);
-        updates.push('Days PRESENT');
-      }
-    }
-    if (updates.length === 0) return { success: false, message: 'No changes detected. All values are the same as current values.' };
-    return { success: true, message: `Successfully updated: ${updates.join(', ')}` };
-  } catch (error) {
-    console.error('Error updating attendance:', error);
-    return { success: false, message: `Error updating attendance: ${error.toString()}` };
   }
 }
 

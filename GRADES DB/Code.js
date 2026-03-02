@@ -12,7 +12,6 @@ function onOpen() {
   ui.createMenu("Upload")
     .addItem("Import OGS Template", "showImportOGSTemplateDialog")
     .addItem("Update Student Grades", "showUpdateGradesDialog")
-    .addItem("Update Student Attendance", "showUpdateAttendanceDialog")
     .addItem("Update Student Character", "showUpdateCharacterDialog")
     .addToUi();
 
@@ -80,13 +79,10 @@ function importOGSTemplate(ogsTemplateUrl, academicYearSheet, spreadsheetId) {
     return { success: false, message: "Could not open OGS template. " + errMsg };
   }
 
-  const hasAttendance = sheetNames.indexOf("Attendance") >= 0;
   const hasCharacter = sheetNames.indexOf("Character") >= 0;
   let gradesMsg = '';
-  let attendanceMsg = '';
   let characterMsg = '';
   let gradesOk = false;
-  let attendanceOk = false;
   let characterOk = false;
   let gradesResult = null;
 
@@ -100,22 +96,6 @@ function importOGSTemplate(ogsTemplateUrl, academicYearSheet, spreadsheetId) {
     }
   } catch (error) {
     gradesMsg = "Failed. " + (error.message || error.toString());
-  }
-
-  if (hasAttendance && CONFIG.ATTENDANCE_DB_SHEET_URL) {
-    try {
-      const msg = callApi("importAttendance", { ogsTemplateUrl: trimmedUrl, academicYearSheet: academicYearSheet, userEmail: userEmail });
-      if (msg && msg.success !== false) {
-        attendanceOk = true;
-        attendanceMsg = msg.message || "Imported successfully.";
-      } else {
-        attendanceMsg = "Failed. " + (msg && msg.message ? msg.message : "Unknown error.");
-      }
-    } catch (error) {
-      attendanceMsg = "Failed. " + (error.message || error.toString());
-    }
-  } else {
-    attendanceMsg = "Not in template.";
   }
 
   if (hasCharacter && CONFIG.CHARACTER_DB_SHEET_URL) {
@@ -134,7 +114,7 @@ function importOGSTemplate(ogsTemplateUrl, academicYearSheet, spreadsheetId) {
     characterMsg = "Not in template.";
   }
 
-  const allOk = gradesOk && (!hasAttendance || attendanceOk) && (!hasCharacter || characterOk);
+  const allOk = gradesOk && (!hasCharacter || characterOk);
   const gradeLevel = gradesOk && gradesResult ? (gradesResult.gradeLevel || '') : '';
   const section = gradesOk && gradesResult ? (gradesResult.section || '') : '';
   const semester = (gradesOk && gradesResult && gradesResult.semester) ? gradesResult.semester : 'N/A';
@@ -144,7 +124,6 @@ function importOGSTemplate(ogsTemplateUrl, academicYearSheet, spreadsheetId) {
   return {
     success: allOk,
     gradesMessage: gradesMsg,
-    attendanceMessage: attendanceMsg,
     characterMessage: characterMsg
   };
 }
@@ -169,138 +148,12 @@ function showUpdateGradesDialog() {
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Update Student Grades");
 }
 
-function showUpdateAttendanceDialog() {
-  const htmlOutput = HtmlService.createHtmlOutputFromFile("UpdateAttendanceDialog")
-    .setWidth(1100)
-    .setHeight(700)
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Update Student Attendance");
-}
-
 function showUpdateCharacterDialog() {
   const htmlOutput = HtmlService.createHtmlOutputFromFile("UpdateCharacterDialog")
     .setWidth(1100)
     .setHeight(700)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Update Student Character");
-}
-
-function _getAttendanceSpreadsheet() {
-  const url = CONFIG.ATTENDANCE_DB_SHEET_URL;
-  if (!url) return null;
-  try {
-    return SpreadsheetApp.openById(extractSpreadsheetId(url));
-  } catch (e) {
-    return null;
-  }
-}
-
-function getAttendanceStudentSheets() {
-  const spreadsheet = _getAttendanceSpreadsheet();
-  if (!spreadsheet) return [];
-  const sheets = spreadsheet.getSheets();
-  const sheetNames = [];
-  const yearPattern = /^\d{4}-\d{4}$/;
-  for (let i = 0; i < sheets.length; i++) {
-    const sheetName = sheets[i].getName().trim();
-    if (yearPattern.test(sheetName)) sheetNames.push(sheetName);
-  }
-  return sheetNames;
-}
-
-function getAttendanceStudentNumbers(academicYearSheet) {
-  if (!academicYearSheet || academicYearSheet.toString().trim() === "") return [];
-  const spreadsheet = _getAttendanceSpreadsheet();
-  if (!spreadsheet) return [];
-  const targetSheet = spreadsheet.getSheetByName(academicYearSheet);
-  if (!targetSheet || targetSheet.getLastRow() < 2) return [];
-  const lastRow = targetSheet.getLastRow();
-  const data = targetSheet.getRange(2, 1, lastRow, 1).getValues();
-  const formulas = targetSheet.getRange(2, 1, lastRow, 1).getFormulas();
-  const unique = new Set();
-  for (let i = 0; i < data.length; i++) {
-    if (formulas[i][0] && typeof formulas[i][0] === "string" && formulas[i][0].includes("HYPERLINK")) continue;
-    const sn = String(data[i][0] || "").trim();
-    if (sn) unique.add(sn);
-  }
-  return Array.from(unique).sort();
-}
-
-function getAttendanceSections(academicYearSheet, studentNumber) {
-  if (!academicYearSheet || !studentNumber) return [];
-  const spreadsheet = _getAttendanceSpreadsheet();
-  if (!spreadsheet) return [];
-  const targetSheet = spreadsheet.getSheetByName(academicYearSheet);
-  if (!targetSheet || targetSheet.getLastRow() < 2) return [];
-  const lastRow = targetSheet.getLastRow();
-  const data = targetSheet.getRange(2, 1, lastRow, 6).getValues();
-  const formulas = targetSheet.getRange(2, 1, lastRow, 1).getFormulas();
-  const unique = new Set();
-  const sn = studentNumber.toString().trim();
-  for (let i = 0; i < data.length; i++) {
-    if (formulas[i][0] && typeof formulas[i][0] === "string" && formulas[i][0].includes("HYPERLINK")) continue;
-    if (String(data[i][0] || "").trim() === sn) {
-      const sec = String(data[i][3] || "").trim();
-      if (sec) unique.add(sec);
-    }
-  }
-  return Array.from(unique).sort();
-}
-
-function getAttendanceMonths(academicYearSheet, studentNumber, section) {
-  if (!academicYearSheet || !studentNumber || !section) return [];
-  const spreadsheet = _getAttendanceSpreadsheet();
-  if (!spreadsheet) return [];
-  const targetSheet = spreadsheet.getSheetByName(academicYearSheet);
-  if (!targetSheet || targetSheet.getLastRow() < 2) return [];
-  const lastRow = targetSheet.getLastRow();
-  const data = targetSheet.getRange(2, 1, lastRow, 6).getValues();
-  const formulas = targetSheet.getRange(2, 1, lastRow, 1).getFormulas();
-  const orderSeen = [];
-  const seen = new Set();
-  const sn = studentNumber.toString().trim();
-  const sec = section.toString().trim();
-  for (let i = 0; i < data.length; i++) {
-    if (formulas[i][0] && typeof formulas[i][0] === "string" && formulas[i][0].includes("HYPERLINK")) continue;
-    if (String(data[i][0] || "").trim() === sn && String(data[i][3] || "").trim() === sec) {
-      const mon = String(data[i][5] || "").trim();
-      if (mon && !seen.has(mon)) { seen.add(mon); orderSeen.push(mon); }
-    }
-  }
-  return orderSeen;
-}
-
-function _callAttendanceApi(action, payload) {
-  const url = CONFIG.WEB_APP_URL;
-  if (!url) throw new Error("WEB_APP_URL not configured.");
-  const resp = UrlFetchApp.fetch(url, {
-    method: "post",
-    contentType: "application/json",
-    payload: JSON.stringify({ apiKey: CONFIG.API_KEY, action: action, payload: payload || {} }),
-    muteHttpExceptions: true
-  });
-  const parsed = JSON.parse(resp.getContentText());
-  if (parsed.statusCode !== 200) throw new Error(parsed.message || "Attendance API error.");
-  return parsed.message;
-}
-
-function getAttendanceInfo(studentNumber, academicYearSheet, section, month) {
-  return _callAttendanceApi("getAttendanceInfo", { studentNumber: studentNumber, academicYearSheet: academicYearSheet, section: section, month: month });
-}
-
-function updateAttendance(studentNumber, academicYearSheet, section, month, schoolDays, daysPresent, remarks) {
-  const userEmail = Session.getActiveUser().getEmail();
-  return _callAttendanceApi("updateAttendance", {
-    studentNumber: studentNumber,
-    academicYearSheet: academicYearSheet,
-    section: section,
-    month: month,
-    schoolDays: schoolDays,
-    daysPresent: daysPresent,
-    daysAbsent: "",
-    remarks: remarks,
-    userEmail: userEmail
-  });
 }
 
 function _getCharacterSpreadsheet() {

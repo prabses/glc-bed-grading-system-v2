@@ -5,8 +5,6 @@ const CONFIG = {
 
   GRADES_DB_SHEET_URL: "https://docs.google.com/spreadsheets/d/1OO2qh_Ro1eI7hcZtbDD0KsdhJIY-qP4lJ7EO9e7BXP4/edit?gid=552466720#gid=552466720",
   GRADES_DB_SHEET_LABEL: "Grades DB",
-  ATTENDANCE_DB_SHEET_URL: "https://docs.google.com/spreadsheets/d/1rduPCiDF68ULE1qxBAa4ySn0bMBMC4qksRqkN7sxEwE/edit?gid=912758782#gid=912758782",
-  ATTENDANCE_DB_SHEET_LABEL: "Attendance DB",
   CHARACTER_DB_SHEET_URL: "https://docs.google.com/spreadsheets/d/13Gyeuj9ftqk2pTwbCGIibTMqYUJE28wDt0L6ODq5SKk/edit?gid=1378194833#gid=1378194833",
   CHARACTER_DB_SHEET_LABEL: "Character DB",
 

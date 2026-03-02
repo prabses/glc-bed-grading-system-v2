@@ -142,7 +142,7 @@
     <div class="container">
       <div class="header">
         <h2>Import OGS Template</h2>
-        <p>Import grades to this sheet; attendance and character to their DBs if those sheets exist</p>
+        <p>Import grades to this sheet; character to Character DB if that sheet exists in the template</p>
       </div>
 
       <form id="importOGSForm">
@@ -230,7 +230,6 @@
         google.script.run
           .withSuccessHandler(function(result) {
             alert('Grades: ' + (result.gradesMessage || ''));
-            alert('Attendance: ' + (result.attendanceMessage || ''));
             alert('Character: ' + (result.characterMessage || ''));
             if (result.success) {
               google.script.host.close();

@@ -915,9 +915,7 @@
           </ul>
         </li>
         <li>
-          <a href="#35-update-attendance-and-character"
-            >Update Attendance &amp; Character</a
-          >
+          <a href="#35-update-character">Update Character</a>
         </li>
         <li>
           <a href="#36-export-student-grades">Export Student Grades</a>
@@ -986,16 +984,15 @@
       </h4>
       <p>
         The Grades Database is a tool built into Google Sheets that helps you
-        manage student grades, attendance, and character for multiple school
-        years. You can:
+        manage student grades and character for multiple school years. You can:
       </p>
       <ul>
         <li>
           <strong>Upload</strong>: Import OGS Template (grades to this sheet;
-          attendance and character to their DBs if configured), Update Student
-          Grades, Update Student Attendance, Update Student Character
+          character to Character DB if configured), Update Student Grades,
+          Update Student Character
         </li>
-        <li><strong>Export</strong>: Export Student Grades to CSV</li>
+        <li><strong>Export</strong>: Export Student Grades, Export Student Characters to CSV</li>
         <li><strong>Manual</strong>: Open Working Instruction (this guide)</li>
         <li>
           Keep track of who changed what and when (UPDATE LOG, IMPORT LOG)
@@ -1015,8 +1012,7 @@
         </li>
         <li>
           Click <strong>Import OGS Template</strong> and wait for it to finish
-          (grades to Grades DB; attendance/character to their DBs if present in
-          template and configured)
+          (grades to Grades DB; character to Character DB if present in template and configured)
         </li>
       </ol>
       <p><strong>To update a student's grades:</strong></p>
@@ -1030,10 +1026,10 @@
         </li>
       </ol>
       <p>
-        <strong>To update attendance or character:</strong>
-        <strong>Upload</strong> → <strong>Update Student Attendance</strong> or
+        <strong>To update character:</strong> <strong>Upload</strong> →
         <strong>Update Student Character</strong>. To export:
-        <strong>Export</strong> → <strong>Export Student Grades</strong>.
+        <strong>Export</strong> → <strong>Export Student Grades</strong> or
+        <strong>Export Student Characters</strong>.
       </p>
       <p><strong>Before you start:</strong></p>
       <ul>
@@ -1138,9 +1134,7 @@
         </li>
         <li>Wait; it may take a minute or two depending on data size</li>
         <li>
-          When done, you'll see a success message (grades; attendance and
-          character if those sheets exist in the template and DBs are
-          configured)
+          When done, you'll see a success message (grades; character if that sheet exists in the template and Character DB is configured)
         </li>
         <li>The form will close automatically</li>
       </ol>
@@ -1167,12 +1161,8 @@
         </li>
         <li>
           <strong>Subject sheets</strong>: Imports from every subject sheet
-          (excluding Attendance, Character, Characters, MAPEH as standalone).
+          (excluding Character, Characters, MAPEH as standalone).
           MAPEH: only Final Grading and Final EQ.
-        </li>
-        <li>
-          <strong>Attendance</strong>: If the OGS template has an Attendance
-          sheet and Attendance DB is configured, attendance is imported there.
         </li>
         <li>
           <strong>Character</strong>: If the OGS template has a Character sheet
@@ -1186,7 +1176,7 @@
         <li>
           <strong>IMPORT LOG</strong>: Each import is logged (timestamp, user,
           academic year, grade level, section, semester, strand, teacher, links
-          to OGS and DBs).
+          to OGS, Grades DB, and Character DB).
         </li>
       </ul>
       <hr />
@@ -1259,7 +1249,7 @@
           Make sure there are subject sheets (like Math, Science, English, etc.)
         </li>
         <li>
-          Check that the sheets aren't named "Attendance", "Character",
+          Check that the sheets aren't named "Character",
           "Characters", or "MAPEH" by themselves (these are skipped during
           import)
         </li>
@@ -1583,16 +1573,9 @@
         <li>The student might not have grades for that subject yet</li>
       </ol>
       <hr />
-      <h3 id="35-update-attendance-and-character">
-        3.5 Update Attendance &amp; Character
+      <h3 id="35-update-character">
+        3.5 Update Character
       </h3>
-      <p>
-        <strong>Update Student Attendance</strong>: <strong>Upload</strong> →
-        <strong>Update Student Attendance</strong>. Choose Academic Year (from
-        Attendance DB), Student Number, Section, Month, then
-        <strong>Load</strong>. Edit School DAYS / Days PRESENT and save. Changes
-        are logged in the Attendance DB's UPDATE LOG.
-      </p>
       <p>
         <strong>Update Student Character</strong>: <strong>Upload</strong> →
         <strong>Update Student Character</strong>. Choose Academic Year (from
@@ -1673,7 +1656,7 @@
         Created automatically in the Grades DB spreadsheet. Each Import OGS
         Template run appends a row: Timestamp, Imported By, Academic Year, Grade
         Level, Section, Semester, Strand, Teacher, OGS Template Link, Grades DB
-        Link, Attendance DB Link, Character DB Link.
+        Link, Character DB Link.
       </p>
       <hr />
       <h4 id="43-update-log-sheet">4.3 UPDATE LOG Sheet</h4>
@@ -2136,7 +2119,7 @@
       <p>
         <em
           >This guide covers the Grades Database (Upload: Import OGS Template,
-          Update Grades/Attendance/Character; Export: Export Grades; Manual:
+          Update Grades/Character; Export: Export Grades/Characters; Manual:
           Open Working Instruction). For help, contact your systems
           developer.</em
         >
