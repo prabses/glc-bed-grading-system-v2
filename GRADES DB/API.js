@@ -1187,7 +1187,6 @@ function _importCharacters(ogsTemplateUrl, academicYearSheet, userEmail) {
       allRows.push(targetRow);
     }
     if (allRows.length === 0) return { success: false, message: 'No student character records found in Character sheet.' };
-    allRows.sort((a, b) => { const sn = String(a[0] || '').localeCompare(String(b[0] || '')); if (sn !== 0) return sn; return String(a[5] || '').localeCompare(String(b[5] || '')); });
     const targetSheet = getCharacterSheet(academicYearSheet);
     if (!targetSheet) return { success: false, message: `Academic year sheet "${academicYearSheet}" not found in Character DB.` };
     if (targetSheet.getLastRow() < 1) {
