@@ -840,14 +840,16 @@ function _getGradingWeights(subjectName) {
   }
   
   if (!match) {
-    // Debug: Log available subjects for troubleshooting
     const availableSubjects = dataRows
       .filter(row => isActive(row[CONFIG.GRADING_COLUMNS.ACTIVE]))
       .map(row => String(row[CONFIG.GRADING_COLUMNS.SUBJECT_NAME] || '').trim())
       .filter(name => name !== '');
     console.log('Available active subjects in GRADING_REF:', availableSubjects);
     console.log('Looking for subject:', normalizedSubjectName);
-    throw new Error('No grading weights found. Please ensure GRADING_REF has a DEFAULT row or a matching subject row with Active checked.');
+    throw new Error(
+      "GRADING_REF subject name mismatch: '" + normalizedSubjectName + "' has no matching row in GRADING_REF. " +
+      "Use the exact same subject name as in SUBJECTS_REF, or add an active DEFAULT row in GRADING_REF."
+    );
   }
   
   return {
@@ -3532,7 +3534,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     return { 
       success: false, 
       message: _formatMessage(CONFIG.MESSAGES.ERROR.TEMPLATE_GENERATION, {
-        error: error.toString()
+        error: (error && error.message) ? error.message : String(error)
       })
     };
   }

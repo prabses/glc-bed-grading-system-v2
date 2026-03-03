@@ -482,12 +482,18 @@ function generateOGSTemplatesBatch(schoolYear, gradeLevel, section, teachersWith
   }
   
   let message = '';
+  const failedResults = results.filter(r => !r.result.success);
+  const reason = failedResults.length > 0 && failedResults[0].result.message
+    ? failedResults[0].result.message
+    : '';
   if (successCount > 0 && failureCount === 0) {
     message = `Successfully generated ${successCount} template(s)`;
   } else if (successCount > 0 && failureCount > 0) {
-    message = `Generated ${successCount} template(s), ${failureCount} failed`;
+    message = `Generated ${successCount} template(s), ${failureCount} failed. ${reason}`;
   } else {
-    message = `Failed to generate templates: ${results.map(r => r.teacher).join(', ')}`;
+    message = reason
+      ? `Failed to generate templates: ${results.map(r => r.teacher).join(', ')}. ${reason}`
+      : `Failed to generate templates: ${results.map(r => r.teacher).join(', ')}`;
   }
   
   return {
