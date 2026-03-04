@@ -4306,24 +4306,21 @@ function _addAdvisory(teacher, gradeLevel, section, userEmail) {
       }
     }
     
-    // ONE-TO-ONE RULE: Teacher can only have one active advisory
-    // Set all other active advisories for this teacher to Inactive (including the exact match if it exists)
     const rowsToDeactivate = [];
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      if (row[CONFIG.ADVISORY_COLUMNS.TEACHER] === teacher &&
-          row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
-        // Deactivate all active advisories for this teacher, even if it's the exact match
-        rowsToDeactivate.push(i + 1); // Store 1-based row number
+    if (!CONFIG.IS_SHS) {
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (row[CONFIG.ADVISORY_COLUMNS.TEACHER] === teacher &&
+            row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
+          rowsToDeactivate.push(i + 1);
+        }
       }
-    }
-    
-    // Batch deactivate previous advisories
-    if (rowsToDeactivate.length > 0) {
-      rowsToDeactivate.forEach(rowNum => {
-        sheet.getRange(rowNum, statusCol).setValue('Inactive');
-        sheet.getRange(rowNum, modifiedCol).setValue(timestamp);
-      });
+      if (rowsToDeactivate.length > 0) {
+        rowsToDeactivate.forEach(rowNum => {
+          sheet.getRange(rowNum, statusCol).setValue('Inactive');
+          sheet.getRange(rowNum, modifiedCol).setValue(timestamp);
+        });
+      }
     }
     
     // If exact match exists, reactivate it; otherwise add new advisory

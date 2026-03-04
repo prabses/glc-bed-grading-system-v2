@@ -84,7 +84,10 @@ TEMPLATE MASTERFILE
 ✅ in the exported ogs file make the section blank and name should not include section
 
 ✅ sort the student names alphabetically for the generated OGS file
-for shs, allow duplicated advisory for a teacher
+✅ for shs, allow duplicated advisory for a teacher
+✅ show strand in the subjects list as “Subject – Strand”
+✅ use the chosen subject+strand when adding so each variant is saved as its own row
+✅ use SUBJECTS assignment strand/semester (not SUBJECTS_REF) for OGS template when isSHS.
 
 ==========================================
 GRADES DB

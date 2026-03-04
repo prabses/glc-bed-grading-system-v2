@@ -263,6 +263,7 @@
       let allSections = {};
       let teachers = [];
       let allTeachers = []; // All teachers for autocomplete
+      let isSHS = false;
       let highlightedIndex = -1; // For keyboard navigation
 
       document.addEventListener('DOMContentLoaded', function() {
@@ -278,6 +279,7 @@
           .withSuccessHandler(function(data) {
             gradeLevels = data.gradeLevels || [];
             teachers = data.teachers || [];
+            isSHS = data.isSHS || false;
             
             // OPTIMIZATION: Use DocumentFragment for batch DOM operations (faster)
             
@@ -509,28 +511,24 @@
           return;
         }
         
-        // Since there's only one active advisory per teacher, display the first one
-        const advisory = activeAdvisories[0];
-        
-        const advisoryItem = document.createElement('div');
-        advisoryItem.className = 'advisory-item';
-        
-        const infoSpan = document.createElement('span');
-        infoSpan.className = 'advisory-info';
-        infoSpan.textContent = `${advisory.gradeLevel}${advisory.section}`;
-        
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'advisory-item-delete';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', function() {
-          deleteAdvisory(advisory.teacher, advisory.gradeLevel, advisory.section);
-        });
-        
-        advisoryItem.appendChild(infoSpan);
-        advisoryItem.appendChild(deleteBtn);
-        
         list.innerHTML = '';
-        list.appendChild(advisoryItem);
+        const toShow = isSHS ? activeAdvisories : [activeAdvisories[0]];
+        toShow.forEach(function(advisory) {
+          const advisoryItem = document.createElement('div');
+          advisoryItem.className = 'advisory-item';
+          const infoSpan = document.createElement('span');
+          infoSpan.className = 'advisory-info';
+          infoSpan.textContent = `${advisory.gradeLevel}${advisory.section}`;
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'advisory-item-delete';
+          deleteBtn.textContent = 'Delete';
+          deleteBtn.addEventListener('click', function() {
+            deleteAdvisory(advisory.teacher, advisory.gradeLevel, advisory.section);
+          });
+          advisoryItem.appendChild(infoSpan);
+          advisoryItem.appendChild(deleteBtn);
+          list.appendChild(advisoryItem);
+        });
         
         if (container) container.style.display = 'block';
         if (placeholder) placeholder.style.display = 'none';
