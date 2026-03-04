@@ -995,12 +995,11 @@ function _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl
  * @param {Object} weights - Grading weights object
  * @param {Array} students - Array of student objects (optional)
  */
-function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teacher, weights, students = [], userEmail = null) {
-  // Clear the sheet first
+function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teacher, weights, students = [], userEmail = null, strand = null, semester = null) {
   sheet.clear();
   
   const isSHS = CONFIG.IS_SHS;
-  const numCols = isSHS ? 16 : 28; // SHS: 2 periods (Mastery, Final) × 6 + 2 = 16. Non-SHS: 4 periods × 6 + 2 = 28
+  const numCols = isSHS ? 16 : 28;
   const allData = [];
   
   const padRow = (row) => {
@@ -1021,9 +1020,8 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
   allData.push(padRow(['Subject:', subject]));
   
   if (isSHS) {
-    const subjectMeta = _getSubjectMetadata(subject);
-    const strandDisplay = subjectMeta.strand || CONFIG.SHS_DEFAULTS.STRAND;
-    const semesterDisplay = subjectMeta.semester || CONFIG.SHS_DEFAULTS.SEMESTER;
+    const strandDisplay = (strand != null && strand !== '') ? strand : (_getSubjectMetadata(subject).strand || CONFIG.SHS_DEFAULTS.STRAND);
+    const semesterDisplay = (semester != null && semester !== '') ? semester : (_getSubjectMetadata(subject).semester || CONFIG.SHS_DEFAULTS.SEMESTER);
     allData.push(padRow(['Strand:', strandDisplay]));
     allData.push(padRow(['Semester:', semesterDisplay]));
   }
@@ -3413,17 +3411,26 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
   try {
     const masterSpreadsheet = getSpreadsheet();
     
-    // Normalize grade level for folder/file naming (extract just the number)
     const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
+    const isSHS = CONFIG.IS_SHS;
+    const subjectItems = subjects && subjects.length > 0 ? subjects : [];
+    const firstSubjectItem = subjectItems[0];
+    const hasSubjectStrandSemester = isSHS && firstSubjectItem && typeof firstSubjectItem === 'object' && firstSubjectItem.subject != null;
+    const subjectNames = subjectItems.map(function(s) {
+      return typeof s === 'object' && s && s.subject != null ? s.subject : s;
+    });
     
     const sanitizedYear = schoolYear.replace(/[^a-zA-Z0-9-]/g, '');
     const allSectionsMode = !section || section === '';
     const sanitizedSection = section ? section.toUpperCase() : '';
     let templateFileName;
-    if (CONFIG.IS_SHS && subjects && subjects.length > 0) {
-      const meta = _getSubjectMetadata(subjects[0]);
-      const strand = (meta.strand || CONFIG.SHS_DEFAULTS.STRAND).replace(/[^a-zA-Z0-9]/g, '');
-      const semester = (meta.semester || CONFIG.SHS_DEFAULTS.SEMESTER).replace(/[^a-zA-Z0-9]/g, '');
+    if (isSHS && subjectNames.length > 0) {
+      const strand = hasSubjectStrandSemester
+        ? (firstSubjectItem.strand || CONFIG.SHS_DEFAULTS.STRAND).replace(/[^a-zA-Z0-9]/g, '')
+        : (_getSubjectMetadata(subjectNames[0]).strand || CONFIG.SHS_DEFAULTS.STRAND).replace(/[^a-zA-Z0-9]/g, '');
+      const semester = hasSubjectStrandSemester
+        ? (firstSubjectItem.semester || CONFIG.SHS_DEFAULTS.SEMESTER).replace(/[^a-zA-Z0-9]/g, '')
+        : (_getSubjectMetadata(subjectNames[0]).semester || CONFIG.SHS_DEFAULTS.SEMESTER).replace(/[^a-zA-Z0-9]/g, '');
       if (allSectionsMode) {
         templateFileName = `OGS-GRADE-${normalizedGradeLevel}-${strand}-${semester} Quarter-${sanitizedYear} - ${teacher}`;
       } else {
@@ -3509,32 +3516,31 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     // OPTIMIZATION: Fetch students from STUDENTS DB (single API call)
     const students = _getStudentsFromDB(schoolYear, gradeLevel, section);
     
-    // OPTIMIZATION: Pre-fetch all grading weights at once to reduce API calls
     const subjectWeights = {};
-    subjects.forEach(subject => {
-      subjectWeights[subject] = _getGradingWeights(subject);
+    subjectNames.forEach(function(name) {
+      subjectWeights[name] = _getGradingWeights(name);
     });
     
-    // Get the default sheet and rename it to the first subject
     const defaultSheet = templateSpreadsheet.getActiveSheet();
-    const firstSubject = subjects[0];
+    const firstSubject = subjectNames[0];
     defaultSheet.setName(firstSubject);
     
-    // Set up the first OGS template sheet with student data
-    _setupOGSTemplate(defaultSheet, schoolYear, gradeLevel, section, firstSubject, teacher, subjectWeights[firstSubject], students, userEmail);
+    const firstStrand = hasSubjectStrandSemester ? (firstSubjectItem.strand || null) : null;
+    const firstSemester = hasSubjectStrandSemester ? (firstSubjectItem.semester || null) : null;
+    _setupOGSTemplate(defaultSheet, schoolYear, gradeLevel, section, firstSubject, teacher, subjectWeights[firstSubject], students, userEmail, firstStrand, firstSemester);
     
-    // Create sheets for remaining subjects with same student data
     const createdSheets = [firstSubject];
-    for (let i = 1; i < subjects.length; i++) {
-      const subject = subjects[i];
-      const newSheet = templateSpreadsheet.insertSheet(subject);
-      _setupOGSTemplate(newSheet, schoolYear, gradeLevel, section, subject, teacher, subjectWeights[subject], students, userEmail);
-      createdSheets.push(subject);
+    for (let i = 1; i < subjectItems.length; i++) {
+      const subjectName = subjectNames[i];
+      const item = subjectItems[i];
+      const itemStrand = (typeof item === 'object' && item && item.subject != null) ? (item.strand || null) : null;
+      const itemSemester = (typeof item === 'object' && item && item.subject != null) ? (item.semester || null) : null;
+      const newSheet = templateSpreadsheet.insertSheet(subjectName);
+      _setupOGSTemplate(newSheet, schoolYear, gradeLevel, section, subjectName, teacher, subjectWeights[subjectName], students, userEmail, itemStrand, itemSemester);
+      createdSheets.push(subjectName);
     }
     
-    // Check if MAPEH sheet should be created (all four subjects must be present)
-    // Normalize subjects for comparison (trim whitespace and convert to lowercase)
-    const normalizedSubjects = subjects.map(s => s.trim().toLowerCase());
+    const normalizedSubjects = subjectNames.map(s => String(s).trim().toLowerCase());
     
     // Check for each required subject (case-insensitive, trimmed)
     const hasMusic = normalizedSubjects.includes('music');
@@ -3551,7 +3557,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
       };
       
       // Determine the Health sheet position so MAPEH can be inserted right after it
-      const healthSubjectName = subjects.find(subject => subject.trim().toLowerCase() === 'health');
+      const healthSubjectName = subjectNames.find(function(s) { return String(s).trim().toLowerCase() === 'health'; });
       const healthSheet = healthSubjectName ? templateSpreadsheet.getSheetByName(healthSubjectName) : null;
       const healthIndex = healthSheet ? healthSheet.getIndex() : templateSpreadsheet.getSheets().length;
       const insertIndex = Math.min(healthIndex + 1, templateSpreadsheet.getSheets().length + 1);
@@ -3585,7 +3591,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     // Save one row to MASTER_DATA (one row per template file, not per subject)
     _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl, userEmail, templateFileName);
     
-    const subjectsList = subjects.join(', ');
+    const subjectsList = subjectNames.join(', ');
     const studentCountMsg = students.length > 0 ? ` (${students.length} students)` : '';
     const advisorSheetsMsg = isAdvisor ? ' (Advisor sheets included)' : '';
     const message = `Template generated: ${templateFileName}${studentCountMsg}${advisorSheetsMsg}`;
@@ -3594,7 +3600,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
       success: true, 
       message: message,
       templateUrl: templateUrl,
-      subjects: subjects,
+      subjects: subjectNames,
       folderName: folderName,
       studentCount: students.length
     };

@@ -861,15 +861,15 @@
         const teachersWithSubjects = [];
         selectedTeachers.forEach(function(teacher) {
           const assignments = getFilteredAssignmentsForTeacher(teacher);
-          const subjectNames = assignments.map(function(a) {
-            return typeof a === 'object' && a && a.subject != null ? a.subject : a;
-          });
-          if (subjectNames.length > 0) {
+          const subjectsPayload = isSHS
+            ? assignments.map(function(a) {
+                const item = typeof a === 'object' && a && a.subject != null ? a : { subject: a, strand: 'ALL', semester: '1ST' };
+                return { subject: item.subject, strand: item.strand || 'ALL', semester: item.semester || '1ST' };
+              })
+            : assignments.map(function(a) { return typeof a === 'object' && a && a.subject != null ? a.subject : a; });
+          if (subjectsPayload.length > 0) {
             hasSubjects = true;
-            teachersWithSubjects.push({
-              teacher: teacher,
-              subjects: subjectNames
-            });
+            teachersWithSubjects.push({ teacher: teacher, subjects: subjectsPayload });
           }
         });
 
