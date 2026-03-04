@@ -124,6 +124,10 @@ function doPost(e) {
         return response(200, _getSubjectsMetadata(
           payload.subjectNames || []
         ));
+      case "getSubjectsMetadataForList":
+        return response(200, _getSubjectsMetadataForList(
+          typeof payload.subjectStrandPairs === 'string' ? JSON.parse(payload.subjectStrandPairs) : (payload.subjectStrandPairs || [])
+        ));
       case "getSubjectMetadata":
         return response(200, _getSubjectMetadata(
           payload.subjectName
@@ -476,6 +480,70 @@ function _getSubjectsMetadata(subjectNames) {
 }
 
 /**
+ * Get metadata (category, semester) for each (subject, strand) pair from SUBJECTS_REF. Used when IS_SHS so same subject name with different strands get correct metadata.
+ * @param {Array} subjectStrandPairs - Array of {subject, strand}
+ * @return {Array} Array of {subject, strand, category, semester} in same order
+ */
+function _getSubjectsMetadataForList(subjectStrandPairs) {
+  if (!subjectStrandPairs || subjectStrandPairs.length === 0) return [];
+  if (!CONFIG.IS_SHS) {
+    return subjectStrandPairs.map(function(p) {
+      return {
+        subject: p.subject,
+        strand: p.strand || CONFIG.SHS_DEFAULTS.STRAND,
+        category: CONFIG.SHS_DEFAULTS.CATEGORY,
+        semester: CONFIG.SHS_DEFAULTS.SEMESTER
+      };
+    });
+  }
+  try {
+    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS_REF);
+    if (!sheet) {
+      return subjectStrandPairs.map(function(p) {
+        return { subject: p.subject, strand: p.strand || 'ALL', category: CONFIG.SHS_DEFAULTS.CATEGORY, semester: CONFIG.SHS_DEFAULTS.SEMESTER };
+      });
+    }
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= CONFIG.HEADER_ROWS) {
+      return subjectStrandPairs.map(function(p) {
+        return { subject: p.subject, strand: p.strand || 'ALL', category: CONFIG.SHS_DEFAULTS.CATEGORY, semester: CONFIG.SHS_DEFAULTS.SEMESTER };
+      });
+    }
+    const startRow = CONFIG.HEADER_ROWS + 1;
+    const numRows = lastRow - CONFIG.HEADER_ROWS;
+    const data = sheet.getRange(startRow, 2, numRows, 6).getValues();
+    const keyToMeta = {};
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const rowSubject = String(row[CONFIG.SUBJECTS_REF_COLUMNS.SUBJECT_NAME] || '').trim();
+      const rowStrand = String(row[CONFIG.SUBJECTS_REF_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
+      const activeValue = row[5];
+      if (!(activeValue === true || activeValue === '✓' || activeValue === 'TRUE')) continue;
+      const key = rowSubject + '|' + rowStrand;
+      keyToMeta[key] = {
+        category: String(row[CONFIG.SUBJECTS_REF_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY,
+        semester: String(row[CONFIG.SUBJECTS_REF_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER
+      };
+    }
+    return subjectStrandPairs.map(function(p) {
+      const key = (p.subject || '') + '|' + (p.strand || 'ALL');
+      const m = keyToMeta[key];
+      return {
+        subject: p.subject,
+        strand: p.strand || 'ALL',
+        category: (m && m.category) || CONFIG.SHS_DEFAULTS.CATEGORY,
+        semester: (m && m.semester) || CONFIG.SHS_DEFAULTS.SEMESTER
+      };
+    });
+  } catch (error) {
+    console.error('Error in _getSubjectsMetadataForList:', error);
+    return subjectStrandPairs.map(function(p) {
+      return { subject: p.subject, strand: p.strand || 'ALL', category: CONFIG.SHS_DEFAULTS.CATEGORY, semester: CONFIG.SHS_DEFAULTS.SEMESTER };
+    });
+  }
+}
+
+/**
  * Internal function to get active subjects filtered by level (and optionally strand) from SUBJECTS_REF sheet
  * @param {string} gradeLevel - The grade level to filter by (e.g., "Grade 11" or "11")
  * @param {string|null} strandFilter - Optional. When 'ALL', only return subjects with Strand = ALL in SUBJECTS_REF
@@ -505,27 +573,28 @@ function _getActiveSubjectsByLevel(gradeLevel, strandFilter) {
     
     const subjects = [];
     const filterByStrandAll = strandFilter === 'ALL';
-    
+    const includeStrand = !!CONFIG.IS_SHS;
+
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
       const rowSubjectName = String(row[CONFIG.SUBJECTS_REF_COLUMNS.SUBJECT_NAME] || '').trim();
       const rowLevel = String(row[CONFIG.SUBJECTS_REF_COLUMNS.LEVEL] || '').trim();
       const rowStrand = String(row[CONFIG.SUBJECTS_REF_COLUMNS.STRAND] || '').trim();
       const activeValue = row[CONFIG.SUBJECTS_REF_COLUMNS.ACTIVE];
-      
+
       if (!(activeValue === true || activeValue === '✓' || activeValue === 'TRUE')) continue;
       if (filterByStrandAll && rowStrand !== 'ALL') continue;
-      
+
       if (!rowLevel || rowLevel === '') {
-        if (rowSubjectName) subjects.push(rowSubjectName);
+        if (rowSubjectName) subjects.push(includeStrand ? { subject: rowSubjectName, strand: rowStrand || 'ALL' } : rowSubjectName);
       } else {
         const normalizedRowLevel = _normalizeGradeLevel(rowLevel);
         if (normalizedRowLevel === normalizedGradeLevel && rowSubjectName) {
-          subjects.push(rowSubjectName);
+          subjects.push(includeStrand ? { subject: rowSubjectName, strand: rowStrand || 'ALL' } : rowSubjectName);
         }
       }
     }
-    
+
     return subjects;
   } catch (error) {
     console.error('Error getting subjects by level:', error);

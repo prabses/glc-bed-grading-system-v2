@@ -171,6 +171,35 @@ function getSubjectsMetadata(subjectNames) {
 }
 
 /**
+ * Gets metadata (category, semester) for each (subject, strand) pair. Used for SHS when same subject name has multiple strands.
+ * @param {Array} subjectStrandPairs - Array of {subject, strand}
+ * @return {Array} Array of {subject, strand, category, semester}
+ */
+function getSubjectsMetadataForList(subjectStrandPairs) {
+  try {
+    if (!subjectStrandPairs || subjectStrandPairs.length === 0) return [];
+    if (!CONFIG.IS_SHS) {
+      return subjectStrandPairs.map(function(p) {
+        return {
+          subject: p.subject,
+          strand: p.strand || CONFIG.SHS_DEFAULTS.STRAND,
+          category: CONFIG.SHS_DEFAULTS.CATEGORY,
+          semester: CONFIG.SHS_DEFAULTS.SEMESTER
+        };
+      });
+    }
+    return callApi("getSubjectsMetadataForList", {
+      subjectStrandPairs: subjectStrandPairs
+    });
+  } catch (error) {
+    console.error('Error getting subjects metadata for list:', error);
+    return subjectStrandPairs.map(function(p) {
+      return { subject: p.subject, strand: p.strand || 'ALL', category: CONFIG.SHS_DEFAULTS.CATEGORY, semester: CONFIG.SHS_DEFAULTS.SEMESTER };
+    });
+  }
+}
+
+/**
  * Gets all available categories
  * @return {Array} Array of category names (empty array if IS_SHS is false)
  */

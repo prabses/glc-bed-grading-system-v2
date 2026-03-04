@@ -78,11 +78,13 @@ TEMPLATE MASTERFILE
 ✅ change grading headers to Mastery and Final
 ✅ change other sheets in ogs template to 2 gradings too
 ✅ require strand and semester fields in export ogs form
-
 ✅ move strand and semester filter before section in export ogs form
 ✅ if strand selected is ALL then dont show the section
 ✅ export function should include all sections for the selected grade level
 ✅ in the exported ogs file make the section blank and name should not include section
+
+✅ sort the student names alphabetically for the generated OGS file
+for shs, allow duplicated advisory for a teacher
 
 ==========================================
 GRADES DB

@@ -718,12 +718,19 @@
           return;
         }
         
-        filteredSubjects.forEach(function(subject) {
+        filteredSubjects.forEach(function(item, idx) {
+          const subjectName = typeof item === 'object' && item && item.subject != null ? item.subject : String(item);
+          const strand = (isSHS && typeof item === 'object' && item && item.strand != null) ? (item.strand || 'ALL') : '';
+          const displayText = (isSHS && typeof item === 'object' && item && item.subject != null)
+            ? (item.subject + ' - ' + (item.strand || 'ALL'))
+            : subjectName;
+          const safeId = 'subject_' + idx + '_' + subjectName.replace(/[^a-zA-Z0-9]/g, '_');
+          const dataStrandAttr = strand ? ` data-strand="${String(strand).replace(/"/g, '&quot;')}"` : '';
           const checkboxDiv = document.createElement('div');
           checkboxDiv.className = 'subject-checkbox';
           checkboxDiv.innerHTML = `
-            <input type="checkbox" id="subject_${subject}" value="${subject}" name="subjects">
-            <label for="subject_${subject}">${subject}</label>
+            <input type="checkbox" id="${safeId}" value="${subjectName.replace(/"/g, '&quot;')}" name="subjects"${dataStrandAttr}>
+            <label for="${safeId}">${displayText}</label>
           `;
           subjectsFragment.appendChild(checkboxDiv);
         });
@@ -934,73 +941,89 @@
         const section = document.getElementById('section').value;
         const teacher = document.getElementById('teacher').value;
         
-        // Get selected subjects
         const checkboxes = document.querySelectorAll('input[name="subjects"]:checked');
-        const selectedSubjects = Array.from(checkboxes).map(cb => cb.value);
-        
-        if (selectedSubjects.length === 0) {
+        if (checkboxes.length === 0) {
           alert('Please select at least one subject.');
           return;
         }
         
-        // Disable submit button
         const submitBtn = document.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
         submitBtn.textContent = 'Getting subject details...';
         submitBtn.disabled = true;
         
-        // Get metadata for all selected subjects from SUBJECTS_REF
-        google.script.run
-          .withSuccessHandler(function(subjectsMetadata) {
-            // Convert subjects array to objects with metadata from SUBJECTS_REF
-            const subjectsWithMetadata = selectedSubjects.map(subject => {
-              const metadata = subjectsMetadata[subject] || {
-                category: 'Core',
-                strand: 'ALL',
-                semester: '1ST',
-                level: null
-              };
-              return {
-                subject: subject,
-                strand: metadata.strand || 'ALL',
-                category: metadata.category || 'Core',
-                semester: metadata.semester || '1ST'
-              };
-            });
-            
-            submitBtn.textContent = `Adding ${selectedSubjects.length} assignment(s)...`;
-            
-            google.script.run
-              .withSuccessHandler(function(result) {
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-                
-                if (result.success) {
-                  alert(`✅ ${result.message}`);
-                  document.getElementById('assignmentForm').reset();
-                  document.getElementById('section').disabled = true;
-                  // Reload subjects checkboxes
-                  loadInitialData();
-                  loadSubjects();
-                } else {
-                  alert(`❌ Error: ${result.message}`);
-                  loadSubjects();
-                }
-              })
-              .withFailureHandler(function(error) {
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-                alert(`❌ Error: ${error.toString()}`);
+        function doAddSubjects(subjectsWithMetadata) {
+          submitBtn.textContent = `Adding ${subjectsWithMetadata.length} assignment(s)...`;
+          google.script.run
+            .withSuccessHandler(function(result) {
+              submitBtn.textContent = originalText;
+              submitBtn.disabled = false;
+              if (result.success) {
+                alert(`✅ ${result.message}`);
+                document.getElementById('assignmentForm').reset();
+                document.getElementById('section').disabled = true;
+                loadInitialData();
                 loadSubjects();
-              })
-              .addSubjectsBatch(gradeLevel, section, teacher, subjectsWithMetadata);
-          })
-          .withFailureHandler(function(error) {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            alert(`❌ Error getting subject details: ${error.toString()}`);
-          })
-          .getSubjectsMetadata(selectedSubjects);
+              } else {
+                alert(`❌ Error: ${result.message}`);
+                loadSubjects();
+              }
+            })
+            .withFailureHandler(function(error) {
+              submitBtn.textContent = originalText;
+              submitBtn.disabled = false;
+              alert(`❌ Error: ${error.toString()}`);
+              loadSubjects();
+            })
+            .addSubjectsBatch(gradeLevel, section, teacher, subjectsWithMetadata);
+        }
+        
+        if (isSHS) {
+          const selectedItems = Array.from(checkboxes).map(cb => ({
+            subject: cb.value,
+            strand: cb.getAttribute('data-strand') || 'ALL'
+          }));
+          google.script.run
+            .withSuccessHandler(function(metadataList) {
+              const subjectsWithMetadata = (metadataList || selectedItems).map(function(m, i) {
+                const item = selectedItems[i];
+                return {
+                  subject: item.subject,
+                  strand: item.strand,
+                  category: (m && m.category) || 'Core',
+                  semester: (m && m.semester) || '1ST'
+                };
+              });
+              doAddSubjects(subjectsWithMetadata);
+            })
+            .withFailureHandler(function(error) {
+              submitBtn.textContent = originalText;
+              submitBtn.disabled = false;
+              alert(`❌ Error getting subject details: ${error.toString()}`);
+            })
+            .getSubjectsMetadataForList(selectedItems);
+        } else {
+          const selectedSubjects = Array.from(checkboxes).map(cb => cb.value);
+          google.script.run
+            .withSuccessHandler(function(subjectsMetadata) {
+              const subjectsWithMetadata = selectedSubjects.map(function(subject) {
+                const metadata = subjectsMetadata[subject] || { category: 'Core', strand: 'ALL', semester: '1ST' };
+                return {
+                  subject: subject,
+                  strand: metadata.strand || 'ALL',
+                  category: metadata.category || 'Core',
+                  semester: metadata.semester || '1ST'
+                };
+              });
+              doAddSubjects(subjectsWithMetadata);
+            })
+            .withFailureHandler(function(error) {
+              submitBtn.textContent = originalText;
+              submitBtn.disabled = false;
+              alert(`❌ Error getting subject details: ${error.toString()}`);
+            })
+            .getSubjectsMetadata(selectedSubjects);
+        }
       });
     </script>
   </body>
