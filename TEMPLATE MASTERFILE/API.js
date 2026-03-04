@@ -1451,11 +1451,12 @@ function _getStudentsFromDB(schoolYear, gradeLevel, section) {
       }
     }
     
-    // Sort students by student number for consistent ordering
     students.sort((a, b) => {
-      const numA = String(a.studentNumber);
-      const numB = String(b.studentNumber);
-      return numA.localeCompare(numB);
+      const ln = (String(a.lastName || '')).localeCompare(String(b.lastName || ''), undefined, { sensitivity: 'base' });
+      if (ln !== 0) return ln;
+      const fn = (String(a.firstName || '')).localeCompare(String(b.firstName || ''), undefined, { sensitivity: 'base' });
+      if (fn !== 0) return fn;
+      return (String(a.studentNumber || '')).localeCompare(String(b.studentNumber || ''));
     });
     
     return students;
