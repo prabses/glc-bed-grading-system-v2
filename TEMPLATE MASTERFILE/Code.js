@@ -6,6 +6,11 @@
  * API functions are located in API.js
  */
 
+if (typeof CONFIG !== 'undefined') {
+  if (typeof CONFIG.IS_SHS === 'undefined') CONFIG.IS_SHS = false;
+  if (!CONFIG.SHS_DEFAULTS) CONFIG.SHS_DEFAULTS = { STRAND: 'ALL', CATEGORY: 'Core', SEMESTER: '1ST' };
+}
+
 /**
  * Creates the custom menu when the spreadsheet opens
  */
