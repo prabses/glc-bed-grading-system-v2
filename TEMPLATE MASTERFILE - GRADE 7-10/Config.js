@@ -7,25 +7,20 @@ const CONFIG = {
   // Web App URL - Update this after deploying the script as a web app
   // To deploy: Deploy > New deployment > Select type: Web app > Execute as: Me > Who has access: Anyone
   // Then copy the Web App URL (the one ending with /exec) and paste it below
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxWJodkUTl7ql0JL9bnVqlG79G_IfdSf80d9cK1wiymMUjXksWEpstcFjpYF4ybIx97/exec", // Replace with your /exec URL after deployment
-
-  // STUDENTS DB Spreadsheet URL - Full URL to the students database spreadsheet
-  STUDENTS_DB_URL: "https://docs.google.com/spreadsheets/d/1QNN7DAfWY7nZVQ5GccWh1yTGhsCCIb-d-aZV7Thndjk/edit?gid=639124723#gid=639124723",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxGumZ5pJEJBD0dI9sDZkkoZ2barKVnmML3BvZqBCI_gRE_7Tt4w6W9tKTTjQqhic9d/exec", // Replace with your /exec URL after deployment
   
   // API Key for securing the API - This is a unique identifier
   // Keep this secret and don't share it publicly
   API_KEY: "YTM0NzhkODItZmU4Zi00YjczLWI5ZGQtZGVhNjYxZGI4ZmFi",
-  
-  // Senior High School (SHS) Configuration
-  // Set to true to enable SHS features (Strand, Category, Semester fields)
-  // Set to false for Elementary and Junior High School (will use defaults: ALL, Core, 1ST)
-  IS_SHS: true,
   
   // Spreadsheet ID - Will use the active spreadsheet
   // This is determined dynamically, no need to hardcode
   get SPREADSHEET_ID() {
     return SpreadsheetApp.getActiveSpreadsheet().getId();
   },
+  
+  // STUDENTS DB Spreadsheet URL - Full URL to the students database spreadsheet
+  STUDENTS_DB_URL: "https://docs.google.com/spreadsheets/d/1x4dcYyafykjj3MVXRwMIyn8vMLslOV-iSB7bhMnhJ3c/edit?gid=1882876298#gid=1882876298",
   
   // Sheet names
   SHEET_NAMES: {
@@ -52,17 +47,6 @@ const CONFIG = {
     CREATED_BY: 7        // Column H
   },
   
-  // Column mapping for SUBJECTS_REF (0-based index relative to data array starting at Column B)
-  // Note: Column A is "No." (row numbers) and is ignored - we read from Column B onwards
-  SUBJECTS_REF_COLUMNS: {
-    SUBJECT_NAME: 0,  // Column B - Subject Name (index 0 in array when reading from column 2)
-    CATEGORY: 1,      // Column C - Category (Core, Specialized, Applied)
-    STRAND: 2,        // Column D - Strand (ALL, STEM, HUMSS, ICT, ABM, GAS)
-    SEMESTER: 3,      // Column E - Semester (1ST, 2ND)
-    LEVEL: 4,         // Column F - Level (11, 12)
-    ACTIVE: 5         // Column G - Active (✓ or blank)
-  },
-  
   // Column mapping for GRADING_REF (0-based index)
   GRADING_COLUMNS: {
     SUBJECT_NAME: 1,      // Column B
@@ -78,13 +62,10 @@ const CONFIG = {
     SECTION: 1,          // Column B
     TEACHER: 2,       // Column C
     SUBJECT: 3,          // Column D
-    STRAND: 4,           // Column E - NEW: Strand (ALL, STEM, HUMSS, ICT, ABM, GAS)
-    CATEGORY: 5,          // Column F - NEW: Category (Core, Specialized)
-    SEMESTER: 6,         // Column G - NEW: Semester (1ST, 2ND)
-    STATUS: 7,            // Column H
-    CREATED: 8,           // Column I
-    MODIFIED: 9,          // Column J
-    CREATED_BY: 10        // Column K
+    STATUS: 4,            // Column E
+    CREATED: 5,           // Column F
+    MODIFIED: 6,          // Column G
+    CREATED_BY: 7         // Column H
   },
   
   // Column mapping for ADVISORY (0-based index)
@@ -100,36 +81,6 @@ const CONFIG = {
   
   // Fixed grading components
   GRADING_COMPONENTS: ['Written Work', 'Performance Task', 'Assessment'],
-  
-  // SHS Default Values (used when values are not provided)
-  // Note: Strands are stored in SUBJECTS_REF for each subject
-  SHS_DEFAULTS: {
-    STRAND: 'ALL',        // Default strand value
-    CATEGORY: 'Core',     // Default category value
-    SEMESTER: '1ST'       // Default semester value
-  },
-  
-  // Subject Categories
-  CATEGORIES: {
-    CORE: 'Core',
-    SPECIALIZED: 'Specialized'
-  },
-  
-  // Semesters
-  SEMESTERS: {
-    FIRST: '1ST',
-    SECOND: '2ND'
-  },
-
-  // Strands (SHS)
-  STRANDS: {
-    ALL: 'ALL',
-    STEM: 'STEM',
-    HUMSS: 'HUMSS',
-    ICT: 'ICT',
-    ABM: 'ABM',
-    GAS: 'GAS'
-  },
   
   // Data row configuration
   DATA_START_ROW: 3,  // Data starts from row 3 (after 2 header rows)
@@ -177,14 +128,14 @@ const CONFIG = {
       // Subject sheets protection ranges
       SUBJECT_SHEETS: {
         STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
-        HEADER_ROWS: [8, 9],  // Non-SHS: rows 8-9 (grading + column headers). When IS_SHS true, API uses [10, 11]
+        HEADER_ROWS: [8, 9],  // Rows 8-9 (grading period headers and column headers)
         FORMULA_COLUMNS: [6, 7, 8, 12, 13, 14, 18, 19, 20, 24, 25, 26, 27, 28]  // Columns F, G, H, L, M, N, R, S, T, X, Y, Z, AA, AB
       },
       // Character sheet protection ranges
       CHARACTER_SHEET: {
         STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
         HEADER_ROW: 7,  // Row 7 (column headers)
-        FORMULA_COLUMNS: [3, 5, 7, 9, 11, 12, 13]  // Columns C, E, G, I, K, L (Final Grading), M
+        FORMULA_COLUMNS: [3, 5, 7, 9, 11, 13]  // Columns C, E, G, I, K, M
       },
       // Attendance sheet protection ranges
       ATTENDANCE_SHEET: {
