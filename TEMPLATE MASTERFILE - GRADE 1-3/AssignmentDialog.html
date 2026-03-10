@@ -20,7 +20,7 @@
         align-items: flex-start;
         justify-content: center;
         box-sizing: border-box;
-        height: 100vh;
+        height: 100%;
         overflow: hidden;
       }
 
@@ -87,7 +87,7 @@
       }
 
       .form-section {
-        flex: 0 0 320px;
+        flex: 0 0 280px;
         display: flex;
         flex-direction: column;
         position: relative;
@@ -96,20 +96,8 @@
         max-height: 100%;
       }
 
-      .form-section form {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding-right: 8px;
-        padding-bottom: 8px;
-      }
-
       .subjects-selection-section {
         flex: 0 0 300px;
-        min-width: 250px;
         display: flex;
         flex-direction: column;
         position: relative;
@@ -167,13 +155,7 @@
         gap: 12px;
         margin-top: auto;
         padding-top: 12px;
-        padding-bottom: 8px;
         flex-shrink: 0;
-        position: sticky;
-        bottom: 0;
-        background: white;
-        z-index: 10;
-        border-top: 1px solid #e1e5e9;
       }
 
       .btn {
@@ -420,7 +402,7 @@
       <div class="main-content">
         <!-- Left Section: Form Fields -->
         <div class="form-section">
-          <form id="assignmentForm" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 8px; padding-bottom: 8px;">
+          <form id="assignmentForm" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
             <div class="form-group">
               <label class="form-label" for="gradeLevel">
                 Grade Level <span style="color: #e74c3c;">*</span>
@@ -514,29 +496,17 @@
       let teachers = [];
       let allTeachers = []; // All teachers for autocomplete
       let highlightedIndex = -1; // For keyboard navigation
-      let isSHS = false; // SHS flag from server
 
       document.addEventListener('DOMContentLoaded', function() {
         loadInitialData();
         
         document.getElementById('gradeLevel').addEventListener('change', function() {
-          const gradeLevel = this.value;
-          loadSections(gradeLevel);
+          loadSections(this.value);
           loadSubjects();
-          if (gradeLevel) {
-            const section = document.getElementById('section').value;
-            filterSubjectsByLevel(gradeLevel, isSHS && section === 'ALL' ? 'ALL' : null);
-          } else {
-            showAllSubjects();
-          }
         });
         
         document.getElementById('section').addEventListener('change', function() {
           loadSubjects();
-          const gradeLevel = document.getElementById('gradeLevel').value;
-          if (gradeLevel) {
-            filterSubjectsByLevel(gradeLevel, isSHS && this.value === 'ALL' ? 'ALL' : null);
-          }
         });
       });
 
@@ -546,7 +516,6 @@
             gradeLevels = data.gradeLevels || [];
             subjects = data.subjects || [];
             teachers = data.teachers || [];
-            isSHS = data.isSHS || false; // Get IS_SHS flag from server
             
             // OPTIMIZATION: Use DocumentFragment for batch DOM operations (faster)
             
@@ -562,11 +531,20 @@
             });
             gradeSelect.appendChild(gradeFragment);
             
-            // Store all subjects for later filtering
-            filteredSubjects = subjects; // Initially show all subjects
-            
-            // Populate subjects (from SUBJECTS_REF - filtered by level if grade level is selected)
-            updateSubjectsDisplay();
+            // Populate subjects (from SUBJECTS_REF - always visible)
+            const subjectsCheckboxesContainer = document.getElementById('subjectsCheckboxesContainer');
+            const subjectsFragment = document.createDocumentFragment();
+            subjects.forEach(function(subject) {
+              const checkboxDiv = document.createElement('div');
+              checkboxDiv.className = 'subject-checkbox';
+              checkboxDiv.innerHTML = `
+                <input type="checkbox" id="subject_${subject}" value="${subject}" name="subjects">
+                <label for="subject_${subject}">${subject}</label>
+              `;
+              subjectsFragment.appendChild(checkboxDiv);
+            });
+            subjectsCheckboxesContainer.innerHTML = '';
+            subjectsCheckboxesContainer.appendChild(subjectsFragment);
             
             // Load all teachers for autocomplete
             google.script.run
@@ -682,23 +660,21 @@
         
         google.script.run
           .withSuccessHandler(function(sections) {
+            // OPTIMIZATION: Use DocumentFragment for faster DOM updates
             const fragment = document.createDocumentFragment();
+            
             const defaultOption = document.createElement('option');
             defaultOption.value = '';
             defaultOption.textContent = 'Select section...';
             fragment.appendChild(defaultOption);
-            if (isSHS) {
-              const allSectionOpt = document.createElement('option');
-              allSectionOpt.value = 'ALL';
-              allSectionOpt.textContent = 'All Section';
-              fragment.appendChild(allSectionOpt);
-            }
+            
             sections.forEach(function(section) {
               const option = document.createElement('option');
               option.value = section;
               option.textContent = section;
               fragment.appendChild(option);
             });
+            
             sectionSelect.innerHTML = '';
             sectionSelect.appendChild(fragment);
             sectionSelect.disabled = false;
@@ -707,54 +683,6 @@
             alert('Error loading sections: ' + error.toString());
           })
           .getSectionsForGrade(gradeLevel);
-      }
-
-      function updateSubjectsDisplay() {
-        const subjectsCheckboxesContainer = document.getElementById('subjectsCheckboxesContainer');
-        const subjectsFragment = document.createDocumentFragment();
-        
-        if (filteredSubjects.length === 0) {
-          subjectsCheckboxesContainer.innerHTML = '<p style="text-align: center; color: #6c757d; margin: 0;">No subjects found for this grade level.</p>';
-          return;
-        }
-        
-        filteredSubjects.forEach(function(item, idx) {
-          const subjectName = typeof item === 'object' && item && item.subject != null ? item.subject : String(item);
-          const strand = (isSHS && typeof item === 'object' && item && item.strand != null) ? (item.strand || 'ALL') : '';
-          const displayText = (isSHS && typeof item === 'object' && item && item.subject != null)
-            ? (item.subject + ' - ' + (item.strand || 'ALL'))
-            : subjectName;
-          const safeId = 'subject_' + idx + '_' + subjectName.replace(/[^a-zA-Z0-9]/g, '_');
-          const dataStrandAttr = strand ? ` data-strand="${String(strand).replace(/"/g, '&quot;')}"` : '';
-          const checkboxDiv = document.createElement('div');
-          checkboxDiv.className = 'subject-checkbox';
-          checkboxDiv.innerHTML = `
-            <input type="checkbox" id="${safeId}" value="${subjectName.replace(/"/g, '&quot;')}" name="subjects"${dataStrandAttr}>
-            <label for="${safeId}">${displayText}</label>
-          `;
-          subjectsFragment.appendChild(checkboxDiv);
-        });
-        subjectsCheckboxesContainer.innerHTML = '';
-        subjectsCheckboxesContainer.appendChild(subjectsFragment);
-      }
-      
-      function filterSubjectsByLevel(gradeLevel, strandFilter) {
-        google.script.run
-          .withSuccessHandler(function(filtered) {
-            filteredSubjects = filtered || [];
-            updateSubjectsDisplay();
-          })
-          .withFailureHandler(function(error) {
-            console.error('Error filtering subjects by level:', error);
-            filteredSubjects = subjects;
-            updateSubjectsDisplay();
-          })
-          .getActiveSubjectsByLevel(gradeLevel, strandFilter || null);
-      }
-      
-      function showAllSubjects() {
-        filteredSubjects = subjects;
-        updateSubjectsDisplay();
       }
 
       function loadSubjects() {
@@ -806,19 +734,8 @@
                 gradeLevel: assignment.gradeLevel,
                 section: assignment.section,
                 teacher: assignment.teacher,
-                subject: assignment.subject,
-                strand: assignment.strand || 'ALL',
-                category: assignment.category || 'Core',
-                semester: assignment.semester || '1ST'
+                subject: assignment.subject
               }).replace(/"/g, '&quot;');
-              
-              const strandDisplay = assignment.strand || 'ALL';
-              const categoryDisplay = assignment.category || 'Core';
-              const semesterDisplay = assignment.semester || '1ST';
-              const sectionDisplay = assignment.section != null && assignment.section !== '' ? assignment.section : 'ALL';
-              const metadataDisplay = isSHS
-                ? `<br><small style="color: #6c757d;">Section: ${sectionDisplay} | ${strandDisplay} | ${categoryDisplay} | ${semesterDisplay}</small>`
-                : `<br><small style="color: #6c757d;">Section: ${sectionDisplay}</small>`;
               
               html += `
                 <div class="assignment-item">
@@ -826,7 +743,7 @@
                     <input type="checkbox" id="${assignmentId}" class="assignment-checkbox-input" 
                            data-assignment='${assignmentData}' onchange="updateSelectedCount()">
                     <label for="${assignmentId}" class="assignment-info">
-                      <strong>${assignment.teacher}</strong> - ${assignment.subject}${metadataDisplay}
+                      <strong>${assignment.teacher}</strong> - ${assignment.subject}
                     </label>
                   </div>
                 </div>
@@ -941,89 +858,48 @@
         const section = document.getElementById('section').value;
         const teacher = document.getElementById('teacher').value;
         
+        // Get selected subjects
         const checkboxes = document.querySelectorAll('input[name="subjects"]:checked');
-        if (checkboxes.length === 0) {
+        const selectedSubjects = Array.from(checkboxes).map(cb => cb.value);
+        
+        if (selectedSubjects.length === 0) {
           alert('Please select at least one subject.');
           return;
         }
         
+        // Disable submit button
         const submitBtn = document.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Getting subject details...';
+        submitBtn.textContent = 'Adding...';
         submitBtn.disabled = true;
         
-        function doAddSubjects(subjectsWithMetadata) {
-          submitBtn.textContent = `Adding ${subjectsWithMetadata.length} assignment(s)...`;
-          google.script.run
-            .withSuccessHandler(function(result) {
-              submitBtn.textContent = originalText;
-              submitBtn.disabled = false;
-              if (result.success) {
-                alert(`✅ ${result.message}`);
-                document.getElementById('assignmentForm').reset();
-                document.getElementById('section').disabled = true;
-                loadInitialData();
-                loadSubjects();
-              } else {
-                alert(`❌ Error: ${result.message}`);
-                loadSubjects();
-              }
-            })
-            .withFailureHandler(function(error) {
-              submitBtn.textContent = originalText;
-              submitBtn.disabled = false;
-              alert(`❌ Error: ${error.toString()}`);
-              loadSubjects();
-            })
-            .addSubjectsBatch(gradeLevel, section, teacher, subjectsWithMetadata);
-        }
+        // OPTIMIZED: Add all subjects in a single batch API call
+        submitBtn.textContent = `Adding ${selectedSubjects.length} assignment(s)...`;
         
-        if (isSHS) {
-          const selectedItems = Array.from(checkboxes).map(cb => ({
-            subject: cb.value,
-            strand: cb.getAttribute('data-strand') || 'ALL'
-          }));
-          google.script.run
-            .withSuccessHandler(function(metadataList) {
-              const subjectsWithMetadata = (metadataList || selectedItems).map(function(m, i) {
-                const item = selectedItems[i];
-                return {
-                  subject: item.subject,
-                  strand: item.strand,
-                  category: (m && m.category) || 'Core',
-                  semester: (m && m.semester) || '1ST'
-                };
-              });
-              doAddSubjects(subjectsWithMetadata);
-            })
-            .withFailureHandler(function(error) {
-              submitBtn.textContent = originalText;
-              submitBtn.disabled = false;
-              alert(`❌ Error getting subject details: ${error.toString()}`);
-            })
-            .getSubjectsMetadataForList(selectedItems);
-        } else {
-          const selectedSubjects = Array.from(checkboxes).map(cb => cb.value);
-          google.script.run
-            .withSuccessHandler(function(subjectsMetadata) {
-              const subjectsWithMetadata = selectedSubjects.map(function(subject) {
-                const metadata = subjectsMetadata[subject] || { category: 'Core', strand: 'ALL', semester: '1ST' };
-                return {
-                  subject: subject,
-                  strand: metadata.strand || 'ALL',
-                  category: metadata.category || 'Core',
-                  semester: metadata.semester || '1ST'
-                };
-              });
-              doAddSubjects(subjectsWithMetadata);
-            })
-            .withFailureHandler(function(error) {
-              submitBtn.textContent = originalText;
-              submitBtn.disabled = false;
-              alert(`❌ Error getting subject details: ${error.toString()}`);
-            })
-            .getSubjectsMetadata(selectedSubjects);
-        }
+        google.script.run
+          .withSuccessHandler(function(result) {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            
+            if (result.success) {
+              alert(`✅ ${result.message}`);
+              document.getElementById('assignmentForm').reset();
+              document.getElementById('section').disabled = true;
+              // Reload subjects checkboxes
+              loadInitialData();
+              loadSubjects();
+            } else {
+              alert(`❌ Error: ${result.message}`);
+              loadSubjects();
+            }
+          })
+          .withFailureHandler(function(error) {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            alert(`❌ Error: ${error.toString()}`);
+            loadSubjects();
+          })
+          .addSubjectsBatch(gradeLevel, section, teacher, selectedSubjects);
       });
     </script>
   </body>

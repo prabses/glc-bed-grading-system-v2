@@ -66,9 +66,6 @@ function doPost(e) {
           payload.section,
           payload.teacher,
           payload.subject,
-          payload.strand || CONFIG.SHS_DEFAULTS.STRAND,
-          payload.category || CONFIG.SHS_DEFAULTS.CATEGORY,
-          payload.semester || CONFIG.SHS_DEFAULTS.SEMESTER,
           payload.userEmail
         ));
       case "addSubjectsBatch":
@@ -120,23 +117,6 @@ function doPost(e) {
         return response(200, _getSchoolYears());
       case "getGradeLevels":
         return response(200, _getGradeLevels());
-      case "getSubjectsMetadata":
-        return response(200, _getSubjectsMetadata(
-          payload.subjectNames || []
-        ));
-      case "getSubjectsMetadataForList":
-        return response(200, _getSubjectsMetadataForList(
-          typeof payload.subjectStrandPairs === 'string' ? JSON.parse(payload.subjectStrandPairs) : (payload.subjectStrandPairs || [])
-        ));
-      case "getSubjectMetadata":
-        return response(200, _getSubjectMetadata(
-          payload.subjectName
-        ));
-      case "getActiveSubjectsByLevel":
-        return response(200, _getActiveSubjectsByLevel(
-          payload.gradeLevel,
-          payload.strandFilter || null
-        ));
       case "getActiveItems":
         return response(200, _getActiveItems(
           payload.sheetName,
@@ -283,322 +263,6 @@ function _getActiveItems(sheetName, columnIndex = 0) {
   } catch (error) {
     console.error(`Error in _getActiveItems for ${sheetName}:`, error);
     return [];
-  }
-}
-
-/**
- * Internal function to get subject metadata from SUBJECTS_REF sheet
- * @param {string} subjectName - The subject name to look up
- * @return {Object} Object with category, strand, semester, level or defaults if not found
- */
-function _getSubjectMetadata(subjectName) {
-  try {
-    if (!CONFIG.IS_SHS) {
-      // For non-SHS, return defaults
-      return {
-        category: CONFIG.SHS_DEFAULTS.CATEGORY,
-        strand: CONFIG.SHS_DEFAULTS.STRAND,
-        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
-        level: null
-      };
-    }
-    
-    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS_REF);
-    if (!sheet) {
-      console.warn('SUBJECTS_REF sheet not found');
-      return {
-        category: CONFIG.SHS_DEFAULTS.CATEGORY,
-        strand: CONFIG.SHS_DEFAULTS.STRAND,
-        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
-        level: null
-      };
-    }
-    
-    const lastRow = sheet.getLastRow();
-    if (lastRow <= CONFIG.HEADER_ROWS) {
-      return {
-        category: CONFIG.SHS_DEFAULTS.CATEGORY,
-        strand: CONFIG.SHS_DEFAULTS.STRAND,
-        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
-        level: null
-      };
-    }
-    
-    const startRow = CONFIG.HEADER_ROWS + 1;
-    const numRows = lastRow - CONFIG.HEADER_ROWS;
-    
-    // Read columns B-G (Subject Name, Category, Strand, Semester, Level, Active)
-    // Column A is "No." and is ignored
-    const data = sheet.getRange(startRow, 2, numRows, 6).getValues();
-    
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i];
-      const rowSubjectName = String(row[CONFIG.SUBJECTS_REF_COLUMNS.SUBJECT_NAME] || '').trim();
-      const activeValue = row[CONFIG.SUBJECTS_REF_COLUMNS.ACTIVE];
-      
-      // Check if subject matches and is active
-      if (rowSubjectName === subjectName && 
-          (activeValue === true || activeValue === '✓' || activeValue === 'TRUE')) {
-        return {
-          category: String(row[CONFIG.SUBJECTS_REF_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY,
-          strand: String(row[CONFIG.SUBJECTS_REF_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND,
-          semester: String(row[CONFIG.SUBJECTS_REF_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER,
-          level: String(row[CONFIG.SUBJECTS_REF_COLUMNS.LEVEL] || '').trim() || null
-        };
-      }
-    }
-    
-    // Subject not found, return defaults
-    return {
-      category: CONFIG.SHS_DEFAULTS.CATEGORY,
-      strand: CONFIG.SHS_DEFAULTS.STRAND,
-      semester: CONFIG.SHS_DEFAULTS.SEMESTER,
-      level: null
-    };
-  } catch (error) {
-    console.error('Error getting subject metadata:', error);
-    return {
-      category: CONFIG.SHS_DEFAULTS.CATEGORY,
-      strand: CONFIG.SHS_DEFAULTS.STRAND,
-      semester: CONFIG.SHS_DEFAULTS.SEMESTER,
-      level: null
-    };
-  }
-}
-
-/**
- * Internal function to get metadata for multiple subjects at once
- * @param {Array} subjectNames - Array of subject names
- * @return {Object} Object mapping subject names to their metadata
- */
-function _getSubjectsMetadata(subjectNames) {
-  try {
-    if (!CONFIG.IS_SHS || !subjectNames || subjectNames.length === 0) {
-      // Return defaults for all subjects if not SHS
-      const defaults = {
-        category: CONFIG.SHS_DEFAULTS.CATEGORY,
-        strand: CONFIG.SHS_DEFAULTS.STRAND,
-        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
-        level: null
-      };
-      const result = {};
-      subjectNames.forEach(name => {
-        result[name] = defaults;
-      });
-      return result;
-    }
-    
-    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS_REF);
-    if (!sheet) {
-      console.warn('SUBJECTS_REF sheet not found');
-      const defaults = {
-        category: CONFIG.SHS_DEFAULTS.CATEGORY,
-        strand: CONFIG.SHS_DEFAULTS.STRAND,
-        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
-        level: null
-      };
-      const result = {};
-      subjectNames.forEach(name => {
-        result[name] = defaults;
-      });
-      return result;
-    }
-    
-    const lastRow = sheet.getLastRow();
-    if (lastRow <= CONFIG.HEADER_ROWS) {
-      const defaults = {
-        category: CONFIG.SHS_DEFAULTS.CATEGORY,
-        strand: CONFIG.SHS_DEFAULTS.STRAND,
-        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
-        level: null
-      };
-      const result = {};
-      subjectNames.forEach(name => {
-        result[name] = defaults;
-      });
-      return result;
-    }
-    
-    const startRow = CONFIG.HEADER_ROWS + 1;
-    const numRows = lastRow - CONFIG.HEADER_ROWS;
-    
-    // Read columns B-G (Subject Name, Category, Strand, Semester, Level, Active)
-    // Column A is "No." and is ignored
-    const data = sheet.getRange(startRow, 2, numRows, 6).getValues();
-    
-    // Create a map for quick lookup
-    const subjectMap = {};
-    const subjectSet = new Set(subjectNames);
-    
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i];
-      const rowSubjectName = String(row[CONFIG.SUBJECTS_REF_COLUMNS.SUBJECT_NAME] || '').trim();
-      const activeValue = row[CONFIG.SUBJECTS_REF_COLUMNS.ACTIVE];
-      
-      // Only process if subject is in our list and is active
-      if (subjectSet.has(rowSubjectName) && 
-          (activeValue === true || activeValue === '✓' || activeValue === 'TRUE')) {
-        subjectMap[rowSubjectName] = {
-          category: String(row[CONFIG.SUBJECTS_REF_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY,
-          strand: String(row[CONFIG.SUBJECTS_REF_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND,
-          semester: String(row[CONFIG.SUBJECTS_REF_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER,
-          level: String(row[CONFIG.SUBJECTS_REF_COLUMNS.LEVEL] || '').trim() || null
-        };
-      }
-    }
-    
-    // Fill in defaults for subjects not found
-    const defaults = {
-      category: CONFIG.SHS_DEFAULTS.CATEGORY,
-      strand: CONFIG.SHS_DEFAULTS.STRAND,
-      semester: CONFIG.SHS_DEFAULTS.SEMESTER,
-      level: null
-    };
-    
-    subjectNames.forEach(name => {
-      if (!subjectMap[name]) {
-        subjectMap[name] = defaults;
-      }
-    });
-    
-    return subjectMap;
-  } catch (error) {
-    console.error('Error getting subjects metadata:', error);
-    // Return defaults for all subjects on error
-    const defaults = {
-      category: CONFIG.SHS_DEFAULTS.CATEGORY,
-      strand: CONFIG.SHS_DEFAULTS.STRAND,
-      semester: CONFIG.SHS_DEFAULTS.SEMESTER,
-      level: null
-    };
-    const result = {};
-    subjectNames.forEach(name => {
-      result[name] = defaults;
-    });
-    return result;
-  }
-}
-
-/**
- * Get metadata (category, semester) for each (subject, strand) pair from SUBJECTS_REF. Used when IS_SHS so same subject name with different strands get correct metadata.
- * @param {Array} subjectStrandPairs - Array of {subject, strand}
- * @return {Array} Array of {subject, strand, category, semester} in same order
- */
-function _getSubjectsMetadataForList(subjectStrandPairs) {
-  if (!subjectStrandPairs || subjectStrandPairs.length === 0) return [];
-  if (!CONFIG.IS_SHS) {
-    return subjectStrandPairs.map(function(p) {
-      return {
-        subject: p.subject,
-        strand: p.strand || CONFIG.SHS_DEFAULTS.STRAND,
-        category: CONFIG.SHS_DEFAULTS.CATEGORY,
-        semester: CONFIG.SHS_DEFAULTS.SEMESTER
-      };
-    });
-  }
-  try {
-    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS_REF);
-    if (!sheet) {
-      return subjectStrandPairs.map(function(p) {
-        return { subject: p.subject, strand: p.strand || 'ALL', category: CONFIG.SHS_DEFAULTS.CATEGORY, semester: CONFIG.SHS_DEFAULTS.SEMESTER };
-      });
-    }
-    const lastRow = sheet.getLastRow();
-    if (lastRow <= CONFIG.HEADER_ROWS) {
-      return subjectStrandPairs.map(function(p) {
-        return { subject: p.subject, strand: p.strand || 'ALL', category: CONFIG.SHS_DEFAULTS.CATEGORY, semester: CONFIG.SHS_DEFAULTS.SEMESTER };
-      });
-    }
-    const startRow = CONFIG.HEADER_ROWS + 1;
-    const numRows = lastRow - CONFIG.HEADER_ROWS;
-    const data = sheet.getRange(startRow, 2, numRows, 6).getValues();
-    const keyToMeta = {};
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i];
-      const rowSubject = String(row[CONFIG.SUBJECTS_REF_COLUMNS.SUBJECT_NAME] || '').trim();
-      const rowStrand = String(row[CONFIG.SUBJECTS_REF_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
-      const activeValue = row[5];
-      if (!(activeValue === true || activeValue === '✓' || activeValue === 'TRUE')) continue;
-      const key = rowSubject + '|' + rowStrand;
-      keyToMeta[key] = {
-        category: String(row[CONFIG.SUBJECTS_REF_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY,
-        semester: String(row[CONFIG.SUBJECTS_REF_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER
-      };
-    }
-    return subjectStrandPairs.map(function(p) {
-      const key = (p.subject || '') + '|' + (p.strand || 'ALL');
-      const m = keyToMeta[key];
-      return {
-        subject: p.subject,
-        strand: p.strand || 'ALL',
-        category: (m && m.category) || CONFIG.SHS_DEFAULTS.CATEGORY,
-        semester: (m && m.semester) || CONFIG.SHS_DEFAULTS.SEMESTER
-      };
-    });
-  } catch (error) {
-    console.error('Error in _getSubjectsMetadataForList:', error);
-    return subjectStrandPairs.map(function(p) {
-      return { subject: p.subject, strand: p.strand || 'ALL', category: CONFIG.SHS_DEFAULTS.CATEGORY, semester: CONFIG.SHS_DEFAULTS.SEMESTER };
-    });
-  }
-}
-
-/**
- * Internal function to get active subjects filtered by level (and optionally strand) from SUBJECTS_REF sheet
- * @param {string} gradeLevel - The grade level to filter by (e.g., "Grade 11" or "11")
- * @param {string|null} strandFilter - Optional. When 'ALL', only return subjects with Strand = ALL in SUBJECTS_REF
- * @return {Array} Array of active subject names for the specified level
- */
-function _getActiveSubjectsByLevel(gradeLevel, strandFilter) {
-  try {
-    if (!CONFIG.IS_SHS) {
-      return _getActiveItems(CONFIG.SHEET_NAMES.SUBJECTS_REF, 1);
-    }
-    
-    const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS_REF);
-    if (!sheet) {
-      console.warn('SUBJECTS_REF sheet not found');
-      return [];
-    }
-    
-    const lastRow = sheet.getLastRow();
-    if (lastRow <= CONFIG.HEADER_ROWS) {
-      return [];
-    }
-    
-    const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
-    const startRow = CONFIG.HEADER_ROWS + 1;
-    const numRows = lastRow - CONFIG.HEADER_ROWS;
-    const data = sheet.getRange(startRow, 2, numRows, 6).getValues();
-    
-    const subjects = [];
-    const filterByStrandAll = strandFilter === 'ALL';
-    const includeStrand = !!CONFIG.IS_SHS;
-
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i];
-      const rowSubjectName = String(row[CONFIG.SUBJECTS_REF_COLUMNS.SUBJECT_NAME] || '').trim();
-      const rowLevel = String(row[CONFIG.SUBJECTS_REF_COLUMNS.LEVEL] || '').trim();
-      const rowStrand = String(row[CONFIG.SUBJECTS_REF_COLUMNS.STRAND] || '').trim();
-      const activeValue = row[CONFIG.SUBJECTS_REF_COLUMNS.ACTIVE];
-
-      if (!(activeValue === true || activeValue === '✓' || activeValue === 'TRUE')) continue;
-      if (filterByStrandAll && rowStrand !== 'ALL') continue;
-
-      if (!rowLevel || rowLevel === '') {
-        if (rowSubjectName) subjects.push(includeStrand ? { subject: rowSubjectName, strand: rowStrand || 'ALL' } : rowSubjectName);
-      } else {
-        const normalizedRowLevel = _normalizeGradeLevel(rowLevel);
-        if (normalizedRowLevel === normalizedGradeLevel && rowSubjectName) {
-          subjects.push(includeStrand ? { subject: rowSubjectName, strand: rowStrand || 'ALL' } : rowSubjectName);
-        }
-      }
-    }
-
-    return subjects;
-  } catch (error) {
-    console.error('Error getting subjects by level:', error);
-    return _getActiveItems(CONFIG.SHEET_NAMES.SUBJECTS_REF, 1);
   }
 }
 
@@ -757,10 +421,8 @@ function _getAssignedTeachers(gradeLevel, section) {
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
-      const rowSection = row[CONFIG.SUBJECTS_COLUMNS.SECTION];
-      const sectionMatch = rowSection === section || (section === 'ALL' && rowSection === 'ALL');
       if (rowGradeLevel === normalizedGradeLevel &&
-          sectionMatch &&
+          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
         const teacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
         if (teacher && !teacherSet.has(teacher)) {
@@ -779,11 +441,10 @@ function _getAssignedTeachers(gradeLevel, section) {
 
 /**
  * Internal function to get subjects assigned to a specific teacher, grade level, and section
- * Returns objects with subject, strand, category, semester for SHS filtering in OGS dialog
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
- * @return {Array} Array of { subject, strand, category, semester } (strand/category/semester from SUBJECTS sheet)
+ * @return {Array} Array of subject names
  */
 function _getAssignedSubjects(gradeLevel, section, teacher) {
   try {
@@ -792,33 +453,28 @@ function _getAssignedSubjects(gradeLevel, section, teacher) {
     
     const sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     if (!sheet) {
-      return [];
+      return []; // Return empty if sheet doesn't exist
     }
     
     const data = sheet.getDataRange().getValues();
-    const assignments = [];
+    const subjects = [];
     
     // Skip header row (row 1)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
-      const rowSection = row[CONFIG.SUBJECTS_COLUMNS.SECTION];
-      const sectionMatch = rowSection === section || (section === 'ALL' && rowSection === 'ALL');
       if (rowGradeLevel === normalizedGradeLevel &&
-          sectionMatch &&
+          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
           row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
         const subject = row[CONFIG.SUBJECTS_COLUMNS.SUBJECT];
         if (subject) {
-          const strand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
-          const category = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
-          const semester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
-          assignments.push({ subject: subject, strand: strand, category: category, semester: semester });
+          subjects.push(subject);
         }
       }
     }
     
-    return assignments;
+    return subjects;
   } catch (error) {
     console.error('Error getting assigned subjects:', error);
     return [];
@@ -909,16 +565,14 @@ function _getGradingWeights(subjectName) {
   }
   
   if (!match) {
+    // Debug: Log available subjects for troubleshooting
     const availableSubjects = dataRows
       .filter(row => isActive(row[CONFIG.GRADING_COLUMNS.ACTIVE]))
       .map(row => String(row[CONFIG.GRADING_COLUMNS.SUBJECT_NAME] || '').trim())
       .filter(name => name !== '');
     console.log('Available active subjects in GRADING_REF:', availableSubjects);
     console.log('Looking for subject:', normalizedSubjectName);
-    throw new Error(
-      "GRADING_REF subject name mismatch: '" + normalizedSubjectName + "' has no matching row in GRADING_REF. " +
-      "Use the exact same subject name as in SUBJECTS_REF, or add an active DEFAULT row in GRADING_REF."
-    );
+    throw new Error('No grading weights found. Please ensure GRADING_REF has a DEFAULT row or a matching subject row with Active checked.');
   }
   
   return {
@@ -995,72 +649,84 @@ function _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl
  * @param {Object} weights - Grading weights object
  * @param {Array} students - Array of student objects (optional)
  */
-function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teacher, weights, students = [], userEmail = null, strand = null, semester = null) {
+function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teacher, weights, students = [], userEmail = null) {
+  // Clear the sheet first
   sheet.clear();
   
-  const isSHS = CONFIG.IS_SHS;
-  const numCols = isSHS ? 16 : 28;
+  // Build all data in memory first for batch operations
+  const numCols = 28; // Fixed number of columns: A-AB (Student No, Student Name, 4 grading periods × 6 cols each, Final Grading, Final EQ)
   const allData = [];
   
+  // Helper function to pad row to numCols
   const padRow = (row) => {
     const padded = [...row];
     while (padded.length < numCols) {
       padded.push('');
     }
-    return padded.slice(0, numCols);
+    return padded.slice(0, numCols); // Ensure exactly numCols
   };
   
+  // Row 1: Title
   allData.push(padRow(['OFFICIAL GRADE SHEET']));
+  
+  // Row 2-7: Info rows (matching Excel format exactly)
   allData.push(padRow(['Teacher Name:', teacher]));
   allData.push(padRow(['School Year:', schoolYear]));
+  // Format grade level for display (add "Grade " prefix)
   const formattedGradeLevel = _formatGradeLevel(gradeLevel);
   allData.push(padRow(['Level:', formattedGradeLevel]));
   allData.push(padRow(['Section:', section]));
   allData.push(padRow(['Total Student:', '']));
   allData.push(padRow(['Subject:', subject]));
   
-  if (isSHS) {
-    const strandDisplay = (strand != null && strand !== '') ? strand : (_getSubjectMetadata(subject).strand || CONFIG.SHS_DEFAULTS.STRAND);
-    const semesterDisplay = (semester != null && semester !== '') ? semester : (_getSubjectMetadata(subject).semester || CONFIG.SHS_DEFAULTS.SEMESTER);
-    allData.push(padRow(['Strand:', strandDisplay]));
-    allData.push(padRow(['Semester:', semesterDisplay]));
-  }
-  
-  const gradingRowNum = isSHS ? 10 : 8;
-  let gradingHeadersRow;
-  let headerRow;
-  if (isSHS) {
-    gradingHeadersRow = padRow([
-      '', '',
-      'MASTERY', '', '', '', '', '',  // Columns C-H (6 cols)
-      'FINAL', '', '', '', '', '',    // Columns I-N (6 cols)
-      '', ''                           // Columns O-P: Final Grading, Final EQ
-    ]);
-    headerRow = [
-      'Student No', 'Student Name',
-      'TS1-Written', 'TS1-Performance', 'TS1-Assessment', '1st Initial', '1st Transmuted', '1st EQ',
-      'TS2-Written', 'TS2-Performance', 'TS2-Assessment', '2nd Initial', '2nd Transmuted', '2nd EQ',
-      'Final Grading', 'Final EQ'
-    ];
-  } else {
-    gradingHeadersRow = padRow([
-      '', '',
-      '1ST GRADING', '', '', '', '', '',
-      '2ND GRADING', '', '', '', '', '',
-      '3RD GRADING', '', '', '', '', '',
-      '4TH GRADING', '', '', '', '', '',
-      '', ''
-    ]);
-    headerRow = [
-      'Student No', 'Student Name',
-      'TS1-Written', 'TS1-Performance', 'TS1-Assessment', '1st Initial', '1st Transmuted', '1st EQ',
-      'TS2-Written', 'TS2-Performance', 'TS2-Assessment', '2nd Initial', '2nd Transmuted', '2nd EQ',
-      'TS3-Written', 'TS3-Performance', 'TS3-Assessment', '3rd Initial', '3rd Transmuted', '3rd EQ',
-      'TS4-Written', 'TS4-Performance', 'TS4-Assessment', '4th Initial', '4th Transmuted', '4th EQ',
-      'Final Grading', 'Final EQ'
-    ];
-  }
+  // Row 8: Grading period headers row (1ST GRADING, 2ND GRADING, 3RD GRADING, 4TH GRADING)
+  const gradingHeadersRow = padRow([
+    '', 
+    '', 
+    '1ST GRADING', '', '', '', '', '',  // Columns C-H (6 columns for 1ST GRADING - will be merged)
+    '2ND GRADING', '', '', '', '', '',  // Columns I-N (6 columns for 2ND GRADING - will be merged)
+    '3RD GRADING', '', '', '', '', '',  // Columns O-T (6 columns for 3RD GRADING - will be merged)
+    '4TH GRADING', '', '', '', '', '',  // Columns U-Z (6 columns for 4TH GRADING - will be merged)
+    '', ''                            // Columns AA-AB (Final Grading and Final EQ headers are in row 10)
+  ]);
   allData.push(gradingHeadersRow);
+  
+  // Row 10: Column headers (percentage row removed temporarily)
+  const headerRow = [
+    'Student No',
+    'Student Name',
+    // 1ST GRADING
+    'TS1-Written',
+    'TS1-Performance',
+    'TS1-Assessment',
+    '1st Initial',
+    '1st Transmuted',
+    '1st EQ',
+    // 2ND GRADING
+    'TS2-Written',
+    'TS2-Performance',
+    'TS2-Assessment',
+    '2nd Initial',
+    '2nd Transmuted',
+    '2nd EQ',
+    // 3RD GRADING
+    'TS3-Written',
+    'TS3-Performance',
+    'TS3-Assessment',
+    '3rd Initial',
+    '3rd Transmuted',
+    '3rd EQ',
+    // 4TH GRADING
+    'TS4-Written',
+    'TS4-Performance',
+    'TS4-Assessment',
+    '4th Initial',
+    '4th Transmuted',
+    '4th EQ',
+    // Final
+    'Final Grading',
+    'Final EQ'
+  ];
   allData.push(padRow(headerRow));
   
   // Write all data at once
@@ -1076,46 +742,42 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     .setFontWeight('bold')
     .setHorizontalAlignment('center');
   
-  // Info rows: rows 2-7 (non-SHS) or 2-9 (SHS: includes Subject, Strand, Semester)
-  const headerRowNum = gradingRowNum + 1;
-  const infoRowsCount = isSHS ? 8 : 6;  // 8 rows (2-9) when SHS, 6 rows (2-7) when not
-  sheet.getRange(2, 1, infoRowsCount, 1).setFontWeight('bold');
-  sheet.getRange(2, 2, infoRowsCount, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
+  // Info rows (rows 2-7): Batch format column A (bold) and column B (background)
+  sheet.getRange(2, 1, 6, 1).setFontWeight('bold');
+  // Batch background for column B (rows 2-7)
+  sheet.getRange(2, 2, 6, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
   
-  // Grading period headers - batch merges and formatting
-  if (isSHS) {
-    sheet.getRange(gradingRowNum, 3, 1, 6).merge();   // MASTERY (cols C-H)
-    sheet.getRange(gradingRowNum, 9, 1, 6).merge();  // FINAL (cols I-N)
-    const gradingRange = sheet.getRange(gradingRowNum, 3, 1, 14);
-    gradingRange.setFontWeight('bold').setHorizontalAlignment('center').setBackground(CONFIG.COLORS.MEDIUM_GRAY);
-  } else {
-    sheet.getRange(gradingRowNum, 3, 1, 6).merge();   // 1ST GRADING
-    sheet.getRange(gradingRowNum, 9, 1, 6).merge();   // 2ND GRADING
-    sheet.getRange(gradingRowNum, 15, 1, 6).merge(); // 3RD GRADING
-    sheet.getRange(gradingRowNum, 21, 1, 6).merge(); // 4TH GRADING
-    const gradingRange = sheet.getRange(gradingRowNum, 3, 1, 26);
-    gradingRange.setFontWeight('bold').setHorizontalAlignment('center').setBackground(CONFIG.COLORS.MEDIUM_GRAY);
-  }
+  // OPTIMIZATION: Batch merges first, then apply formatting in one operation
+  // Row 8: Grading period headers - batch merges and formatting
+  sheet.getRange(8, 3, 1, 6).merge();   // 1ST GRADING
+  sheet.getRange(8, 9, 1, 6).merge();   // 2ND GRADING
+  sheet.getRange(8, 15, 1, 6).merge(); // 3RD GRADING
+  sheet.getRange(8, 21, 1, 6).merge();  // 4TH GRADING
+  const row8Range = sheet.getRange(8, 3, 1, 26);
+  row8Range.setFontWeight('bold')
+    .setHorizontalAlignment('center')
+    .setBackground(CONFIG.COLORS.MEDIUM_GRAY);
   
-  // Column headers - single batch operation
-  const headerRange = sheet.getRange(headerRowNum, 1, 1, numCols);
+  // Row 9: Column headers - single batch operation
+  const headerRange = sheet.getRange(9, 1, 1, numCols);
   headerRange.setFontWeight('bold')
     .setBackground(CONFIG.COLORS.DARK_GRAY)
     .setHorizontalAlignment('center')
     .setBorder(true, true, true, true, true, true);
   
-  sheet.setColumnWidth(1, 120);
-  sheet.setColumnWidth(2, 250);
-  for (let c = 3; c <= numCols; c++) {
+  // OPTIMIZATION: Set column widths (Google Apps Script requires individual calls, but we optimize the loop)
+  sheet.setColumnWidth(1, 120);  // Student No
+  sheet.setColumnWidth(2, 250);  // Student Name
+  // Set remaining columns (3-28) to 130 in optimized loop
+  for (let c = 3; c <= 28; c++) {
     sheet.setColumnWidth(c, 130);
   }
   
-  const frozenRowsCount = isSHS ? 11 : 9;
-  sheet.setFrozenRows(frozenRowsCount);
+  sheet.setFrozenRows(9);
   
   const hasStudents = students && students.length > 0;
   const numStudentRows = hasStudents ? Math.max(students.length, CONFIG.TEMPLATE.NUM_STUDENT_ROWS) : CONFIG.TEMPLATE.NUM_STUDENT_ROWS;
-  const startRow = headerRowNum + 1;
+  const startRow = 10;
   
   if (numStudentRows > 0) {
     const ww = weights.writtenWork;
@@ -1123,14 +785,28 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     const as = weights.assessment;
     
     const studentValues = [];
-    const formulaColumns = isSHS
-      ? { 6: [], 7: [], 8: [], 12: [], 13: [], 14: [], 15: [], 16: [] }
-      : { 6: [], 7: [], 8: [], 12: [], 13: [], 14: [], 18: [], 19: [], 20: [], 24: [], 25: [], 26: [], 27: [], 28: [] };
+    const formulaColumns = {
+      6: [],  // Column F: 1st Initial
+      7: [],  // Column G: 1st Transmuted
+      8: [],  // Column H: 1st EQ
+      12: [], // Column L: 2nd Initial
+      13: [], // Column M: 2nd Transmuted
+      14: [], // Column N: 2nd EQ
+      18: [], // Column R: 3rd Initial
+      19: [], // Column S: 3rd Transmuted
+      20: [], // Column T: 3rd EQ
+      24: [], // Column X: 4th Initial
+      25: [], // Column Y: 4th Transmuted
+      26: [], // Column Z: 4th EQ
+      27: [], // Column AA: Final Grading
+      28: []  // Column AB: Final EQ
+    };
   
-    for (let i = 0; i < numStudentRows; i++) {
+  for (let i = 0; i < numStudentRows; i++) {
       const row = startRow + i;
       let studentNumber = '';
       let studentName = '';
+      
       if (hasStudents && i < students.length) {
         const student = students[i];
         studentNumber = student.studentNumber || '';
@@ -1139,48 +815,52 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
         const middleName = student.middleName || '';
         studentName = `${lastName}${firstName ? ', ' + firstName : ''}${middleName ? ' ' + middleName : ''}`.trim();
       }
+      
       studentValues.push([studentNumber, studentName]);
       
-      if (isSHS) {
-        // Mastery: C,D,E -> F (Initial), G (Transmuted), H (EQ)
-        const masteryAvg = `ROUND((C${row}*${ww}/100+D${row}*${pt}/100+E${row}*${as}/100),2)`;
-        const masteryInitialFormula = `=IF(AND(C${row}<>"",D${row}<>"",E${row}<>""),${masteryAvg},"")`;
-        formulaColumns[6].push([masteryInitialFormula]);
-        formulaColumns[7].push([_generateTransmutationFormula(masteryInitialFormula.replace('=', ''))]);
-        formulaColumns[8].push([_generateEQFromTransmutation(7, row)]);
-        // Final: I,J,K -> L (Initial), M (Transmuted), N (EQ)
-        const finalAvg = `ROUND((I${row}*${ww}/100+J${row}*${pt}/100+K${row}*${as}/100),2)`;
-        const finalInitialFormula = `=IF(AND(I${row}<>"",J${row}<>"",K${row}<>""),${finalAvg},"")`;
-        formulaColumns[12].push([finalInitialFormula]);
-        formulaColumns[13].push([_generateTransmutationFormula(finalInitialFormula.replace('=', ''))]);
-        formulaColumns[14].push([_generateEQFromTransmutation(13, row)]);
-        // Final Grading: average of Mastery (G) and Final (M) transmuted
-        formulaColumns[15].push([`=IF(AND(G${row}<>"",M${row}<>""),ROUND((G${row}+M${row})/2,2),"")`]);
-        formulaColumns[16].push([_generateEQFromNonTransmutedGrade(15, row)]);
-      } else {
-        const weightedAvg1 = `ROUND((C${row}*${ww}/100+D${row}*${pt}/100+E${row}*${as}/100),2)`;
-        const weightedAvg1Formula = `=IF(AND(C${row}<>"",D${row}<>"",E${row}<>""),${weightedAvg1},"")`;
-        formulaColumns[6].push([weightedAvg1Formula]);
-        formulaColumns[7].push([_generateTransmutationFormula(weightedAvg1Formula.replace('=', ''))]);
-        formulaColumns[8].push([_generateEQFromTransmutation(7, row)]);
-        const weightedAvg2 = `ROUND((I${row}*${ww}/100+J${row}*${pt}/100+K${row}*${as}/100),2)`;
-        const weightedAvg2Formula = `=IF(AND(I${row}<>"",J${row}<>"",K${row}<>""),${weightedAvg2},"")`;
-        formulaColumns[12].push([weightedAvg2Formula]);
-        formulaColumns[13].push([_generateTransmutationFormula(weightedAvg2Formula.replace('=', ''))]);
-        formulaColumns[14].push([_generateEQFromTransmutation(13, row)]);
-        const weightedAvg3 = `ROUND((O${row}*${ww}/100+P${row}*${pt}/100+Q${row}*${as}/100),2)`;
-        const weightedAvg3Formula = `=IF(AND(O${row}<>"",P${row}<>"",Q${row}<>""),${weightedAvg3},"")`;
-        formulaColumns[18].push([weightedAvg3Formula]);
-        formulaColumns[19].push([_generateTransmutationFormula(weightedAvg3Formula.replace('=', ''))]);
-        formulaColumns[20].push([_generateEQFromTransmutation(19, row)]);
-        const weightedAvg4 = `ROUND((U${row}*${ww}/100+V${row}*${pt}/100+W${row}*${as}/100),2)`;
-        const weightedAvg4Formula = `=IF(AND(U${row}<>"",V${row}<>"",W${row}<>""),${weightedAvg4},"")`;
-        formulaColumns[24].push([weightedAvg4Formula]);
-        formulaColumns[25].push([_generateTransmutationFormula(weightedAvg4Formula.replace('=', ''))]);
-        formulaColumns[26].push([_generateEQFromTransmutation(25, row)]);
-        formulaColumns[27].push([`=IF(AND(G${row}<>"",M${row}<>"",S${row}<>"",Y${row}<>""),ROUND((G${row}+M${row}+S${row}+Y${row})/4,2),"")`]);
-        formulaColumns[28].push([_generateEQFromNonTransmutedGrade(27, row)]);
-      }
+      // 1st Grading: Weighted average formula
+      const weightedAvg1 = `ROUND((C${row}*${ww}/100+D${row}*${pt}/100+E${row}*${as}/100),2)`;
+      const weightedAvg1Formula = `=IF(AND(C${row}<>"",D${row}<>"",E${row}<>""),${weightedAvg1},"")`;
+      formulaColumns[6].push([weightedAvg1Formula]); // 1st Initial
+      // 1st Transmuted: Apply transmutation to weighted average
+      const transmuted1Formula = _generateTransmutationFormula(weightedAvg1Formula.replace('=', ''));
+      formulaColumns[7].push([transmuted1Formula]); // 1st Transmuted
+      // 1st EQ: Based on transmuted grade
+      formulaColumns[8].push([_generateEQFromTransmutation(7, row)]); // 1st EQ
+      
+      // 2nd Grading: Weighted average formula (Initial)
+      const weightedAvg2 = `ROUND((I${row}*${ww}/100+J${row}*${pt}/100+K${row}*${as}/100),2)`;
+      const weightedAvg2Formula = `=IF(AND(I${row}<>"",J${row}<>"",K${row}<>""),${weightedAvg2},"")`;
+      formulaColumns[12].push([weightedAvg2Formula]); // 2nd Initial
+      // 2nd Transmuted: Apply transmutation to weighted average
+      const transmuted2Formula = _generateTransmutationFormula(weightedAvg2Formula.replace('=', ''));
+      formulaColumns[13].push([transmuted2Formula]); // 2nd Transmuted
+      // 2nd EQ: Based on transmuted grade
+      formulaColumns[14].push([_generateEQFromTransmutation(13, row)]); // 2nd EQ
+      
+      // 3rd Grading: Weighted average formula (Initial)
+      const weightedAvg3 = `ROUND((O${row}*${ww}/100+P${row}*${pt}/100+Q${row}*${as}/100),2)`;
+      const weightedAvg3Formula = `=IF(AND(O${row}<>"",P${row}<>"",Q${row}<>""),${weightedAvg3},"")`;
+      formulaColumns[18].push([weightedAvg3Formula]); // 3rd Initial
+      // 3rd Transmuted: Apply transmutation to weighted average
+      const transmuted3Formula = _generateTransmutationFormula(weightedAvg3Formula.replace('=', ''));
+      formulaColumns[19].push([transmuted3Formula]); // 3rd Transmuted
+      // 3rd EQ: Based on transmuted grade
+      formulaColumns[20].push([_generateEQFromTransmutation(19, row)]); // 3rd EQ
+      
+      // 4th Grading: Weighted average formula (Initial)
+      const weightedAvg4 = `ROUND((U${row}*${ww}/100+V${row}*${pt}/100+W${row}*${as}/100),2)`;
+      const weightedAvg4Formula = `=IF(AND(U${row}<>"",V${row}<>"",W${row}<>""),${weightedAvg4},"")`;
+      formulaColumns[24].push([weightedAvg4Formula]); // 4th Initial
+      // 4th Transmuted: Apply transmutation to weighted average
+      const transmuted4Formula = _generateTransmutationFormula(weightedAvg4Formula.replace('=', ''));
+      formulaColumns[25].push([transmuted4Formula]); // 4th Transmuted
+      // 4th EQ: Based on transmuted grade
+      formulaColumns[26].push([_generateEQFromTransmutation(25, row)]); // 4th EQ
+      
+      // Final Grading: Average of all transmuted grades
+      formulaColumns[27].push([`=IF(AND(G${row}<>"",M${row}<>"",S${row}<>"",Y${row}<>""),ROUND((G${row}+M${row}+S${row}+Y${row})/4,2),"")`]);
+      formulaColumns[28].push([_generateEQFromNonTransmutedGrade(27, row)]);
     }
     
     // OPTIMIZATION: Combine student data and empty cells into single batch write
@@ -1200,7 +880,10 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     const studentDataRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentDataRange.setValues(allStudentRows);
     
-    const formulaColsList = isSHS ? [6, 7, 8, 12, 13, 14, 15, 16] : [6, 7, 8, 12, 13, 14, 18, 19, 20, 24, 25, 26, 27, 28];
+    // OPTIMIZATION: Set formulas and format in combined operations to reduce API calls
+    // Formula columns: F (6), G (7), H (8), L (12), M (13), N (14), R (18), S (19), T (20), X (24), Y (25), Z (26), AA (27), AB (28)
+    const formulaColsList = [6, 7, 8, 12, 13, 14, 18, 19, 20, 24, 25, 26, 27, 28];
+    
     formulaColsList.forEach(col => {
       const range = sheet.getRange(startRow, col, numStudentRows, 1);
       range.setFormulas(formulaColumns[col]);
@@ -1208,7 +891,7 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
       range.setHorizontalAlignment('center');
     });
     
-    const gradeInputColsForAlignment = isSHS ? [3, 4, 5, 9, 10, 11] : [3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23];
+    const gradeInputColsForAlignment = [3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23];
     gradeInputColsForAlignment.forEach(col => {
       sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('center');
     });
@@ -1263,25 +946,25 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
       // Protect student info columns (from config)
       if (protectedRanges.STUDENT_INFO_COLUMNS && protectedRanges.STUDENT_INFO_COLUMNS.length >= 2) {
         const startCol = protectedRanges.STUDENT_INFO_COLUMNS[0];
-        const numColsProtect = protectedRanges.STUDENT_INFO_COLUMNS[1] - protectedRanges.STUDENT_INFO_COLUMNS[0] + 1;
-        const colABRange = sheet.getRange(1, startCol, protectToRow, numColsProtect);
+        const numCols = protectedRanges.STUDENT_INFO_COLUMNS[1] - protectedRanges.STUDENT_INFO_COLUMNS[0] + 1;
+        const colABRange = sheet.getRange(1, startCol, protectToRow, numCols);
         const protection1 = colABRange.protect().setWarningOnly(false);
         setProtectionWithEditors(protection1, validEmails);
       }
       
-      // Protect header rows: SHS uses rows 10-11 (grading + column headers), non-SHS uses rows 8-9
-      const subjectHeaderRows = CONFIG.IS_SHS ? [10, 11] : [8, 9];
-      if (subjectHeaderRows.length > 0) {
-        const headerStartRow = Math.min(...subjectHeaderRows);
-        const headerNumRows = Math.max(...subjectHeaderRows) - headerStartRow + 1;
-        const headerRowsRange = sheet.getRange(headerStartRow, 1, headerNumRows, numCols);
+      // Protect header rows (from config)
+      if (protectedRanges.HEADER_ROWS && protectedRanges.HEADER_ROWS.length > 0) {
+        const startRow = Math.min(...protectedRanges.HEADER_ROWS);
+        const numRows = Math.max(...protectedRanges.HEADER_ROWS) - startRow + 1;
+        const headerRowsRange = sheet.getRange(startRow, 1, numRows, numCols);
         const protection2 = headerRowsRange.protect().setWarningOnly(false);
         setProtectionWithEditors(protection2, validEmails);
       }
       
-      const formulaColsToProtect = isSHS ? [6, 7, 8, 12, 13, 14, 15, 16] : (protectedRanges.FORMULA_COLUMNS || []);
-      if (formulaColsToProtect.length > 0) {
-        const formulaCols = [...formulaColsToProtect].sort((a, b) => a - b);
+      // Protect formula columns (from config)
+      // OPTIMIZATION: Combine consecutive formula columns into single protection ranges to reduce API calls
+      if (protectedRanges.FORMULA_COLUMNS && protectedRanges.FORMULA_COLUMNS.length > 0) {
+        const formulaCols = [...protectedRanges.FORMULA_COLUMNS].sort((a, b) => a - b);
         const formulaProtections = [];
         
         // Group consecutive columns together
@@ -1320,39 +1003,49 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setBorder(true, true, true, true, true, true);
     
-    const gradeInputCols = isSHS ? [3, 4, 5, 9, 10, 11] : [3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23];
+    // OPTIMIZATION: Batch number format - combine with other formatting where possible
+    const gradeInputCols = [3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23]; // C, D, E (1st), I, J, K (2nd), O, P, Q (3rd), U, V, W (4th)
     gradeInputCols.forEach(col => {
       sheet.getRange(startRow, col, numStudentRows, 1).setNumberFormat('0.##');
     });
     
-    const numberFormatCols = isSHS ? [6, 7, 12, 13, 15] : [6, 7, 12, 13, 18, 19, 24, 25, 27];
+    // Format Initial, Transmuted, and Final Grading columns with 2 decimal places
+    const numberFormatCols = [6, 7, 12, 13, 18, 19, 24, 25, 27]; // F (Initial), G (Transmuted), L (Initial), M (Transmuted), R (Initial), S (Transmuted), X (Initial), Y (Transmuted), AA (Final Grading)
     numberFormatCols.forEach(col => {
       sheet.getRange(startRow, col, numStudentRows, 1).setNumberFormat('0.00');
     });
     
-    const inputCols = isSHS ? [3, 4, 5, 9, 10, 11] : [3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23];
+    // OPTIMIZATION: Batch all conditional formatting rules at once (single setConditionalFormatRules call)
+    // Input columns: C, D, E (1st), I, J, K (2nd), O, P, Q (3rd), U, V, W (4th)
+    const inputCols = [3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23];
     const minGrade = CONFIG.TEMPLATE.MIN_GRADE;
     const maxGrade = CONFIG.TEMPLATE.MAX_GRADE;
     const allRules = [];
     
     inputCols.forEach(col => {
       const inputRange = sheet.getRange(startRow, col, numStudentRows, 1);
+      
+      // Rule 1: Red if value is less than minimum grade
       const rule1 = SpreadsheetApp.newConditionalFormatRule()
         .setRanges([inputRange])
         .whenNumberLessThan(minGrade)
         .setBackground(CONFIG.COLORS.LIGHT_RED)
         .build();
+      
+      // Rule 2: Red if value is greater than maximum grade
       const rule2 = SpreadsheetApp.newConditionalFormatRule()
         .setRanges([inputRange])
         .whenNumberGreaterThan(maxGrade)
         .setBackground(CONFIG.COLORS.LIGHT_RED)
         .build();
+      
       allRules.push(rule1, rule2);
     });
     
-    const initialCols = isSHS ? [6, 12] : [6, 12, 18, 24];
-    const transmutedGradeCols = isSHS ? [7, 13] : [7, 13, 19, 25];
-    const finalGradingCol = isSHS ? 15 : 27;
+    // Add conditional formatting for Initial, Transmuted grades and final grade: Red if less than 75
+    const initialCols = [6, 12, 18, 24]; // Columns F, L, R, X (1st, 2nd, 3rd, 4th Initial)
+    const transmutedGradeCols = [7, 13, 19, 25]; // Columns G, M, S, Y (1st, 2nd, 3rd, 4th Transmuted)
+    const finalGradingCol = 27; // Column AA (Final Grading)
     const passingGrade = 75;
     
     [...initialCols, ...transmutedGradeCols, finalGradingCol].forEach(col => {
@@ -1508,7 +1201,8 @@ function _getStudentsFromDB(schoolYear, gradeLevel, section) {
       const normalizedRowGradeLevel = _normalizeGradeLevel(String(rowGradeLevel || '').trim());
       const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
       
-      if (normalizedRowGradeLevel === normalizedGradeLevel && (!section || section === '' || rowSection === section)) {
+      // Filter by grade level and section
+      if (normalizedRowGradeLevel === normalizedGradeLevel && rowSection === section) {
         students.push({
           studentNumber: row[0] || '', // Column A
           lastName: row[1] || '',      // Column B
@@ -1518,12 +1212,11 @@ function _getStudentsFromDB(schoolYear, gradeLevel, section) {
       }
     }
     
+    // Sort students by student number for consistent ordering
     students.sort((a, b) => {
-      const ln = (String(a.lastName || '')).localeCompare(String(b.lastName || ''), undefined, { sensitivity: 'base' });
-      if (ln !== 0) return ln;
-      const fn = (String(a.firstName || '')).localeCompare(String(b.firstName || ''), undefined, { sensitivity: 'base' });
-      if (fn !== 0) return fn;
-      return (String(a.studentNumber || '')).localeCompare(String(b.studentNumber || ''));
+      const numA = String(a.studentNumber);
+      const numB = String(b.studentNumber);
+      return numA.localeCompare(numB);
     });
     
     return students;
@@ -2696,12 +2389,17 @@ function _generateEQFromNonTransmutedGrade(gradeCol, row) {
  * @param {Array} students - Array of student objects
  */
 function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, students = []) {
+  // Clear the sheet first
   sheet.clear();
+  
+  // Get active traits from CHARACTERS_REF sheet
   const traits = _getActiveTraits();
-  const isSHS = CONFIG.IS_SHS;
-  const numCols = isSHS ? 9 : 13; // SHS: 1st, 2nd, Final only. Non-SHS: 1st–4th, Final
+  
+  // Fixed number of columns: Student No, Student Name, TRAITS, 1st Grade, 1st EQ, 2nd Grade, 2nd EQ, 3rd Grade, 3rd EQ, 4th Grade, 4th EQ, Final Grading, Final EQ
+  const numCols = 13;
   const allData = [];
   
+  // Helper function to pad row to numCols
   const padRow = (row) => {
     const padded = [...row];
     while (padded.length < numCols) {
@@ -2710,21 +2408,37 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     return padded.slice(0, numCols);
   };
   
+  // Row 1-5: Info rows (matching subject sheet format)
   allData.push(padRow(['Advisor Name:', teacher]));
   allData.push(padRow(['School Year:', schoolYear]));
+  // Format grade level for display (add "Grade " prefix)
   const formattedGradeLevel = _formatGradeLevel(gradeLevel);
   allData.push(padRow(['Level:', formattedGradeLevel]));
   allData.push(padRow(['Section:', section]));
   allData.push(padRow(['Total Student:', students.length > 0 ? students.length : '']));
   
+  // Row 6: EQ Legend
   const legendText = CONFIG.EQ_GRADING_SCALE.RANGES.map(range => 
     `${range.min}-${range.max}: ${range.value} (${range.label})`
   ).join(' | ');
   allData.push(padRow(['EQ Legend:', legendText]));
   
-  const headerRow = isSHS
-    ? ['Student No', 'Student Name', 'TRAITS', '1st Grade', '1st EQ', '2nd Grade', '2nd EQ', 'Final Grading', 'Final EQ']
-    : ['Student No', 'Student Name', 'TRAITS', '1st Grade', '1st EQ', '2nd Grade', '2nd EQ', '3rd Grade', '3rd EQ', '4th Grade', '4th EQ', 'Final Grading', 'Final EQ'];
+  // Row 7: Column headers
+  const headerRow = [
+    'Student No',
+    'Student Name',
+    'TRAITS',
+    '1st Grade',
+    '1st EQ',
+    '2nd Grade',
+    '2nd EQ',
+    '3rd Grade',
+    '3rd EQ',
+    '4th Grade',
+    '4th EQ',
+    'Final Grading',
+    'Final EQ'
+  ];
   allData.push(padRow(headerRow));
   
   // Write all data at once
@@ -2742,9 +2456,11 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
   // Total Student value should be left-aligned
   sheet.getRange(5, 2).setHorizontalAlignment('left');
   
-  sheet.getRange(6, 1, 1, 1).setFontWeight('bold');
-  sheet.getRange(6, 2, 1, isSHS ? 8 : 4).merge(); // Merge legend: SHS B6:I6, non-SHS B6:E6
-  sheet.getRange(6, 2, 1, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY);
+  // OPTIMIZATION: Batch Row 6 formatting
+  // Row 6: Format EQ Legend - matching format with rows 1-5
+  sheet.getRange(6, 1, 1, 1).setFontWeight('bold'); // "EQ Legend:" label (matching rows 1-5 column A)
+  sheet.getRange(6, 2, 1, 4).merge(); // Merge cells B6:E6 for legend text
+  sheet.getRange(6, 2, 1, 1).setBackground(CONFIG.COLORS.LIGHT_GRAY); // Background matching info rows (column B)
   
   // Row 7: Format column headers (matching subject sheet format)
   sheet.getRange(7, 1, 1, numCols)
@@ -2780,10 +2496,19 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       const middleName = student.middleName || '';
       const studentName = `${lastName}${firstName ? ', ' + firstName : ''}${middleName ? ' ' + middleName : ''}`.trim();
       
+      // Create one row for each active trait
       traits.forEach((trait) => {
-        const row = isSHS
-          ? [studentNumber, studentName, trait, '', '', '', '', '', ''] // 1st Grade, 1st EQ, 2nd Grade, 2nd EQ, Final Grading, Final EQ
-          : [studentNumber, studentName, trait, '', '', '', '', '', '', '', '', '', '']; // 1st–4th, Final
+        const row = [
+          studentNumber, // Student No (duplicated for each trait)
+          studentName,   // Student Name (duplicated for each trait)
+          trait,         // TRAITS - the trait name from CHARACTERS_REF
+          '', '', // 1st Grade, 1st EQ
+          '', '', // 2nd Grade, 2nd EQ
+          '', '', // 3rd Grade, 3rd EQ
+          '', '', // 4th Grade, 4th EQ
+          '',     // Final Grading - empty (could add formula later if needed)
+          ''      // Final EQ - empty (could add formula later if needed)
+        ];
         studentValues.push(padRow(row));
       });
     });
@@ -2794,7 +2519,8 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     if (totalRows < minRows) {
       const emptyRowsNeeded = minRows - totalRows;
       for (let i = 0; i < emptyRowsNeeded; i++) {
-        studentValues.push(padRow(new Array(numCols).fill('')));
+        const row = ['', '', '', '', '', '', '', '', '', '', '', '', '']; // All 13 columns empty
+        studentValues.push(padRow(row));
       }
     }
     
@@ -2803,49 +2529,49 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setValues(studentValues);
     
+    // Add EQ formulas for all student rows
+    // Column mappings: D=1st Grade, E=1st EQ, F=2nd Grade, G=2nd EQ, H=3rd Grade, I=3rd EQ, J=4th Grade, K=4th EQ, L=Final Grading, M=Final EQ
     const eqFormulas = [];
-    const finalGradingFormulas = []; // Final Grading = avg of grade columns (2 for SHS, 4 for non-SHS)
     for (let r = 0; r < numStudentRows; r++) {
       const rowNum = startRow + r;
       const rowFormulas = [];
-      if (isSHS) {
-        rowFormulas[4] = _generateEQFormula(4, rowNum);   // 1st EQ (E) from 1st Grade (D)
-        rowFormulas[6] = _generateEQFormula(6, rowNum);   // 2nd EQ (G) from 2nd Grade (F)
-        rowFormulas[8] = _generateEQFormula(8, rowNum);  // Final EQ (I) from Final Grading (H)
-        finalGradingFormulas.push([`=IF(AND(D${rowNum}<>"",F${rowNum}<>""),ROUND((D${rowNum}+F${rowNum})/2,2),"")`]);
-      } else {
-        rowFormulas[4] = _generateEQFormula(4, rowNum);
-        rowFormulas[6] = _generateEQFormula(6, rowNum);
-        rowFormulas[8] = _generateEQFormula(8, rowNum);
-        rowFormulas[10] = _generateEQFormula(10, rowNum);
-        rowFormulas[12] = _generateEQFormula(12, rowNum);
-        finalGradingFormulas.push([`=IF(AND(D${rowNum}<>"",F${rowNum}<>"",H${rowNum}<>"",J${rowNum}<>""),ROUND((D${rowNum}+F${rowNum}+H${rowNum}+J${rowNum})/4,2),"")`]);
-      }
+      
+      // 1st EQ (Column E, index 5) based on 1st Grade (Column D, index 4)
+      rowFormulas[4] = _generateEQFormula(4, rowNum); // Column D (1-based index 4)
+      
+      // 2nd EQ (Column G, index 7) based on 2nd Grade (Column F, index 6)
+      rowFormulas[6] = _generateEQFormula(6, rowNum); // Column F (1-based index 6)
+      
+      // 3rd EQ (Column I, index 9) based on 3rd Grade (Column H, index 8)
+      rowFormulas[8] = _generateEQFormula(8, rowNum); // Column H (1-based index 8)
+      
+      // 4th EQ (Column K, index 11) based on 4th Grade (Column J, index 10)
+      rowFormulas[10] = _generateEQFormula(10, rowNum); // Column J (1-based index 10)
+      
+      // Final EQ (Column M, index 13) based on Final Grading (Column L, index 12)
+      rowFormulas[12] = _generateEQFormula(12, rowNum); // Column L (1-based index 12)
+      
       eqFormulas.push(rowFormulas);
     }
     
-    const eqCols = isSHS ? [5, 7, 9] : [5, 7, 9, 11, 13];
+    // OPTIMIZATION: Set formulas for all EQ columns first, then batch formatting
+    const eqCols = [5, 7, 9, 11, 13]; // 1st EQ, 2nd EQ, 3rd EQ, 4th EQ, Final EQ
     eqCols.forEach((col) => {
-      const formulas = eqFormulas.map(row => row[col - 1] || '');
+      const formulas = eqFormulas.map(row => row[col - 1] || ''); // Convert to 0-based index
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulas.map(f => [f]));
     });
-    if (finalGradingFormulas.length > 0) {
-      const finalGradingCol = isSHS ? 8 : 12;
-      sheet.getRange(startRow, finalGradingCol, numStudentRows, 1).setFormulas(finalGradingFormulas);
-    }
     
-    const gradeCols = isSHS ? [4, 6] : [4, 6, 8, 10];
+    const gradeCols = [4, 6, 8, 10, 12];
     gradeCols.forEach((col) => {
       sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('center');
     });
     
+    // OPTIMIZATION: Batch formatting operations for EQ columns
     eqCols.forEach((col) => {
       const range = sheet.getRange(startRow, col, numStudentRows, 1);
       range.setBackground(CONFIG.COLORS.MEDIUM_GRAY);
       range.setHorizontalAlignment('center');
     });
-    const finalGradingCol = isSHS ? 8 : 12;
-    sheet.getRange(startRow, finalGradingCol, numStudentRows, 1).setBackground(CONFIG.COLORS.MEDIUM_GRAY).setHorizontalAlignment('center');
     
     // Auto-resize TRAITS column (column 3) based on content
     sheet.autoResizeColumn(3);
@@ -2855,61 +2581,65 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
     // Format borders for student data (matching subject sheet format)
     studentRange.setBorder(true, true, true, true, true, true);
   } else {
+    // No students or no traits - create empty rows
     const numStudentRows = CONFIG.TEMPLATE.NUM_STUDENT_ROWS * (hasTraits ? traits.length : 1);
     const emptyValues = [];
-    for (let i = 0; i < numStudentRows; i++) {
-      emptyValues.push(padRow(new Array(numCols).fill('')));
+      for (let i = 0; i < numStudentRows; i++) {
+      const row = ['', '', '', '', '', '', '', '', '', '', '', '', '']; // All 13 columns empty
+      emptyValues.push(padRow(row));
     }
     const studentRange = sheet.getRange(startRow, 1, numStudentRows, numCols);
     studentRange.setValues(emptyValues);
     
-    const eqFormulasEmpty = [];
-    const finalGradingFormulasEmpty = [];
+    // Add EQ formulas for empty rows as well
+    const eqFormulas = [];
     for (let r = 0; r < numStudentRows; r++) {
       const rowNum = startRow + r;
       const rowFormulas = [];
-      if (isSHS) {
-        rowFormulas[4] = _generateEQFormula(4, rowNum);
-        rowFormulas[6] = _generateEQFormula(6, rowNum);
-        rowFormulas[8] = _generateEQFormula(8, rowNum);
-        finalGradingFormulasEmpty.push([`=IF(AND(D${rowNum}<>"",F${rowNum}<>""),ROUND((D${rowNum}+F${rowNum})/2,2),"")`]);
-      } else {
-        rowFormulas[4] = _generateEQFormula(4, rowNum);
-        rowFormulas[6] = _generateEQFormula(6, rowNum);
-        rowFormulas[8] = _generateEQFormula(8, rowNum);
-        rowFormulas[10] = _generateEQFormula(10, rowNum);
-        rowFormulas[12] = _generateEQFormula(12, rowNum);
-        finalGradingFormulasEmpty.push([`=IF(AND(D${rowNum}<>"",F${rowNum}<>"",H${rowNum}<>"",J${rowNum}<>""),ROUND((D${rowNum}+F${rowNum}+H${rowNum}+J${rowNum})/4,2),"")`]);
-      }
-      eqFormulasEmpty.push(rowFormulas);
+      
+      // 1st EQ (Column E) based on 1st Grade (Column D)
+      rowFormulas[4] = _generateEQFormula(4, rowNum);
+      
+      // 2nd EQ (Column G) based on 2nd Grade (Column F)
+      rowFormulas[6] = _generateEQFormula(6, rowNum);
+      
+      // 3rd EQ (Column I) based on 3rd Grade (Column H)
+      rowFormulas[8] = _generateEQFormula(8, rowNum);
+      
+      // 4th EQ (Column K) based on 4th Grade (Column J)
+      rowFormulas[10] = _generateEQFormula(10, rowNum);
+      
+      // Final EQ (Column M) based on Final Grading (Column L)
+      rowFormulas[12] = _generateEQFormula(12, rowNum);
+      
+      eqFormulas.push(rowFormulas);
     }
     
-    const eqColsEmpty = isSHS ? [5, 7, 9] : [5, 7, 9, 11, 13];
-    eqColsEmpty.forEach((col) => {
-      const formulas = eqFormulasEmpty.map(row => row[col - 1] || '');
+    // OPTIMIZATION: Set formulas for all EQ columns first, then batch formatting
+    const eqCols = [5, 7, 9, 11, 13]; // 1st EQ, 2nd EQ, 3rd EQ, 4th EQ, Final EQ
+    eqCols.forEach((col) => {
+      const formulas = eqFormulas.map(row => row[col - 1] || ''); // Convert to 0-based index
       sheet.getRange(startRow, col, numStudentRows, 1).setFormulas(formulas.map(f => [f]));
     });
-    if (finalGradingFormulasEmpty.length > 0) {
-      const finalGradingColEmpty = isSHS ? 8 : 12;
-      sheet.getRange(startRow, finalGradingColEmpty, numStudentRows, 1).setFormulas(finalGradingFormulasEmpty);
-    }
     
-    const gradeColsEmpty = isSHS ? [4, 6] : [4, 6, 8, 10];
-    gradeColsEmpty.forEach((col) => {
+    const gradeCols = [4, 6, 8, 10, 12];
+    gradeCols.forEach((col) => {
       sheet.getRange(startRow, col, numStudentRows, 1).setHorizontalAlignment('center');
     });
     
-    eqColsEmpty.forEach((col) => {
+    // OPTIMIZATION: Batch formatting operations for EQ columns
+    eqCols.forEach((col) => {
       const range = sheet.getRange(startRow, col, numStudentRows, 1);
       range.setBackground(CONFIG.COLORS.MEDIUM_GRAY);
       range.setHorizontalAlignment('center');
     });
-    const finalGradingColEmpty = isSHS ? 8 : 12;
-    sheet.getRange(startRow, finalGradingColEmpty, numStudentRows, 1).setBackground(CONFIG.COLORS.MEDIUM_GRAY).setHorizontalAlignment('center');
     
+    // Format borders for student data (matching subject sheet format)
     studentRange.setBorder(true, true, true, true, true, true);
     
-    const gradeInputCols = isSHS ? [4, 6] : [4, 6, 8, 10];
+    // OPTIMIZATION: Batch all conditional formatting rules at once
+    // Grade input columns: D (4), F (6), H (8), J (10), L (12)
+    const gradeInputCols = [4, 6, 8, 10, 12];
     const minGrade = CONFIG.TEMPLATE.MIN_GRADE;
     const maxGrade = CONFIG.TEMPLATE.MAX_GRADE;
     const allRules = [];
@@ -2990,26 +2720,29 @@ function _setupCharactersSheet(sheet, schoolYear, gradeLevel, section, teacher, 
       }
     };
     
+    // Get protected ranges from config
     const protectedRanges = CONFIG.TEMPLATE.PROTECTED_RANGES.CHARACTER_SHEET;
-    const charNumCols = isSHS ? 9 : 13;
     
+    // Protect student info columns (from config)
     if (protectedRanges.STUDENT_INFO_COLUMNS && protectedRanges.STUDENT_INFO_COLUMNS.length >= 2) {
       const startCol = protectedRanges.STUDENT_INFO_COLUMNS[0];
-      const numColsProtect = protectedRanges.STUDENT_INFO_COLUMNS[1] - protectedRanges.STUDENT_INFO_COLUMNS[0] + 1;
-      const colABRange = sheet.getRange(1, startCol, protectToRow, numColsProtect);
+      const numCols = protectedRanges.STUDENT_INFO_COLUMNS[1] - protectedRanges.STUDENT_INFO_COLUMNS[0] + 1;
+      const colABRange = sheet.getRange(1, startCol, protectToRow, numCols);
       const protection1 = colABRange.protect().setWarningOnly(false);
       setProtectionWithEditors(protection1, validEmails);
     }
     
+    // Protect header row (from config)
     if (protectedRanges.HEADER_ROW) {
-      const headerRowRange = sheet.getRange(protectedRanges.HEADER_ROW, 1, 1, charNumCols);
+      const headerRowRange = sheet.getRange(protectedRanges.HEADER_ROW, 1, 1, numCols);
       const protection2 = headerRowRange.protect().setWarningOnly(false);
       setProtectionWithEditors(protection2, validEmails);
     }
     
-    const charFormulaCols = isSHS ? [5, 7, 8, 9] : (protectedRanges.FORMULA_COLUMNS || []);
-    if (charFormulaCols.length > 0) {
-      const eqFormulaCols = [...charFormulaCols].sort((a, b) => a - b);
+    // Protect EQ formula columns (from config)
+    // OPTIMIZATION: Combine consecutive formula columns into single protection ranges to reduce API calls
+    if (protectedRanges.FORMULA_COLUMNS && protectedRanges.FORMULA_COLUMNS.length > 0) {
+      const eqFormulaCols = [...protectedRanges.FORMULA_COLUMNS].sort((a, b) => a - b);
       const eqFormulaProtections = [];
       
       // Group consecutive columns together
@@ -3411,42 +3144,24 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
   try {
     const masterSpreadsheet = getSpreadsheet();
     
+    // Normalize grade level for folder/file naming (extract just the number)
     const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
-    const isSHS = CONFIG.IS_SHS;
-    const subjectItems = subjects && subjects.length > 0 ? subjects : [];
-    const firstSubjectItem = subjectItems[0];
-    const hasSubjectStrandSemester = isSHS && firstSubjectItem && typeof firstSubjectItem === 'object' && firstSubjectItem.subject != null;
-    const subjectNames = subjectItems.map(function(s) {
-      return typeof s === 'object' && s && s.subject != null ? s.subject : s;
-    });
     
+    // Generate template file name in format: OGS-GRADE-1A-2026-2027 - {teacher name}
+    const sanitizedSection = section.toUpperCase();
     const sanitizedYear = schoolYear.replace(/[^a-zA-Z0-9-]/g, '');
-    const allSectionsMode = !section || section === '';
-    const sanitizedSection = section ? section.toUpperCase() : '';
-    let templateFileName;
-    if (isSHS && subjectNames.length > 0) {
-      const strand = hasSubjectStrandSemester
-        ? (firstSubjectItem.strand || CONFIG.SHS_DEFAULTS.STRAND).replace(/[^a-zA-Z0-9]/g, '')
-        : (_getSubjectMetadata(subjectNames[0]).strand || CONFIG.SHS_DEFAULTS.STRAND).replace(/[^a-zA-Z0-9]/g, '');
-      const semester = hasSubjectStrandSemester
-        ? (firstSubjectItem.semester || CONFIG.SHS_DEFAULTS.SEMESTER).replace(/[^a-zA-Z0-9]/g, '')
-        : (_getSubjectMetadata(subjectNames[0]).semester || CONFIG.SHS_DEFAULTS.SEMESTER).replace(/[^a-zA-Z0-9]/g, '');
-      if (allSectionsMode) {
-        templateFileName = `OGS-GRADE-${normalizedGradeLevel}-${strand}-${semester} Quarter-${sanitizedYear} - ${teacher}`;
-      } else {
-        templateFileName = `OGS-GRADE-${normalizedGradeLevel}-${sanitizedSection}-${strand}-${semester} Quarter-${sanitizedYear} - ${teacher}`;
-      }
-    } else {
-      templateFileName = `OGS-GRADE-${normalizedGradeLevel}${sanitizedSection}-${sanitizedYear} - ${teacher}`;
-    }
+    const templateFileName = `OGS-GRADE-${normalizedGradeLevel}${sanitizedSection}-${sanitizedYear} - ${teacher}`;
     
     // Get the parent folder of the master spreadsheet
     const masterFile = DriveApp.getFileById(masterSpreadsheet.getId());
     const parentFolders = masterFile.getParents();
     const baseFolder = parentFolders.hasNext() ? parentFolders.next() : DriveApp.getRootFolder();
     
+    // OPTIMIZATION: Create folder structure: "YYYY-YYYY Grade XY"
+    // Example: "2025-2026 Grade 1A"
+    // Format grade level for display in folder name
     const formattedGradeLevel = _formatGradeLevel(normalizedGradeLevel);
-    const folderName = allSectionsMode ? `${schoolYear} ${formattedGradeLevel}` : `${schoolYear} ${formattedGradeLevel}${section}`;
+    const folderName = `${schoolYear} ${formattedGradeLevel}${section}`;
     const targetFolder = _findOrCreateFolder(baseFolder, folderName);
     
     // Check if template file already exists in the target folder
@@ -3516,31 +3231,32 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     // OPTIMIZATION: Fetch students from STUDENTS DB (single API call)
     const students = _getStudentsFromDB(schoolYear, gradeLevel, section);
     
+    // OPTIMIZATION: Pre-fetch all grading weights at once to reduce API calls
     const subjectWeights = {};
-    subjectNames.forEach(function(name) {
-      subjectWeights[name] = _getGradingWeights(name);
+    subjects.forEach(subject => {
+      subjectWeights[subject] = _getGradingWeights(subject);
     });
     
+    // Get the default sheet and rename it to the first subject
     const defaultSheet = templateSpreadsheet.getActiveSheet();
-    const firstSubject = subjectNames[0];
+    const firstSubject = subjects[0];
     defaultSheet.setName(firstSubject);
     
-    const firstStrand = hasSubjectStrandSemester ? (firstSubjectItem.strand || null) : null;
-    const firstSemester = hasSubjectStrandSemester ? (firstSubjectItem.semester || null) : null;
-    _setupOGSTemplate(defaultSheet, schoolYear, gradeLevel, section, firstSubject, teacher, subjectWeights[firstSubject], students, userEmail, firstStrand, firstSemester);
+    // Set up the first OGS template sheet with student data
+    _setupOGSTemplate(defaultSheet, schoolYear, gradeLevel, section, firstSubject, teacher, subjectWeights[firstSubject], students, userEmail);
     
+    // Create sheets for remaining subjects with same student data
     const createdSheets = [firstSubject];
-    for (let i = 1; i < subjectItems.length; i++) {
-      const subjectName = subjectNames[i];
-      const item = subjectItems[i];
-      const itemStrand = (typeof item === 'object' && item && item.subject != null) ? (item.strand || null) : null;
-      const itemSemester = (typeof item === 'object' && item && item.subject != null) ? (item.semester || null) : null;
-      const newSheet = templateSpreadsheet.insertSheet(subjectName);
-      _setupOGSTemplate(newSheet, schoolYear, gradeLevel, section, subjectName, teacher, subjectWeights[subjectName], students, userEmail, itemStrand, itemSemester);
-      createdSheets.push(subjectName);
+    for (let i = 1; i < subjects.length; i++) {
+      const subject = subjects[i];
+      const newSheet = templateSpreadsheet.insertSheet(subject);
+      _setupOGSTemplate(newSheet, schoolYear, gradeLevel, section, subject, teacher, subjectWeights[subject], students, userEmail);
+      createdSheets.push(subject);
     }
     
-    const normalizedSubjects = subjectNames.map(s => String(s).trim().toLowerCase());
+    // Check if MAPEH sheet should be created (all four subjects must be present)
+    // Normalize subjects for comparison (trim whitespace and convert to lowercase)
+    const normalizedSubjects = subjects.map(s => s.trim().toLowerCase());
     
     // Check for each required subject (case-insensitive, trimmed)
     const hasMusic = normalizedSubjects.includes('music');
@@ -3557,7 +3273,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
       };
       
       // Determine the Health sheet position so MAPEH can be inserted right after it
-      const healthSubjectName = subjectNames.find(function(s) { return String(s).trim().toLowerCase() === 'health'; });
+      const healthSubjectName = subjects.find(subject => subject.trim().toLowerCase() === 'health');
       const healthSheet = healthSubjectName ? templateSpreadsheet.getSheetByName(healthSubjectName) : null;
       const healthIndex = healthSheet ? healthSheet.getIndex() : templateSpreadsheet.getSheets().length;
       const insertIndex = Math.min(healthIndex + 1, templateSpreadsheet.getSheets().length + 1);
@@ -3591,7 +3307,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     // Save one row to MASTER_DATA (one row per template file, not per subject)
     _saveToMasterData(schoolYear, gradeLevel, section, teacher, templateUrl, userEmail, templateFileName);
     
-    const subjectsList = subjectNames.join(', ');
+    const subjectsList = subjects.join(', ');
     const studentCountMsg = students.length > 0 ? ` (${students.length} students)` : '';
     const advisorSheetsMsg = isAdvisor ? ' (Advisor sheets included)' : '';
     const message = `Template generated: ${templateFileName}${studentCountMsg}${advisorSheetsMsg}`;
@@ -3600,7 +3316,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
       success: true, 
       message: message,
       templateUrl: templateUrl,
-      subjects: subjectNames,
+      subjects: subjects,
       folderName: folderName,
       studentCount: students.length
     };
@@ -3610,7 +3326,7 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
     return { 
       success: false, 
       message: _formatMessage(CONFIG.MESSAGES.ERROR.TEMPLATE_GENERATION, {
-        error: (error && error.message) ? error.message : String(error)
+        error: error.toString()
       })
     };
   }
@@ -3625,15 +3341,10 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
  * @param {string} userEmail - The email of the user creating the assignment (passed from client)
  * @return {Object} Result object with success status
  */
-function _addAssignment(gradeLevel, section, teacher, subject, strand, category, semester, userEmail) {
+function _addAssignment(gradeLevel, section, teacher, subject, userEmail) {
   try {
     // Normalize grade level for storage (sheet stores just numbers)
     const normalizedGradeLevel = _normalizeGradeLevel(gradeLevel);
-    
-    // Set defaults if not provided
-    const actualStrand = strand || CONFIG.SHS_DEFAULTS.STRAND;
-    const actualCategory = category || CONFIG.SHS_DEFAULTS.CATEGORY;
-    const actualSemester = semester || CONFIG.SHS_DEFAULTS.SEMESTER;
     
     let sheet = getSheet(CONFIG.SHEET_NAMES.SUBJECTS);
     
@@ -3642,19 +3353,16 @@ function _addAssignment(gradeLevel, section, teacher, subject, strand, category,
       const spreadsheet = getSpreadsheet();
       sheet = spreadsheet.insertSheet(CONFIG.SHEET_NAMES.SUBJECTS);
       
-      // Set up headers (no parent header row) - Updated with new columns
+      // Set up headers (no parent header row)
       sheet.getRange(1, 1).setValue('Grade Level');
       sheet.getRange(1, 2).setValue('Section');
       sheet.getRange(1, 3).setValue('Teacher');
       sheet.getRange(1, 4).setValue('Subject');
-      sheet.getRange(1, 5).setValue('Strand');
-      sheet.getRange(1, 6).setValue('Category');
-      sheet.getRange(1, 7).setValue('Semester');
-      sheet.getRange(1, 8).setValue('Status');
-      sheet.getRange(1, 9).setValue('Created');
-      sheet.getRange(1, 10).setValue('Modified');
-      sheet.getRange(1, 11).setValue('Created By');
-      sheet.getRange(1, 1, 1, 11).setFontWeight('bold').setBackground(CONFIG.COLORS.DARK_GRAY);
+      sheet.getRange(1, 5).setValue('Status');
+      sheet.getRange(1, 6).setValue('Created');
+      sheet.getRange(1, 7).setValue('Modified');
+      sheet.getRange(1, 8).setValue('Created By');
+      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.DARK_GRAY);
     }
     
     const timestamp = new Date();
@@ -3664,26 +3372,19 @@ function _addAssignment(gradeLevel, section, teacher, subject, strand, category,
     // Check if assignment already exists (skip header row 1)
     const data = sheet.getDataRange().getValues();
     
-    // First, check if exact match exists (same teacher, grade, section, subject, strand, category, semester)
+    // First, check if exact match exists (same teacher, grade, section, subject)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
-      const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
-      const rowCategory = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
-      const rowSemester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
-      
       if (rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
-          row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject &&
-          rowStrand === actualStrand &&
-          rowCategory === actualCategory &&
-          rowSemester === actualSemester) {
+          row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject) {
         // Update existing assignment to active and update modified date
         sheet.getRange(i + 1, CONFIG.SUBJECTS_COLUMNS.STATUS + 1).setValue('Active');
         sheet.getRange(i + 1, CONFIG.SUBJECTS_COLUMNS.MODIFIED + 1).setValue(timestamp);
         // If Created By is empty, set it (for existing data that might not have it)
-        const createdByCol = CONFIG.SUBJECTS_COLUMNS.CREATED_BY + 1; // Column K
+        const createdByCol = CONFIG.SUBJECTS_COLUMNS.CREATED_BY + 1; // Column H
         const existingCreatedBy = sheet.getRange(i + 1, createdByCol).getValue();
         if (!existingCreatedBy || existingCreatedBy.toString().trim() === '') {
           sheet.getRange(i + 1, createdByCol).setValue(actualUserEmail);
@@ -3692,21 +3393,14 @@ function _addAssignment(gradeLevel, section, teacher, subject, strand, category,
       }
     }
     
-    // VALIDATION: Prevent same grade level + section + subject + strand + category + semester from being assigned to different teachers
-    // Check if this subject already exists for this grade/section/strand/category/semester with a different teacher (and is Active)
+    // VALIDATION: Prevent same grade level + section + subject from being assigned to different teachers
+    // Check if this subject already exists for this grade/section with a different teacher (and is Active)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
-      const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
-      const rowCategory = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
-      const rowSemester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
-      
       if (rowGradeLevel === normalizedGradeLevel &&
           row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject &&
-          rowStrand === actualStrand &&
-          rowCategory === actualCategory &&
-          rowSemester === actualSemester &&
           row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
         const existingTeacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
         if (existingTeacher !== teacher) {
@@ -3724,7 +3418,7 @@ function _addAssignment(gradeLevel, section, teacher, subject, strand, category,
     }
     
     // Add new assignment with audit trail (store normalized grade level)
-    sheet.appendRow([normalizedGradeLevel, section, teacher, subject, actualStrand, actualCategory, actualSemester, 'Active', timestamp, timestamp, actualUserEmail]);
+    sheet.appendRow([normalizedGradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, actualUserEmail]);
     
     return { success: true, message: CONFIG.MESSAGES.SUCCESS.ASSIGNMENT_ADDED };
   } catch (error) {
@@ -3740,7 +3434,7 @@ function _addAssignment(gradeLevel, section, teacher, subject, strand, category,
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
- * @param {Array} subjects - Array of subject objects with {subject, strand, category, semester} or strings (for backward compatibility)
+ * @param {Array} subjects - Array of subject names
  * @param {string} userEmail - The email of the user creating the subjects (passed from client)
  * @return {Object} Result object with success status and counts
  */
@@ -3756,91 +3450,54 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
       const spreadsheet = getSpreadsheet();
       sheet = spreadsheet.insertSheet(CONFIG.SHEET_NAMES.SUBJECTS);
       
-      // Set up headers (no parent header row) - Updated with new columns
+      // Set up headers (no parent header row)
       sheet.getRange(1, 1).setValue('Grade Level');
       sheet.getRange(1, 2).setValue('Section');
       sheet.getRange(1, 3).setValue('Teacher');
       sheet.getRange(1, 4).setValue('Subject');
-      sheet.getRange(1, 5).setValue('Strand');
-      sheet.getRange(1, 6).setValue('Category');
-      sheet.getRange(1, 7).setValue('Semester');
-      sheet.getRange(1, 8).setValue('Status');
-      sheet.getRange(1, 9).setValue('Created');
-      sheet.getRange(1, 10).setValue('Modified');
-      sheet.getRange(1, 11).setValue('Created By');
-      sheet.getRange(1, 1, 1, 11).setFontWeight('bold').setBackground(CONFIG.COLORS.DARK_GRAY);
+      sheet.getRange(1, 5).setValue('Status');
+      sheet.getRange(1, 6).setValue('Created');
+      sheet.getRange(1, 7).setValue('Modified');
+      sheet.getRange(1, 8).setValue('Created By');
+      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground(CONFIG.COLORS.DARK_GRAY);
     }
     
     const timestamp = new Date();
     // Use passed userEmail, or fallback to Session.getActiveUser() if not provided (for backward compatibility)
     const actualUserEmail = userEmail || Session.getActiveUser().getEmail();
     
-    // Normalize subjects array - handle both old format (strings) and new format (objects)
-    const normalizedSubjects = subjects.map(subj => {
-      if (typeof subj === 'string') {
-        // Backward compatibility: old format (just subject name)
-        return {
-          subject: subj,
-          strand: CONFIG.SHS_DEFAULTS.STRAND,
-          category: CONFIG.SHS_DEFAULTS.CATEGORY,
-          semester: CONFIG.SHS_DEFAULTS.SEMESTER
-        };
-      } else {
-        // New format: object with subject, strand, category, semester
-        return {
-          subject: subj.subject || subj,
-          strand: subj.strand || CONFIG.SHS_DEFAULTS.STRAND,
-          category: subj.category || CONFIG.SHS_DEFAULTS.CATEGORY,
-          semester: subj.semester || CONFIG.SHS_DEFAULTS.SEMESTER
-        };
-      }
-    });
-    
     // Get all existing data once (batch read)
     const data = sheet.getDataRange().getValues();
     const existingSubjects = new Set();
     
+    // Build set of existing subjects for fast lookup (same teacher only)
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
-      const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
-      const rowSection = row[CONFIG.SUBJECTS_COLUMNS.SECTION];
-      const sectionMatches = rowSection === section || (rowStrand === 'ALL' && rowSection === 'ALL');
       if (rowGradeLevel === normalizedGradeLevel &&
-          sectionMatches &&
+          row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
           row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher) {
-        const subject = String(row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] || '').trim();
-        const strand = rowStrand;
-        const category = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.CATEGORIES.CORE;
-        const semester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SEMESTERS.FIRST;
-        const key = `${subject}|${strand}|${category}|${semester}`;
-        existingSubjects.add(key);
+        const subject = row[CONFIG.SUBJECTS_COLUMNS.SUBJECT];
+        existingSubjects.add(subject);
       }
     }
     
+    // VALIDATION: Check for conflicts - same grade/section/subject with different teacher
     const conflictErrors = [];
     const formattedGradeLevel = _formatGradeLevel(gradeLevel);
-    normalizedSubjects.forEach(subj => {
-      const key = `${subj.subject}|${subj.strand}|${subj.category}|${subj.semester}`;
-      const sectionToWrite = subj.strand === 'ALL' ? 'ALL' : section;
-      if (!existingSubjects.has(key)) {
+    subjects.forEach(subject => {
+      // Only check if this is a new subject (not already assigned to this teacher)
+      if (!existingSubjects.has(subject)) {
         for (let i = 1; i < data.length; i++) {
           const row = data[i];
           const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
-          const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
-          const rowCategory = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
-          const rowSemester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
-          const rowSection = row[CONFIG.SUBJECTS_COLUMNS.SECTION];
           if (rowGradeLevel === normalizedGradeLevel &&
-              rowSection === sectionToWrite &&
-              row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subj.subject &&
-              rowStrand === subj.strand &&
-              rowCategory === subj.category &&
-              rowSemester === subj.semester &&
+              row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
+              row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject &&
               row[CONFIG.SUBJECTS_COLUMNS.STATUS] === 'Active') {
             const existingTeacher = row[CONFIG.SUBJECTS_COLUMNS.TEACHER];
             if (existingTeacher !== teacher) {
-              conflictErrors.push(`${formattedGradeLevel}${sectionToWrite === 'ALL' ? 'All Section' : sectionToWrite} - ${subj.subject} (${subj.strand}, ${subj.category}, ${subj.semester}) is already assigned to ${existingTeacher}`);
+              conflictErrors.push(`${formattedGradeLevel}${section} - ${subject} is already assigned to ${existingTeacher}`);
               break;
             }
           }
@@ -3862,29 +3519,23 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
     const newRows = [];
     const updateRows = [];
     
-    normalizedSubjects.forEach(subj => {
-      const key = `${subj.subject}|${subj.strand}|${subj.category}|${subj.semester}`;
-      const sectionToWrite = subj.strand === 'ALL' ? 'ALL' : section;
-      if (existingSubjects.has(key)) {
+    subjects.forEach(subject => {
+      if (existingSubjects.has(subject)) {
+        // Find row index for update
         for (let i = 1; i < data.length; i++) {
           const row = data[i];
           const rowGradeLevel = _normalizeGradeLevel(String(row[CONFIG.SUBJECTS_COLUMNS.GRADE_LEVEL] || '').trim());
-          const rowStrand = String(row[CONFIG.SUBJECTS_COLUMNS.STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
-          const rowCategory = String(row[CONFIG.SUBJECTS_COLUMNS.CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
-          const rowSemester = String(row[CONFIG.SUBJECTS_COLUMNS.SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
           if (rowGradeLevel === normalizedGradeLevel &&
-              row[CONFIG.SUBJECTS_COLUMNS.SECTION] === sectionToWrite &&
+              row[CONFIG.SUBJECTS_COLUMNS.SECTION] === section &&
               row[CONFIG.SUBJECTS_COLUMNS.TEACHER] === teacher &&
-              row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subj.subject &&
-              rowStrand === subj.strand &&
-              rowCategory === subj.category &&
-              rowSemester === subj.semester) {
-            updateRows.push({ rowIndex: i + 1, subject: subj.subject });
+              row[CONFIG.SUBJECTS_COLUMNS.SUBJECT] === subject) {
+            updateRows.push({ rowIndex: i + 1, subject: subject });
             break;
           }
         }
       } else {
-        newRows.push([normalizedGradeLevel, sectionToWrite, teacher, subj.subject, subj.strand, subj.category, subj.semester, 'Active', timestamp, timestamp, actualUserEmail]);
+        // New assignment (store normalized grade level)
+        newRows.push([normalizedGradeLevel, section, teacher, subject, 'Active', timestamp, timestamp, actualUserEmail]);
       }
     });
     
@@ -3894,7 +3545,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
       updateRows.sort((a, b) => a.rowIndex - b.rowIndex);
       
       // Update Created By for existing subjects if empty
-      const createdByCol = CONFIG.SUBJECTS_COLUMNS.CREATED_BY + 1; // Column K
+      const createdByCol = CONFIG.SUBJECTS_COLUMNS.CREATED_BY + 1; // Column H
       updateRows.forEach(({ rowIndex }) => {
         const existingCreatedBy = sheet.getRange(rowIndex, createdByCol).getValue();
         if (!existingCreatedBy || existingCreatedBy.toString().trim() === '') {
@@ -3935,7 +3586,7 @@ function _addSubjectsBatch(gradeLevel, section, teacher, subjects, userEmail) {
     // Batch insert new subjects (single API call instead of multiple appendRow calls)
     if (newRows.length > 0) {
       const lastRow = sheet.getLastRow();
-      const targetRange = sheet.getRange(lastRow + 1, 1, newRows.length, 11);
+      const targetRange = sheet.getRange(lastRow + 1, 1, newRows.length, 8);
       targetRange.setValues(newRows);
     }
     
@@ -3983,9 +3634,9 @@ function _getSubjects(gradeLevel, section) {
       return [];
     }
     
-    // OPTIMIZATION 1: Read all columns needed (A-H) - Updated to include new columns
-    // Columns: Grade Level (A), Section (B), Teacher (C), Subject (D), Strand (E), Category (F), Semester (G), Status (H)
-    const numCols = 8; // Read first 8 columns (we need these for display)
+    // OPTIMIZATION 1: Only read necessary columns (A-E) instead of all columns
+    // Columns: Grade Level (A), Section (B), Teacher (C), Subject (D), Status (E)
+    const numCols = 5; // Only read first 5 columns (we only need these)
     const dataRange = sheet.getRange(2, 1, lastRow - 1, numCols); // Start from row 2 (skip header)
     const data = dataRange.getValues();
     
@@ -3997,10 +3648,7 @@ function _getSubjects(gradeLevel, section) {
     const COL_SECTION = 1;
     const COL_TEACHER = 2;
     const COL_SUBJECT = 3;
-    const COL_STRAND = 4;
-    const COL_CATEGORY = 5;
-    const COL_SEMESTER = 6;
-    const COL_STATUS = 7;
+    const COL_STATUS = 4;
     
     // OPTIMIZATION 3: Convert filters to boolean flags for faster checks
     const hasGradeFilter = Boolean(gradeLevel);
@@ -4023,27 +3671,15 @@ function _getSubjects(gradeLevel, section) {
         const rowGradeLevel = _normalizeGradeLevel(String(row[COL_GRADE] || '').trim());
         if (rowGradeLevel !== normalizedGradeLevel) continue;
       }
-      const strand = String(row[COL_STRAND] || '').trim() || CONFIG.SHS_DEFAULTS.STRAND;
-      const rowSection = row[COL_SECTION];
-      if (hasSectionFilter) {
-        if (section === 'ALL') {
-          if (rowSection !== 'ALL') continue;
-        } else if (rowSection !== section && strand !== 'ALL') continue;
-      }
+      if (hasSectionFilter && row[COL_SECTION] !== section) continue;
       
-      const category = String(row[COL_CATEGORY] || '').trim() || CONFIG.SHS_DEFAULTS.CATEGORY;
-      const semester = String(row[COL_SEMESTER] || '').trim() || CONFIG.SHS_DEFAULTS.SEMESTER;
-      const sectionDisplay = strand === 'ALL' ? 'ALL' : row[COL_SECTION];
-      
+      // OPTIMIZATION 7: Direct object creation without intermediate variables
+      // Format grade level for display (add "Grade " prefix)
       subjects.push({
-        gradeLevel: _formatGradeLevel(row[COL_GRADE]),
-        section: sectionDisplay,
+        gradeLevel: _formatGradeLevel(row[COL_GRADE]), // Format for display
+        section: row[COL_SECTION],
         teacher: row[COL_TEACHER],
-        subject: row[COL_SUBJECT],
-        strand: strand,
-        category: category,
-        semester: semester,
-        status: row[COL_STATUS]
+        subject: row[COL_SUBJECT]
       });
     }
     
@@ -4306,21 +3942,24 @@ function _addAdvisory(teacher, gradeLevel, section, userEmail) {
       }
     }
     
+    // ONE-TO-ONE RULE: Teacher can only have one active advisory
+    // Set all other active advisories for this teacher to Inactive (including the exact match if it exists)
     const rowsToDeactivate = [];
-    if (!CONFIG.IS_SHS) {
-      for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        if (row[CONFIG.ADVISORY_COLUMNS.TEACHER] === teacher &&
-            row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
-          rowsToDeactivate.push(i + 1);
-        }
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (row[CONFIG.ADVISORY_COLUMNS.TEACHER] === teacher &&
+          row[CONFIG.ADVISORY_COLUMNS.STATUS] === 'Active') {
+        // Deactivate all active advisories for this teacher, even if it's the exact match
+        rowsToDeactivate.push(i + 1); // Store 1-based row number
       }
-      if (rowsToDeactivate.length > 0) {
-        rowsToDeactivate.forEach(rowNum => {
-          sheet.getRange(rowNum, statusCol).setValue('Inactive');
-          sheet.getRange(rowNum, modifiedCol).setValue(timestamp);
-        });
-      }
+    }
+    
+    // Batch deactivate previous advisories
+    if (rowsToDeactivate.length > 0) {
+      rowsToDeactivate.forEach(rowNum => {
+        sheet.getRange(rowNum, statusCol).setValue('Inactive');
+        sheet.getRange(rowNum, modifiedCol).setValue(timestamp);
+      });
     }
     
     // If exact match exists, reactivate it; otherwise add new advisory
