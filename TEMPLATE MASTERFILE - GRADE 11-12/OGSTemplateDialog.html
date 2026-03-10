@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <title>Generate OGS Template</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
+      
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        box-sizing: border-box;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      .container {
+        background: white;
+        border-radius: 12px;
+        padding: 25px 35px 20px 35px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        margin: 0;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        max-width: 100%;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        z-index: 1;
+      }
+
+      .container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 16px;
+        flex-shrink: 0;
+      }
+
+      .header h2 {
+        color: #333;
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+      }
+
+      .header p {
+        color: #666;
+        font-size: 15px;
+        margin: 0;
+        margin-top: 4px;
+      }
+
+      .main-content {
+        display: flex;
+        gap: 30px;
+        flex: 1;
+        overflow: hidden;
+        min-height: 0;
+        align-items: stretch;
+        position: relative;
+      }
+
+      .form-section {
+        flex: 0 0 480px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        min-height: 0;
+        max-height: 100%;
+      }
+
+      .info-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .divider {
+        width: 1px;
+        background: #e1e5e9;
+        flex-shrink: 0;
+      }
+
+      .form-group {
+        margin-bottom: 18px;
+        flex-shrink: 0;
+      }
+
+      .form-label {
+        display: block;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .form-label .required {
+        color: #e74c3c;
+        margin-left: 2px;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+        background: #fafbfc;
+        transition: all 0.3s ease;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .form-control:disabled {
+        background: #e9ecef;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .loading-text {
+        color: #6c757d;
+        font-size: 13px;
+        font-style: italic;
+        margin-top: 5px;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: auto;
+        padding-top: 15px;
+        flex-shrink: 0;
+        position: sticky;
+        bottom: 0;
+        background: white;
+        z-index: 10;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-secondary {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 2px solid #e9ecef;
+      }
+
+      .btn-secondary:hover {
+        background: #e9ecef;
+        color: #495057;
+      }
+
+      .info-box {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: #1565c0;
+        flex-shrink: 0;
+      }
+
+      .subjects-info-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .subjects-display {
+        flex: 1;
+        overflow-y: auto;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 16px;
+        background: #f8f9fa;
+        min-height: 0;
+      }
+
+      .autocomplete-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 2px solid #e1e5e9;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        margin-top: -2px;
+      }
+
+      .autocomplete-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+        transition: background-color 0.2s ease;
+      }
+
+      .autocomplete-item:hover,
+      .autocomplete-item.highlighted {
+        background-color: #f8f9fa;
+      }
+
+      .autocomplete-item:last-child {
+        border-bottom: none;
+      }
+
+      .autocomplete-item.empty {
+        color: #6c757d;
+        font-style: italic;
+        cursor: default;
+      }
+
+      .autocomplete-item.empty:hover {
+        background-color: white;
+      }
+
+      .form-group-autocomplete {
+        position: relative;
+      }
+
+      .teachers-checkbox-container {
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 12px;
+        background: #fafbfc;
+        flex-shrink: 0;
+      }
+
+      .teachers-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .teacher-checkbox {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        border-radius: 4px;
+        transition: background 0.2s;
+      }
+
+      .teacher-checkbox:hover {
+        background: #e9ecef;
+      }
+
+      .teacher-checkbox input[type="checkbox"] {
+        margin-right: 10px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      .teacher-checkbox label {
+        cursor: pointer;
+        flex: 1;
+        user-select: none;
+        font-size: 14px;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>Generate OGS Template</h2>
+        <p>Select grade level and section to see assigned teachers. Select one or more teachers to generate templates.</p>
+      </div>
+
+      <div class="main-content">
+        <!-- Left Section: Form Fields -->
+        <div class="form-section">
+          <form id="ogsTemplateForm" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; padding-right: 8px;">
+            <div class="form-group">
+              <label class="form-label" for="schoolYear">
+                School Year <span class="required">*</span>
+              </label>
+              <select
+                id="schoolYear"
+                class="form-control"
+                required
+              >
+                <option value="">Select school year...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="gradeLevel">
+                Grade Level <span class="required">*</span>
+              </label>
+              <select id="gradeLevel" class="form-control" required>
+                <option value="">Select grade level...</option>
+              </select>
+            </div>
+
+            <div id="strandSemesterGroup" class="form-group">
+              <label class="form-label" for="strandFilter">Filter by Strand &amp; Semester <span class="required">*</span></label>
+              <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 120px;">
+                  <label for="strandFilter" style="font-size: 12px; color: #6c757d;">Strand <span class="required">*</span></label>
+                  <select id="strandFilter" class="form-control">
+                    <option value="">Select strand...</option>
+                  </select>
+                </div>
+                <div style="flex: 1; min-width: 120px;">
+                  <label for="semesterFilter" style="font-size: 12px; color: #6c757d;">Semester <span class="required">*</span></label>
+                  <select id="semesterFilter" class="form-control">
+                    <option value="">Select semester...</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="sectionGroup" class="form-group" style="display: none;">
+              <label class="form-label" for="section">
+                Section <span class="required">*</span>
+              </label>
+              <select id="section" class="form-control" required disabled>
+                <option value="">Select grade level first...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Teachers <span class="required">*</span>
+              </label>
+              <div id="teachersContainer" class="teachers-checkbox-container" style="display: none;">
+                <div id="teachersList" class="teachers-list"></div>
+              </div>
+              <div id="teachersPlaceholder" class="loading-text">Select grade level and section first...</div>
+            </div>
+
+            <div class="button-group">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="google.script.host.close()"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary" id="submitBtn">
+                Generate Template
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Vertical Divider -->
+        <div class="divider" id="divider1" style="display: none;"></div>
+
+        <!-- Right Section: Subjects Info -->
+        <div class="info-section">
+          <div class="subjects-info-container" id="subjectsInfo" style="display: none;">
+            <label class="form-label" style="margin-bottom: 10px; flex-shrink: 0;">Assigned Subjects</label>
+            <div id="subjectsList" class="subjects-display">
+              <p style="margin: 0; color: #6c757d;">No subjects assigned</p>
+            </div>
+          </div>
+          <div class="subjects-info-container" id="subjectsPlaceholder" style="display: flex; align-items: center; justify-content: center;">
+            <p style="text-align: center; color: #6c757d; margin: 0;">Select grade level, section, and teacher(s) to view subjects</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // State management
+      let gradeLevels = [];
+      let allSections = {};
+      let subjects = [];
+      let teachers = [];
+      let filteredTeachers = []; // Filtered teachers based on grade/section
+      let teacherSubjectsMap = {}; // Map of teacher -> array of { subject, strand, category, semester }
+      let isSHS = false;
+      let strands = [];
+      let semesters = [];
+
+      // Populate dropdowns when page loads - OPTIMIZED: Load all at once
+      document.addEventListener('DOMContentLoaded', function() {
+        loadAllDropdowns();
+        
+        // Populate school year dropdown from STUDENTS DB
+        google.script.run
+          .withSuccessHandler(function(schoolYears) {
+            const select = document.getElementById('schoolYear');
+            if (schoolYears && schoolYears.length > 0) {
+              schoolYears.forEach(function(year) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                select.appendChild(option);
+              });
+            } else {
+              // If no school years found, add a message
+              const option = document.createElement('option');
+              option.value = '';
+              option.textContent = 'No school years found in STUDENTS DB';
+              option.disabled = true;
+              select.appendChild(option);
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error loading school years:', error);
+            const select = document.getElementById('schoolYear');
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Error loading school years';
+            option.disabled = true;
+            select.appendChild(option);
+          })
+          .getSchoolYears();
+      });
+
+      // Load all dropdown data at once for better performance
+      function loadAllDropdowns() {
+        google.script.run
+          .withSuccessHandler(function(data) {
+            gradeLevels = data.gradeLevels || [];
+            isSHS = data.isSHS || false;
+            subjects = data.subjects || [];
+            
+            const gradeSelect = document.getElementById('gradeLevel');
+            const gradeFragment = document.createDocumentFragment();
+            const gradeDefault = document.createElement('option');
+            gradeDefault.value = '';
+            gradeDefault.textContent = 'Select grade level...';
+            gradeFragment.appendChild(gradeDefault);
+            gradeLevels.forEach(function(gradeLevel) {
+              const option = document.createElement('option');
+              option.value = gradeLevel;
+              option.textContent = gradeLevel;
+              gradeFragment.appendChild(option);
+            });
+            gradeSelect.innerHTML = '';
+            gradeSelect.appendChild(gradeFragment);
+            
+            const strandGroup = document.getElementById('strandSemesterGroup');
+            if (strandGroup) strandGroup.style.display = isSHS ? 'block' : 'none';
+            if (typeof updateSectionVisibility === 'function') updateSectionVisibility();
+            if (isSHS) {
+              google.script.run.withSuccessHandler(function(strandList) {
+                strands = strandList || [];
+                const sel = document.getElementById('strandFilter');
+                if (sel) {
+                  sel.innerHTML = '<option value="">Select strand...</option>';
+                  strands.forEach(function(s) {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    sel.appendChild(opt);
+                  });
+                }
+                if (typeof updateSectionVisibility === 'function') updateSectionVisibility();
+              }).getStrands();
+              google.script.run.withSuccessHandler(function(semesterList) {
+                semesters = semesterList || [];
+                const sel = document.getElementById('semesterFilter');
+                if (sel) {
+                  sel.innerHTML = '<option value="">Select semester...</option>';
+                  semesters.forEach(function(s) {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    sel.appendChild(opt);
+                  });
+                }
+              }).getSemesters();
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error loading dropdown data:', error);
+            alert('Error loading dropdown data: ' + error.toString());
+          })
+          .getAllDropdownData();
+      }
+
+      function updateSectionVisibility() {
+        const sectionGroup = document.getElementById('sectionGroup');
+        const sectionSelect = document.getElementById('section');
+        const strandVal = document.getElementById('strandFilter') ? document.getElementById('strandFilter').value : '';
+        const teachersPlaceholder = document.getElementById('teachersPlaceholder');
+        const hideSection = isSHS && (strandVal === '' || strandVal === 'ALL');
+        if (hideSection) {
+          if (sectionGroup) sectionGroup.style.display = 'none';
+          sectionSelect.removeAttribute('required');
+          if (teachersPlaceholder) teachersPlaceholder.textContent = strandVal === 'ALL' ? 'Select grade level first...' : 'Select grade level and strand first...';
+        } else {
+          if (sectionGroup) sectionGroup.style.display = 'block';
+          sectionSelect.setAttribute('required', 'required');
+          if (teachersPlaceholder) teachersPlaceholder.textContent = 'Select grade level and section first...';
+        }
+      }
+
+      document.getElementById('strandFilter').addEventListener('change', function() {
+        updateSectionVisibility();
+        const gradeLevel = document.getElementById('gradeLevel').value;
+        if (isSHS && this.value === 'ALL' && gradeLevel) {
+          loadTeachersForSection(gradeLevel, 'ALL');
+        } else {
+          updateSubjectsDisplay();
+        }
+      });
+      document.getElementById('semesterFilter').addEventListener('change', function() { updateSubjectsDisplay(); });
+
+      // Handle grade level change - load sections
+      document.getElementById('gradeLevel').addEventListener('change', function() {
+        const gradeLevel = this.value;
+        const sectionSelect = document.getElementById('section');
+        const subjectsInfoDiv = document.getElementById('subjectsInfo');
+        const subjectsPlaceholder = document.getElementById('subjectsPlaceholder');
+        const divider = document.getElementById('divider1');
+        
+        teacherSubjectsMap = {};
+        if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'none';
+        if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'flex';
+        if (divider) divider.style.display = 'none';
+        const teachersContainer = document.getElementById('teachersContainer');
+        const teachersPlaceholder = document.getElementById('teachersPlaceholder');
+        if (teachersContainer) teachersContainer.style.display = 'none';
+        if (teachersPlaceholder) teachersPlaceholder.textContent = 'Select grade level and section first...';
+        filteredTeachers = [];
+        
+        const teachersList = document.getElementById('teachersList');
+        if (teachersList) teachersList.innerHTML = '';
+        
+        if (!gradeLevel) {
+          sectionSelect.innerHTML = '<option value="">Select grade level first...</option>';
+          sectionSelect.disabled = true;
+          return;
+        }
+        
+        // Show loading state
+        sectionSelect.innerHTML = '<option value="">Loading sections...</option>';
+        sectionSelect.disabled = true;
+        
+        // Load sections for the selected grade level
+        google.script.run
+          .withSuccessHandler(function(sections) {
+            // OPTIMIZATION: Use DocumentFragment for faster DOM updates
+            const fragment = document.createDocumentFragment();
+            
+            if (sections.length === 0) {
+              const option = document.createElement('option');
+              option.value = '';
+              option.textContent = 'No sections available';
+              fragment.appendChild(option);
+              sectionSelect.innerHTML = '';
+              sectionSelect.appendChild(fragment);
+              sectionSelect.disabled = true;
+              return;
+            }
+            
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select section...';
+            fragment.appendChild(defaultOption);
+            
+            sections.forEach(function(section) {
+              const option = document.createElement('option');
+              option.value = section;
+              option.textContent = section;
+              fragment.appendChild(option);
+            });
+            
+            sectionSelect.innerHTML = '';
+            sectionSelect.appendChild(fragment);
+            sectionSelect.disabled = false;
+            if (isSHS && document.getElementById('strandFilter').value === 'ALL') {
+              loadTeachersForSection(gradeLevel, 'ALL');
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error loading sections:', error);
+            sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
+            alert('Error loading sections: ' + error.toString());
+          })
+          .getSectionsForGrade(gradeLevel);
+      });
+
+      function loadTeachersForSection(gradeLevel, section) {
+        const teachersContainer = document.getElementById('teachersContainer');
+        const teachersPlaceholder = document.getElementById('teachersPlaceholder');
+        const teachersList = document.getElementById('teachersList');
+        const subjectsInfoDiv = document.getElementById('subjectsInfo');
+        const subjectsPlaceholder = document.getElementById('subjectsPlaceholder');
+        const divider = document.getElementById('divider1');
+        
+        teacherSubjectsMap = {};
+        if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'none';
+        if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'flex';
+        if (divider) divider.style.display = 'none';
+        
+        if (!gradeLevel || !section) {
+          if (teachersContainer) teachersContainer.style.display = 'none';
+          if (teachersPlaceholder) teachersPlaceholder.textContent = 'Select grade level and section first...';
+          filteredTeachers = [];
+          return;
+        }
+        
+        if (teachersPlaceholder) teachersPlaceholder.textContent = 'Loading teachers...';
+        
+        google.script.run
+          .withSuccessHandler(function(teachers) {
+            filteredTeachers = teachers || [];
+            if (filteredTeachers.length === 0) {
+              if (teachersContainer) teachersContainer.style.display = 'none';
+              if (teachersPlaceholder) teachersPlaceholder.textContent = 'No teachers assigned';
+              return;
+            }
+            teachersList.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+            filteredTeachers.forEach(function(teacher) {
+              const checkboxDiv = document.createElement('div');
+              checkboxDiv.className = 'teacher-checkbox';
+              const checkboxId = 'teacher_' + teacher.replace(/\s+/g, '_');
+              checkboxDiv.innerHTML = `
+                <input type="checkbox" id="${checkboxId}" value="${teacher}" name="teachers" checked onchange="updateSubjectsDisplay()">
+                <label for="${checkboxId}">${teacher}</label>
+              `;
+              fragment.appendChild(checkboxDiv);
+            });
+            teachersList.appendChild(fragment);
+            if (teachersContainer) teachersContainer.style.display = 'block';
+            if (teachersPlaceholder) teachersPlaceholder.style.display = 'none';
+            updateSubjectsDisplay();
+          })
+          .withFailureHandler(function(error) {
+            alert('Error loading teachers: ' + error.toString());
+            if (teachersContainer) teachersContainer.style.display = 'none';
+            if (teachersPlaceholder) teachersPlaceholder.textContent = 'Error loading teachers';
+            filteredTeachers = [];
+          })
+          .getAssignedTeachers(gradeLevel, section);
+      }
+
+      document.getElementById('section').addEventListener('change', function() {
+        const gradeLevel = document.getElementById('gradeLevel').value;
+        const section = this.value;
+        if (isSHS && document.getElementById('strandFilter').value === 'ALL') return;
+        loadTeachersForSection(gradeLevel, section);
+      });
+
+      function updateSubjectsDisplay() {
+        const gradeLevel = document.getElementById('gradeLevel').value;
+        const section = (isSHS && document.getElementById('strandFilter') && document.getElementById('strandFilter').value === 'ALL')
+          ? 'ALL' : document.getElementById('section').value;
+        const checkboxes = document.querySelectorAll('input[name="teachers"]:checked');
+        const subjectsListDiv = document.getElementById('subjectsList');
+        const subjectsInfoDiv = document.getElementById('subjectsInfo');
+        const subjectsPlaceholder = document.getElementById('subjectsPlaceholder');
+        const divider = document.getElementById('divider1');
+        
+        if (checkboxes.length === 0) {
+          teacherSubjectsMap = {};
+          if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'none';
+          if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'flex';
+          if (divider) divider.style.display = 'none';
+          return;
+        }
+        
+        const selectedTeachers = Array.from(checkboxes).map(cb => cb.value);
+        const teachersToLoad = selectedTeachers.filter(teacher => !teacherSubjectsMap[teacher]);
+        
+        if (teachersToLoad.length > 0) {
+          if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'none';
+          if (subjectsInfoDiv) {
+            subjectsInfoDiv.style.display = 'flex';
+            subjectsInfoDiv.style.flexDirection = 'column';
+          }
+          if (divider) divider.style.display = 'block';
+          subjectsListDiv.innerHTML = '<p style="margin: 0; color: #6c757d; font-style: italic;">Loading subjects...</p>';
+          
+          let loadedCount = 0;
+          teachersToLoad.forEach(function(teacher) {
+            google.script.run
+              .withSuccessHandler(function(assignments) {
+                teacherSubjectsMap[teacher] = Array.isArray(assignments) ? assignments : [];
+                loadedCount++;
+                if (loadedCount === teachersToLoad.length) {
+                  displayAllSubjects();
+                }
+              })
+              .withFailureHandler(function(error) {
+                teacherSubjectsMap[teacher] = [];
+                loadedCount++;
+                if (loadedCount === teachersToLoad.length) {
+                  displayAllSubjects();
+                }
+              })
+              .getAssignedSubjects(gradeLevel, section, teacher);
+          });
+        } else {
+          displayAllSubjects();
+        }
+      }
+      
+      function getFilteredAssignmentsForTeacher(teacher) {
+        const raw = teacherSubjectsMap[teacher] || [];
+        if (!isSHS) {
+          return raw.map(function(a) { return typeof a === 'object' && a && a.subject != null ? a : { subject: a, strand: '', category: '', semester: '' }; });
+        }
+        const strandVal = (document.getElementById('strandFilter') && document.getElementById('strandFilter').value) || '';
+        const semesterVal = (document.getElementById('semesterFilter') && document.getElementById('semesterFilter').value) || '';
+        return raw.filter(function(a) {
+          const item = typeof a === 'object' && a && a.subject != null ? a : { subject: a, strand: '', category: '', semester: '' };
+          if (strandVal && item.strand !== strandVal) return false;
+          if (semesterVal && item.semester !== semesterVal) return false;
+          return true;
+        });
+      }
+      
+      function displayAllSubjects() {
+        const checkboxes = document.querySelectorAll('input[name="teachers"]:checked');
+        const subjectsListDiv = document.getElementById('subjectsList');
+        const subjectsInfoDiv = document.getElementById('subjectsInfo');
+        const subjectsPlaceholder = document.getElementById('subjectsPlaceholder');
+        const divider = document.getElementById('divider1');
+        
+        if (checkboxes.length === 0) {
+          if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'none';
+          if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'flex';
+          if (divider) divider.style.display = 'none';
+          return;
+        }
+        
+        let html = '<p style="margin: 0 0 12px 0; font-weight: 600; color: #333;">Subjects that will be generated:</p>';
+        let hasSubjects = false;
+        
+        Array.from(checkboxes).forEach(function(checkbox) {
+          const teacher = checkbox.value;
+          const assignments = getFilteredAssignmentsForTeacher(teacher);
+          if (assignments.length > 0) {
+            hasSubjects = true;
+            html += `<div style="margin-bottom: 12px;"><strong style="color: #667eea;">${teacher}:</strong><ul style="margin: 4px 0 0 0; padding-left: 20px; color: #495057;">`;
+            assignments.forEach(function(a) {
+              const name = typeof a === 'object' && a && a.subject != null ? a.subject : a;
+              html += `<li style="margin-bottom: 4px;">${name}</li>`;
+            });
+            html += '</ul></div>';
+          }
+        });
+        
+        if (!hasSubjects) {
+          html = '<p style="margin: 0; color: #6c757d;">No subjects assigned to selected teachers.' + (isSHS ? ' Try changing Strand or Semester filter.' : '') + '</p>';
+        }
+        
+        subjectsListDiv.innerHTML = html;
+        if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'flex';
+        if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'none';
+        if (divider) divider.style.display = 'block';
+      }
+      
+      window.updateSubjectsDisplay = updateSubjectsDisplay;
+
+      // Form submission
+      document.getElementById("ogsTemplateForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const schoolYear = document.getElementById("schoolYear").value.trim();
+        const gradeLevel = document.getElementById("gradeLevel").value;
+        const strandVal = document.getElementById("strandFilter") ? document.getElementById("strandFilter").value : '';
+        const section = (isSHS && strandVal === 'ALL') ? '' : document.getElementById("section").value;
+        const checkboxes = document.querySelectorAll('input[name="teachers"]:checked');
+        const selectedTeachers = Array.from(checkboxes).map(cb => cb.value);
+
+        if (!schoolYear) {
+          alert("Please select the school year.");
+          return;
+        }
+
+        if (!gradeLevel) {
+          alert("Please select a grade level.");
+          return;
+        }
+
+        if (isSHS) {
+          if (!strandVal) {
+            alert("Please select a strand.");
+            return;
+          }
+          const semesterVal = document.getElementById("semesterFilter") ? document.getElementById("semesterFilter").value : '';
+          if (!semesterVal) {
+            alert("Please select a semester.");
+            return;
+          }
+        }
+
+        if (!(isSHS && strandVal === 'ALL') && !section) {
+          alert("Please select a section.");
+          return;
+        }
+
+        if (selectedTeachers.length === 0) {
+          alert("Please select at least one teacher.");
+          return;
+        }
+
+        let hasSubjects = false;
+        const teachersWithSubjects = [];
+        selectedTeachers.forEach(function(teacher) {
+          const assignments = getFilteredAssignmentsForTeacher(teacher);
+          const subjectsPayload = isSHS
+            ? assignments.map(function(a) {
+                const item = typeof a === 'object' && a && a.subject != null ? a : { subject: a, strand: 'ALL', semester: '1ST' };
+                return { subject: item.subject, strand: item.strand || 'ALL', semester: item.semester || '1ST' };
+              })
+            : assignments.map(function(a) { return typeof a === 'object' && a && a.subject != null ? a.subject : a; });
+          if (subjectsPayload.length > 0) {
+            hasSubjects = true;
+            teachersWithSubjects.push({ teacher: teacher, subjects: subjectsPayload });
+          }
+        });
+
+        if (!hasSubjects) {
+          alert("No subjects assigned to selected teachers for the selected grade level and section." + (isSHS ? " Try changing Strand or Semester filter." : " Please add subjects first."));
+          return;
+        }
+
+        // Show loading state
+        const submitButton = document.getElementById('submitBtn');
+        const originalText = submitButton.textContent;
+        submitButton.textContent = `Generating ${teachersWithSubjects.length} template(s)...`;
+        submitButton.disabled = true;
+
+        // Call the batch generate function
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              alert('✅ ' + result.message);
+              google.script.host.close();
+            } else {
+              alert('❌ ' + result.message);
+              submitButton.textContent = originalText;
+              submitButton.disabled = false;
+            }
+          })
+          .withFailureHandler(function(error) {
+            alert('❌ Error: ' + error.toString());
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+          })
+          .generateOGSTemplatesBatch(schoolYear, gradeLevel, section || '', teachersWithSubjects);
+      });
+    </script>
+  </body>
+</html>

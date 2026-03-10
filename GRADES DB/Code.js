@@ -17,7 +17,7 @@ function onOpen() {
 
   ui.createMenu("Export for SRMS")
     .addItem("Export Student Grades", "showExportGradesDialog")
-    .addItem("Export Student Characters", "showExportCharactersDialog")
+    // .addItem("Export Student Characters", "showExportCharactersDialog")
     .addToUi();
 
   ui.createMenu("Manual")
