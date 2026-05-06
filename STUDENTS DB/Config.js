@@ -7,7 +7,7 @@ const CONFIG = {
   // Web App URL - Update this after deploying the script as a web app
   // To deploy: Deploy > New deployment > Select type: Web app > Execute as: Me > Who has access: Anyone
   // Then copy the Web App URL (the one ending with /exec) and paste it below
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycby73j38q05Dq30giz18WazbEsybDzciLJP1abnh4alWPrtmeMxc4iMrkbSmsGYGmhMoHQ/exec", // Replace with your /exec URL after deployment
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbyF6E3Q6D0_x29TmChIKexZWTcnuLLgRXzwDo0t0tpfaintvucv6vNq3Uo2X9Sy0Ml_iw/exec", // Replace with your /exec URL after deployment
   
   // API Key for securing the API - This is a unique identifier
   // Keep this secret and don't share it publicly

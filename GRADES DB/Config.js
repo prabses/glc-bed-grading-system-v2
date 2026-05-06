@@ -3,9 +3,9 @@ const CONFIG = {
   API_KEY: "ZGM3YjJhMzEtNWU0Yi00YjZjLWE5MzctZjIxNGU4YzRhOTEx",
   WORKING_INSTRUCTIONS_URL: "https://grades-db.vercel.app/",
 
-  GRADES_DB_SHEET_URL: "https://docs.google.com/spreadsheets/d/1OO2qh_Ro1eI7hcZtbDD0KsdhJIY-qP4lJ7EO9e7BXP4/edit?gid=552466720#gid=552466720",
+  GRADES_DB_SHEET_URL: "https://docs.google.com/spreadsheets/d/1OO2qh_Ro1eI7hcZtbDD0KsdhJIY-qP4lJ7EO9e7BXP4/edit?gid=1240181319#gid=1240181319",
   GRADES_DB_SHEET_LABEL: "Grades DB",
-  CHARACTER_DB_SHEET_URL: "https://docs.google.com/spreadsheets/d/13Gyeuj9ftqk2pTwbCGIibTMqYUJE28wDt0L6ODq5SKk/edit?gid=1378194833#gid=1378194833",
+  CHARACTER_DB_SHEET_URL: "https://docs.google.com/spreadsheets/d/13Gyeuj9ftqk2pTwbCGIibTMqYUJE28wDt0L6ODq5SKk/edit?gid=1472746151#gid=1472746151",
   CHARACTER_DB_SHEET_LABEL: "Character DB",
 
   SEMESTERS: {
