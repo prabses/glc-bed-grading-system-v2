@@ -1314,6 +1314,15 @@ function _setupOGSTemplate(sheet, schoolYear, gradeLevel, section, subject, teac
           setProtectionWithEditors(protection, validEmails);
         });
       }
+      
+      // Sheet-level protection ONLY to block renaming/deleting the tab for non-protection-editors.
+      // The entire sheet is set as unprotected so existing per-cell/column range protections remain
+      // the sole governance for cell editing (no new cell restrictions are added here).
+      const sheetProtection = sheet.protect().setWarningOnly(false);
+      sheetProtection.setUnprotectedRanges([
+        sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns())
+      ]);
+      setProtectionWithEditors(sheetProtection, validEmails);
     }
     
     // OPTIMIZATION: Batch formatting operations
@@ -1387,24 +1396,33 @@ function _getTeacherEmail(teacherName) {
   try {
     const sheet = getSheet(CONFIG.SHEET_NAMES.TEACHERS_REF);
     if (!sheet) {
-      console.warn('TEACHERS_REF sheet not found');
+      console.warn('[OGS] TEACHERS_REF sheet not found');
       return '';
     }
-    
-    // Read data starting from row 3 (after 2 header rows)
+
     const data = sheet.getDataRange().getValues();
-    const startRow = CONFIG.DATA_START_ROW - 1; // Convert to 0-based index (row 3 = index 2)
+    const startRow = CONFIG.DATA_START_ROW - 1;
     const dataRows = data.slice(startRow);
-    
-    const match = dataRows.find(row => row[1] === teacherName);
-    
-    if (match && match[2]) {
-      return match[2].toString().trim(); // Return email (Column C)
+
+    const target = String(teacherName || '').trim();
+    const targetLower = target.toLowerCase();
+
+    let match = dataRows.find(row => String(row[1] || '').trim() === target);
+    if (!match) {
+      match = dataRows.find(row => String(row[1] || '').trim().toLowerCase() === targetLower);
     }
-    
+
+    if (match && match[2]) {
+      const email = String(match[2]).trim();
+      console.log('[OGS] Resolved teacher email for "' + target + '" -> ' + email);
+      return email;
+    }
+
+    console.warn('[OGS] No email found in TEACHERS_REF for teacher "' + target + '". ' +
+      'Check exact spelling and that Column C (Email Address) is populated.');
     return '';
   } catch (error) {
-    console.error('Error getting teacher email:', error);
+    console.error('[OGS] Error getting teacher email:', error);
     return '';
   }
 }
@@ -3497,12 +3515,26 @@ function _generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects
       emailsToAdd.add(teacherEmail.trim());
     }
     
-    // Add all unique emails as editors
+    if (!userEmail || !userEmail.toString().trim()) {
+      console.warn('[OGS] Creator userEmail is empty - creator will NOT be added as editor. ' +
+        'Likely cause: userinfo.email scope not granted, or cross-domain consumer Gmail account. ' +
+        'Re-authorize the script and ensure manifest has https://www.googleapis.com/auth/userinfo.email.');
+    }
+
+    console.log('[OGS] Editor roster for "' + templateFileName + '": ' +
+      'creator=' + (userEmail || '(empty)') +
+      ', teacher="' + teacher + '" -> ' + (teacherEmail || '(not found)') +
+      ', protectionEditors=' + JSON.stringify(protectionEditorEmails) +
+      ', finalSet=' + JSON.stringify(Array.from(emailsToAdd)));
+
+    const failedEditors = [];
     emailsToAdd.forEach(email => {
       try {
         templateFile.addEditor(email);
+        console.log('[OGS] addEditor OK: ' + email);
       } catch (e) {
-        console.log('Note: Could not add email as editor:', e.message);
+        console.warn('[OGS] addEditor failed for "' + email + '": ' + e.message);
+        failedEditors.push(email);
       }
     });
     
