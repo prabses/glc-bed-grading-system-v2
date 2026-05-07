@@ -298,9 +298,9 @@ function getActiveItems(sheetName, columnIndex = 0) {
  * @return {Object} Result object with success status and message
  */
 function generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects) {
-  const userEmail = Session.getActiveUser().getEmail();
+  const userEmail = _getRunningUserEmail();
   console.log(
-    "Function generateOGSTemplate executed by: " + userEmail
+    "Function generateOGSTemplate executed by: " + (userEmail || '(unknown)')
   );
   return callApi("generateOGSTemplate", { 
     schoolYear, 
@@ -310,6 +310,15 @@ function generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects)
     subjects,
     userEmail: userEmail
   });
+}
+
+function _getRunningUserEmail() {
+  let email = '';
+  try { email = (Session.getActiveUser().getEmail() || '').trim(); } catch (e) {}
+  if (!email) {
+    try { email = (Session.getEffectiveUser().getEmail() || '').trim(); } catch (e) {}
+  }
+  return email;
 }
 
 /**
