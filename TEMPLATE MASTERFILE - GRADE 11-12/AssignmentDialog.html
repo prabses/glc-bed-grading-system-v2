@@ -362,6 +362,18 @@
         user-select: none;
       }
 
+      .subject-checkbox.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      .subject-checkbox.disabled label::after {
+        content: " (already assigned)";
+        font-size: 11px;
+        color: #999;
+        font-style: italic;
+      }
+
       .autocomplete-dropdown {
         position: absolute;
         top: 100%;
@@ -408,6 +420,60 @@
       .form-group-autocomplete {
         position: relative;
       }
+
+      .teacher-input-wrapper {
+        position: relative;
+      }
+
+      .teacher-validity-icon {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        line-height: 1;
+        pointer-events: none;
+        display: none;
+      }
+
+      .teacher-validity-icon.valid {
+        display: block;
+        color: #28a745;
+      }
+
+      .teacher-validity-icon.invalid {
+        display: block;
+        color: #dc3545;
+      }
+
+      /* Reserve room so the icon never overlaps typed text */
+      #teacher {
+        padding-right: 40px;
+      }
+
+      .loading-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: auto;
+        color: #6c757d;
+        font-size: 14px;
+      }
+
+      .loading-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #e0e0e0;
+        border-top-color: #667eea;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        flex-shrink: 0;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
@@ -443,14 +509,17 @@
               <label class="form-label" for="teacher">
                 Teacher <span style="color: #e74c3c;">*</span>
               </label>
-              <input
-                type="text"
-                id="teacher"
-                class="form-control"
-                placeholder="Type to search teacher..."
-                autocomplete="off"
-                required
-              />
+              <div class="teacher-input-wrapper">
+                <input
+                  type="text"
+                  id="teacher"
+                  class="form-control"
+                  placeholder="Type to search teacher..."
+                  autocomplete="off"
+                  required
+                />
+                <span id="teacherValidityIcon" class="teacher-validity-icon">✓</span>
+              </div>
               <div id="teacherDropdown" class="autocomplete-dropdown" style="display: none;"></div>
             </div>
 
@@ -470,9 +539,22 @@
 
         <!-- Middle Section: Subjects Selection -->
         <div class="subjects-selection-section">
-          <label class="form-label" style="margin-bottom: 10px; flex-shrink: 0;">
-            Subjects <span style="color: #e74c3c;">*</span>
+          <label class="form-label" style="margin-bottom: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;">
+            <span>Subjects <span style="color: #e74c3c;">*</span></span>
+            <span id="subjectsSelectedCount" style="color: #6c757d; font-weight: normal; font-size: 13px;">0 selected</span>
           </label>
+          <input
+            type="text"
+            id="subjectSearch"
+            class="form-control"
+            placeholder="Search subjects..."
+            autocomplete="off"
+            style="margin-bottom: 10px; flex-shrink: 0;"
+          />
+          <div class="select-all-container" style="margin-bottom: 8px; flex-shrink: 0;">
+            <input type="checkbox" id="selectAllSubjectsCheckbox" onchange="toggleSelectAllSubjects()">
+            <label for="selectAllSubjectsCheckbox">Select All</label>
+          </div>
           <div id="subjectsCheckboxesContainer" class="subjects-container" style="flex: 1; min-height: 0;">
             <p style="text-align: center; color: #6c757d; margin: 0;">Loading subjects...</p>
           </div>
@@ -514,6 +596,15 @@
       let teachers = [];
       let allTeachers = []; // All teachers for autocomplete
       let highlightedIndex = -1; // For keyboard navigation
+      // Subject checkbox selection/assigned state, tracked here (not scraped from
+      // DOM) so it survives updateSubjectsDisplay() rebuilding the checkbox list on
+      // every search keystroke. selectedSubjectValues holds checkbox `value`s the
+      // teacher has checked; assignedSubjectNames holds child subject names already
+      // assigned to this class (from the last loadSubjects() call) - both are read
+      // fresh on every render instead of being inferred from about-to-be-destroyed
+      // checkbox nodes.
+      let selectedSubjectValues = new Set();
+      let assignedSubjectNames = [];
       let isSHS = false; // SHS flag from server
 
       document.addEventListener('DOMContentLoaded', function() {
@@ -521,6 +612,7 @@
         
         document.getElementById('gradeLevel').addEventListener('change', function() {
           const gradeLevel = this.value;
+          selectedSubjectValues.clear(); // selections are scoped to the previously displayed class
           loadSections(gradeLevel);
           loadSubjects();
           if (gradeLevel) {
@@ -530,12 +622,32 @@
             showAllSubjects();
           }
         });
-        
+
         document.getElementById('section').addEventListener('change', function() {
+          selectedSubjectValues.clear(); // selections are scoped to the previously displayed class
           loadSubjects();
           const gradeLevel = document.getElementById('gradeLevel').value;
           if (gradeLevel) {
             filterSubjectsByLevel(gradeLevel, isSHS && this.value === 'ALL' ? 'ALL' : null);
+          }
+        });
+
+        document.getElementById('subjectSearch').addEventListener('input', function() {
+          updateSubjectsDisplay();
+        });
+
+        // Event delegation - checkboxes are recreated on every re-render, so a
+        // listener bound directly to them would be lost each time. Mirror the
+        // user's check/uncheck into selectedSubjectValues, the source of truth
+        // updateSubjectsDisplay() reads from on every rebuild (see there for why).
+        document.getElementById('subjectsCheckboxesContainer').addEventListener('change', function(e) {
+          if (e.target && e.target.name === 'subjects') {
+            if (e.target.checked) {
+              selectedSubjectValues.add(e.target.value);
+            } else {
+              selectedSubjectValues.delete(e.target.value);
+            }
+            updateSubjectsSelectedCount();
           }
         });
       });
@@ -573,6 +685,7 @@
               .withSuccessHandler(function(teacherList) {
                 allTeachers = teacherList || [];
                 setupTeacherAutocomplete();
+                updateTeacherValidityIcon();
               })
               .withFailureHandler(function(error) {
                 console.error('Error loading teachers:', error);
@@ -586,6 +699,29 @@
           .getAllDropdownData();
       }
 
+      // Shows a live checkmark (exact match in allTeachers) or X (non-empty, no
+      // match) next to the Teacher field, so an invalid/mistyped name is obvious
+      // before the user reaches Add Subject - purely a visual signal layered on
+      // top of the existing client-side and server-side validation, not a
+      // replacement for either.
+      function updateTeacherValidityIcon() {
+        const icon = document.getElementById('teacherValidityIcon');
+        const teacherInput = document.getElementById('teacher');
+        if (!icon || !teacherInput) return;
+        const value = teacherInput.value.trim();
+        icon.classList.remove('valid', 'invalid');
+        if (!value || allTeachers.length === 0) {
+          return; // empty field, or list not loaded yet - show nothing either way
+        }
+        if (allTeachers.includes(value)) {
+          icon.textContent = '✓';
+          icon.classList.add('valid');
+        } else {
+          icon.textContent = '✗';
+          icon.classList.add('invalid');
+        }
+      }
+
       // Setup teacher autocomplete functionality
       function setupTeacherAutocomplete() {
         const teacherInput = document.getElementById('teacher');
@@ -594,7 +730,8 @@
         teacherInput.addEventListener('input', function() {
           const searchTerm = this.value.toLowerCase().trim();
           highlightedIndex = -1;
-          
+          updateTeacherValidityIcon();
+
           if (searchTerm === '' || allTeachers.length === 0) {
             teacherDropdown.style.display = 'none';
             return;
@@ -624,6 +761,7 @@
               teacherInput.value = teacher;
               teacherDropdown.style.display = 'none';
               highlightedIndex = -1;
+              updateTeacherValidityIcon();
             });
             teacherDropdown.appendChild(item);
           });
@@ -709,36 +847,161 @@
           .getSectionsForGrade(gradeLevel);
       }
 
+      // Collapses parent/child subject groups (e.g. "Effective Communication &
+      // Mabisang Komunikasyon" + its 2 children) into a single checkbox entry per
+      // group, so the teacher checks ONE box and both children get assigned to
+      // them together - these groups are always taught by the same one teacher
+      // (that's the whole reason grades are split into children in the first
+      // place), unlike MAPEH where each sub-component has its own teacher.
+      // Children are only collapsed when their parent is also present (same
+      // track) in the list; an orphaned child with no matching parent row is
+      // left showing on its own so it's never silently hidden.
+      function collapseParentChildGroups(items) {
+        if (!isSHS) return items; // parent/child subjects only exist for SHS
+
+        const byTrackAndSubject = {};
+        items.forEach(function(item) {
+          if (typeof item !== 'object' || !item || item.subject == null) return;
+          const track = item.track || 'ALL';
+          byTrackAndSubject[track + '|' + item.subject] = item;
+        });
+
+        const childrenByParentKey = {};
+        const consumedChildKeys = new Set();
+        items.forEach(function(item) {
+          if (typeof item !== 'object' || !item || !item.parentSubject) return;
+          const track = item.track || 'ALL';
+          const parentKey = track + '|' + item.parentSubject;
+          if (!byTrackAndSubject[parentKey]) return; // no matching parent row - leave this child showing on its own
+          if (!childrenByParentKey[parentKey]) childrenByParentKey[parentKey] = [];
+          childrenByParentKey[parentKey].push(item.subject);
+          consumedChildKeys.add(track + '|' + item.subject);
+        });
+
+        const result = [];
+        items.forEach(function(item) {
+          if (typeof item !== 'object' || !item || item.subject == null) {
+            result.push(item);
+            return;
+          }
+          const track = item.track || 'ALL';
+          const key = track + '|' + item.subject;
+          if (consumedChildKeys.has(key)) return; // this child is shown via its parent's entry instead
+          const children = childrenByParentKey[key];
+          if (children) {
+            result.push(Object.assign({}, item, { childSubjects: children }));
+          } else {
+            result.push(item);
+          }
+        });
+        return result;
+      }
+
       function updateSubjectsDisplay() {
         const subjectsCheckboxesContainer = document.getElementById('subjectsCheckboxesContainer');
         const subjectsFragment = document.createDocumentFragment();
-        
+
+        const searchInput = document.getElementById('subjectSearch');
+        const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        const assignedSet = new Set(assignedSubjectNames);
+
         if (filteredSubjects.length === 0) {
           subjectsCheckboxesContainer.innerHTML = '<p style="text-align: center; color: #6c757d; margin: 0;">No subjects found for this grade level.</p>';
+          updateSubjectsSelectedCount();
           return;
         }
-        
-        filteredSubjects.forEach(function(item, idx) {
+
+        const collapsedSubjects = collapseParentChildGroups(filteredSubjects);
+
+        const visibleSubjects = searchTerm
+          ? collapsedSubjects.filter(function(item) {
+              const subjectName = typeof item === 'object' && item && item.subject != null ? item.subject : String(item);
+              const track = (isSHS && typeof item === 'object' && item && item.track != null) ? (item.track || 'ALL') : '';
+              return subjectName.toLowerCase().includes(searchTerm) || String(track).toLowerCase().includes(searchTerm);
+            })
+          : collapsedSubjects;
+
+        if (visibleSubjects.length === 0) {
+          subjectsCheckboxesContainer.innerHTML = '<p style="text-align: center; color: #6c757d; margin: 0;">No subjects match your search.</p>';
+          updateSubjectsSelectedCount();
+          return;
+        }
+
+        visibleSubjects.forEach(function(item, idx) {
           const subjectName = typeof item === 'object' && item && item.subject != null ? item.subject : String(item);
-          const strand = (isSHS && typeof item === 'object' && item && item.strand != null) ? (item.strand || 'ALL') : '';
+          const track = (isSHS && typeof item === 'object' && item && item.track != null) ? (item.track || 'ALL') : '';
+          const childSubjects = (typeof item === 'object' && item && item.childSubjects) || null;
           const displayText = (isSHS && typeof item === 'object' && item && item.subject != null)
-            ? (item.subject + ' - ' + (item.strand || 'ALL'))
+            ? (item.subject + ' - ' + (item.track || 'ALL'))
             : subjectName;
           const safeId = 'subject_' + idx + '_' + subjectName.replace(/[^a-zA-Z0-9]/g, '_');
-          const dataStrandAttr = strand ? ` data-strand="${String(strand).replace(/"/g, '&quot;')}"` : '';
+          const dataTrackAttr = track ? ` data-track="${String(track).replace(/"/g, '&quot;')}"` : '';
+          const dataChildrenAttr = childSubjects ? ` data-children="${childSubjects.join(',').replace(/"/g, '&quot;')}"` : '';
+
+          // A plain subject is "already assigned" if its own name is in the
+          // assigned set; a parent/child group is "already assigned" if ANY of its
+          // children are (the group's own name never appears in SUBJECTS directly).
+          const isAssigned = childSubjects
+            ? childSubjects.some(childName => assignedSet.has(childName))
+            : assignedSet.has(subjectName);
+          const isChecked = !isAssigned && selectedSubjectValues.has(subjectName);
+          const disabledAttr = isAssigned ? ' disabled' : '';
+          const checkedAttr = isChecked ? ' checked' : '';
+
+          // The "(already assigned)" label itself is rendered by the existing
+          // .subject-checkbox.disabled label::after CSS rule - just toggling the
+          // "disabled" class here is enough, no need to duplicate the text.
           const checkboxDiv = document.createElement('div');
-          checkboxDiv.className = 'subject-checkbox';
+          checkboxDiv.className = 'subject-checkbox' + (isAssigned ? ' disabled' : '');
           checkboxDiv.innerHTML = `
-            <input type="checkbox" id="${safeId}" value="${subjectName.replace(/"/g, '&quot;')}" name="subjects"${dataStrandAttr}>
+            <input type="checkbox" id="${safeId}" value="${subjectName.replace(/"/g, '&quot;')}" name="subjects"${dataTrackAttr}${dataChildrenAttr}${disabledAttr}${checkedAttr}>
             <label for="${safeId}">${displayText}</label>
           `;
           subjectsFragment.appendChild(checkboxDiv);
         });
         subjectsCheckboxesContainer.innerHTML = '';
         subjectsCheckboxesContainer.appendChild(subjectsFragment);
+        updateSubjectsSelectedCount();
+      }
+
+      function updateSubjectsSelectedCount() {
+        const countEl = document.getElementById('subjectsSelectedCount');
+        const checkedCount = document.querySelectorAll('#subjectsCheckboxesContainer input[name="subjects"]:checked').length;
+        if (countEl) countEl.textContent = checkedCount + ' selected';
+
+        // Keep the Select All checkbox in sync: checked only when every currently
+        // visible, selectable (non-disabled) subject is checked.
+        const selectAllCheckbox = document.getElementById('selectAllSubjectsCheckbox');
+        if (selectAllCheckbox) {
+          const selectable = document.querySelectorAll('#subjectsCheckboxesContainer input[name="subjects"]:not(:disabled)');
+          const selectableChecked = document.querySelectorAll('#subjectsCheckboxesContainer input[name="subjects"]:not(:disabled):checked').length;
+          selectAllCheckbox.checked = selectable.length > 0 && selectableChecked === selectable.length;
+        }
+      }
+
+      // Selects/deselects every currently visible subject checkbox - only the ones
+      // rendered right now (respects the search filter) and only ones that aren't
+      // already disabled (already assigned to this class). Writes into
+      // selectedSubjectValues (not just the DOM) so the bulk selection survives a
+      // subsequent re-render (e.g. typing in the search box).
+      function toggleSelectAllSubjects() {
+        const selectAllCheckbox = document.getElementById('selectAllSubjectsCheckbox');
+        const checkboxes = document.querySelectorAll('#subjectsCheckboxesContainer input[name="subjects"]:not(:disabled)');
+        checkboxes.forEach(function(checkbox) {
+          checkbox.checked = selectAllCheckbox.checked;
+          if (selectAllCheckbox.checked) {
+            selectedSubjectValues.add(checkbox.value);
+          } else {
+            selectedSubjectValues.delete(checkbox.value);
+          }
+        });
+        updateSubjectsSelectedCount();
       }
       
-      function filterSubjectsByLevel(gradeLevel, strandFilter) {
+      function filterSubjectsByLevel(gradeLevel, trackFilter) {
+        const subjectsCheckboxesContainer = document.getElementById('subjectsCheckboxesContainer');
+        subjectsCheckboxesContainer.innerHTML = '<div class="loading-indicator"><span class="loading-spinner"></span>Loading subjects...</div>';
+
         google.script.run
           .withSuccessHandler(function(filtered) {
             filteredSubjects = filtered || [];
@@ -749,11 +1012,22 @@
             filteredSubjects = subjects;
             updateSubjectsDisplay();
           })
-          .getActiveSubjectsByLevel(gradeLevel, strandFilter || null);
+          .getActiveSubjectsByLevel(gradeLevel, trackFilter || null);
       }
       
       function showAllSubjects() {
         filteredSubjects = subjects;
+        updateSubjectsDisplay();
+      }
+
+      // Records which subjects are already assigned to the current class and
+      // re-renders the checkbox list from that data - see updateSubjectsDisplay()
+      // for how assignedSubjectNames drives the disabled/"(already assigned)"
+      // state on every render, including ones triggered by search.
+      function syncSubjectCheckboxes(assignedSubjects) {
+        assignedSubjectNames = assignedSubjects || [];
+        // A subject that just became assigned can no longer be a pending selection.
+        assignedSubjectNames.forEach(name => selectedSubjectValues.delete(name));
         updateSubjectsDisplay();
       }
 
@@ -771,9 +1045,24 @@
           if (container) container.style.display = 'none';
           if (placeholder) placeholder.style.display = 'flex';
           if (divider2) divider2.style.display = 'none';
+          syncSubjectCheckboxes([]);
           return;
         }
-        
+
+        // Show a loading state immediately - both the checkbox panel (which
+        // depends on knowing what's already assigned, via syncSubjectCheckboxes
+        // below) and this panel go stale during the round-trip, which otherwise
+        // reads as the UI having frozen.
+        const placeholder = document.getElementById('subjectsPlaceholder');
+        const container = document.getElementById('subjectsContainer');
+        const divider2 = document.getElementById('divider2');
+        if (container) container.style.display = 'none';
+        if (divider2) divider2.style.display = 'none';
+        if (placeholder) {
+          placeholder.style.display = 'flex';
+          placeholder.innerHTML = '<div class="loading-indicator"><span class="loading-spinner"></span>Loading subjects...</div>';
+        }
+
         google.script.run
           .withSuccessHandler(function(subjects) {
             const listDiv = document.getElementById('subjectsList');
@@ -807,17 +1096,17 @@
                 section: assignment.section,
                 teacher: assignment.teacher,
                 subject: assignment.subject,
-                strand: assignment.strand || 'ALL',
+                track: assignment.track || 'ALL',
                 category: assignment.category || 'Core',
-                semester: assignment.semester || '1ST'
+                term: assignment.term || '1ST'
               }).replace(/"/g, '&quot;');
               
-              const strandDisplay = assignment.strand || 'ALL';
+              const trackDisplay = assignment.track || 'ALL';
               const categoryDisplay = assignment.category || 'Core';
-              const semesterDisplay = assignment.semester || '1ST';
+              const termDisplay = assignment.term || '1ST';
               const sectionDisplay = assignment.section != null && assignment.section !== '' ? assignment.section : 'ALL';
               const metadataDisplay = isSHS
-                ? `<br><small style="color: #6c757d;">Section: ${sectionDisplay} | ${strandDisplay} | ${categoryDisplay} | ${semesterDisplay}</small>`
+                ? `<br><small style="color: #6c757d;">Section: ${sectionDisplay} | ${trackDisplay} | ${categoryDisplay} | ${termDisplay}</small>`
                 : `<br><small style="color: #6c757d;">Section: ${sectionDisplay}</small>`;
               
               html += `
@@ -834,12 +1123,18 @@
             });
             if (listDiv) listDiv.innerHTML = html;
             
+            // Sync subject checkboxes — gray out already-assigned subjects
+            const assignedSubjectNames = subjects.map(function(a) { return a.subject; });
+            syncSubjectCheckboxes(assignedSubjectNames);
+
             // Reset select all checkbox and count
             const selectAllCheckbox = document.getElementById('selectAllCheckbox');
             if (selectAllCheckbox) selectAllCheckbox.checked = false;
             updateSelectedCount();
           })
           .withFailureHandler(function(error) {
+            const placeholder = document.getElementById('subjectsPlaceholder');
+            if (placeholder) placeholder.innerHTML = '<p style="text-align: center; color: #6c757d; margin: auto;">Error loading subjects</p>';
             alert('Error loading subjects: ' + error.toString());
           })
           .getSubjects(gradeLevel, section);
@@ -939,14 +1234,23 @@
         
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = document.getElementById('section').value;
-        const teacher = document.getElementById('teacher').value;
-        
+        const teacher = document.getElementById('teacher').value.trim();
+
+        // Fast-feedback check against the preloaded teacher list - only enforced
+        // when that list actually loaded (non-empty), so a slow/failed preload
+        // never blocks a legitimate teacher from submitting. The server-side
+        // check in _addAssignment/_addSubjectsBatch is the real authority either way.
+        if (allTeachers.length > 0 && !allTeachers.includes(teacher)) {
+          alert('❌ "' + teacher + '" is not a recognized teacher. Please select a teacher from the teachers list.');
+          return;
+        }
+
         const checkboxes = document.querySelectorAll('input[name="subjects"]:checked');
         if (checkboxes.length === 0) {
           alert('Please select at least one subject.');
           return;
         }
-        
+
         const submitBtn = document.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
         submitBtn.textContent = 'Getting subject details...';
@@ -962,6 +1266,7 @@
                 alert(`✅ ${result.message}`);
                 document.getElementById('assignmentForm').reset();
                 document.getElementById('section').disabled = true;
+                selectedSubjectValues.clear();
                 loadInitialData();
                 loadSubjects();
               } else {
@@ -979,19 +1284,32 @@
         }
         
         if (isSHS) {
-          const selectedItems = Array.from(checkboxes).map(cb => ({
-            subject: cb.value,
-            strand: cb.getAttribute('data-strand') || 'ALL'
-          }));
+          // A checked parent/child group checkbox (data-children present) expands
+          // into one entry per child, carrying the group's track - the parent
+          // subject name itself is never sent, since it's a computed rollup, not
+          // something a teacher is ever directly assigned to (see
+          // collapseParentChildGroups above for why this exists).
+          const selectedItems = [];
+          Array.from(checkboxes).forEach(cb => {
+            const track = cb.getAttribute('data-track') || 'ALL';
+            const childrenAttr = cb.getAttribute('data-children');
+            if (childrenAttr) {
+              childrenAttr.split(',').forEach(childName => {
+                if (childName) selectedItems.push({ subject: childName, track: track });
+              });
+            } else {
+              selectedItems.push({ subject: cb.value, track: track });
+            }
+          });
           google.script.run
             .withSuccessHandler(function(metadataList) {
               const subjectsWithMetadata = (metadataList || selectedItems).map(function(m, i) {
                 const item = selectedItems[i];
                 return {
                   subject: item.subject,
-                  strand: item.strand,
+                  track: item.track,
                   category: (m && m.category) || 'Core',
-                  semester: (m && m.semester) || '1ST'
+                  term: (m && m.term) || '1ST'
                 };
               });
               doAddSubjects(subjectsWithMetadata);
@@ -1007,12 +1325,12 @@
           google.script.run
             .withSuccessHandler(function(subjectsMetadata) {
               const subjectsWithMetadata = selectedSubjects.map(function(subject) {
-                const metadata = subjectsMetadata[subject] || { category: 'Core', strand: 'ALL', semester: '1ST' };
+                const metadata = subjectsMetadata[subject] || { category: 'Core', track: 'ALL', term: '1ST' };
                 return {
                   subject: subject,
-                  strand: metadata.strand || 'ALL',
+                  track: metadata.track || 'ALL',
                   category: metadata.category || 'Core',
-                  semester: metadata.semester || '1ST'
+                  term: metadata.term || '1ST'
                 };
               });
               doAddSubjects(subjectsWithMetadata);

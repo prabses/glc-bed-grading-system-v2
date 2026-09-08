@@ -7,7 +7,8 @@ const CONFIG = {
   // Web App URL - Update this after deploying the script as a web app
   // To deploy: Deploy > New deployment > Select type: Web app > Execute as: Me > Who has access: Anyone
   // Then copy the Web App URL (the one ending with /exec) and paste it below
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxS2Gi9OUCOoJcN_lA89f7NuLWk5GjwbeyYBRHbt2dn3b-KdQ20mCzk12U6ve3A7wW1/exec", // Replace with your /exec URL after deployment
+  WEB_APP_URL: "https://script.google.com/a/macros/goldenlink.ph/s/AKfycbxPFqxqsMulZAVommiZcOOyv1Xsk5N-U5EkrSDp_RGz0vWitf-Lryrq-9MYw_XlG-sVYQ/exec",
+  //"https://script.google.com/a/macros/goldenlink.ph/s/AKfycbyokvGjEA4lQ6ZaZdy-SB8gj1twhYZgwF8zTE35WMVgOIJkRWEFK2BiZPk89pRRGl3krw/exec", // Replace with your /exec URL after deployment
   
   // API Key for securing the API - This is a unique identifier
   // Keep this secret and don't share it publicly
@@ -20,7 +21,7 @@ const CONFIG = {
   },
   
   // STUDENTS DB Spreadsheet URL - Full URL to the students database spreadsheet
-  STUDENTS_DB_URL: "https://docs.google.com/spreadsheets/d/1QNN7DAfWY7nZVQ5GccWh1yTGhsCCIb-d-aZV7Thndjk/edit?gid=639124723#gid=639124723",
+  STUDENTS_DB_URL: "https://docs.google.com/spreadsheets/d/1Yx2YepcY1EId2tleMJN-Z9jh_CLRh7npt79ycK0gaIg/edit?gid=1882876298#gid=1882876298",
   
   // Sheet names
   SHEET_NAMES: {
@@ -32,7 +33,8 @@ const CONFIG = {
     SECTIONS_REF: 'SECTIONS_REF',
     GRADING_REF: 'GRADING_REF',
     ATTENDANCE_REF: 'ATTENDANCE_REF',
-    CHARACTERS_REF: 'CHARACTERS_REF'
+    CHARACTERS_REF: 'CHARACTERS_REF',
+    TRANSMUTATION_REF: 'TRANSMUTATION_REF'
   },
   
   // Column mapping for MASTER_DATA (0-based index)
@@ -129,13 +131,13 @@ const CONFIG = {
       SUBJECT_SHEETS: {
         STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
         HEADER_ROWS: [8, 9],  // Rows 8-9 (grading period headers and column headers)
-        FORMULA_COLUMNS: [6, 7, 8, 12, 13, 14, 18, 19, 20, 24, 25, 26, 27, 28]  // Columns F, G, H, L, M, N, R, S, T, X, Y, Z, AA, AB
+        FORMULA_COLUMNS: [6, 7, 8, 12, 13, 14, 18, 19, 20, 21, 22]  // Columns F, G, H, L, M, N, R, S, T, U, V
       },
       // Character sheet protection ranges
       CHARACTER_SHEET: {
         STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
         HEADER_ROW: 7,  // Row 7 (column headers)
-        FORMULA_COLUMNS: [3, 5, 7, 9, 11, 13]  // Columns C, E, G, I, K, M
+        FORMULA_COLUMNS: [3, 5, 7, 9, 11]  // Columns C, E, G, I, K
       },
       // Attendance sheet protection ranges
       ATTENDANCE_SHEET: {
@@ -151,93 +153,9 @@ const CONFIG = {
       MAPEH_SHEET: {
         STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
         HEADER_ROWS: [8, 9],  // Rows 8-9 (grading period headers and column headers)
-        FORMULA_COLUMNS: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
+        FORMULA_COLUMNS: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
       }
     }
-  },
-  
-  // Transmutation table for converting weighted averages to transmuted grades
-  TRANSMUTATION_TABLE: [
-    { from: 44.00, to: 44.99, transmutation: 60.00, eq: '' },
-    { from: 45.00, to: 45.99, transmutation: 60.71, eq: '' },
-    { from: 46.00, to: 46.99, transmutation: 61.43, eq: '' },
-    { from: 47.00, to: 47.99, transmutation: 62.14, eq: '' },
-    { from: 48.00, to: 48.99, transmutation: 62.86, eq: '' },
-    { from: 49.00, to: 49.99, transmutation: 63.57, eq: '' },
-    { from: 50.00, to: 50.99, transmutation: 64.29, eq: '' },
-    { from: 51.00, to: 51.99, transmutation: 65.00, eq: '' },
-    { from: 52.00, to: 52.99, transmutation: 65.71, eq: '' },
-    { from: 53.00, to: 53.99, transmutation: 66.43, eq: '' },
-    { from: 54.00, to: 54.99, transmutation: 67.14, eq: '' },
-    { from: 55.00, to: 55.99, transmutation: 67.86, eq: '' },
-    { from: 56.00, to: 56.99, transmutation: 68.57, eq: '' },
-    { from: 57.00, to: 57.99, transmutation: 69.29, eq: '' },
-    { from: 58.00, to: 58.99, transmutation: 70.00, eq: 'B' },
-    { from: 59.00, to: 59.99, transmutation: 70.71, eq: 'B' },
-    { from: 60.00, to: 60.99, transmutation: 71.43, eq: 'B' },
-    { from: 61.00, to: 61.99, transmutation: 72.14, eq: 'B' },
-    { from: 62.00, to: 62.99, transmutation: 72.86, eq: 'B' },
-    { from: 63.00, to: 63.99, transmutation: 73.57, eq: 'B' },
-    { from: 64.00, to: 64.99, transmutation: 74.29, eq: 'B' },
-    { from: 65.00, to: 65.99, transmutation: 75.00, eq: 'D' },
-    { from: 66.00, to: 66.99, transmutation: 75.71, eq: 'D' },
-    { from: 67.00, to: 67.99, transmutation: 76.43, eq: 'D' },
-    { from: 68.00, to: 68.99, transmutation: 77.14, eq: 'D' },
-    { from: 69.00, to: 69.99, transmutation: 77.86, eq: 'D' },
-    { from: 70.00, to: 70.99, transmutation: 78.57, eq: 'D' },
-    { from: 71.00, to: 71.99, transmutation: 79.29, eq: 'D' },
-    { from: 72.00, to: 72.99, transmutation: 80.00, eq: 'D' },
-    { from: 73.00, to: 73.99, transmutation: 80.71, eq: 'D' },
-    { from: 74.00, to: 74.99, transmutation: 81.43, eq: 'D' },
-    { from: 75.00, to: 75.99, transmutation: 82.14, eq: 'AP' },
-    { from: 76.00, to: 76.99, transmutation: 82.86, eq: 'AP' },
-    { from: 77.00, to: 77.99, transmutation: 83.57, eq: 'AP' },
-    { from: 78.00, to: 78.99, transmutation: 84.29, eq: 'AP' },
-    { from: 79.00, to: 79.99, transmutation: 85.00, eq: 'AP' },
-    { from: 80.00, to: 80.99, transmutation: 85.71, eq: 'AP' },
-    { from: 81.00, to: 81.99, transmutation: 86.43, eq: 'AP' },
-    { from: 82.00, to: 82.99, transmutation: 87.14, eq: 'AP' },
-    { from: 83.00, to: 83.99, transmutation: 87.86, eq: 'AP' },
-    { from: 84.00, to: 84.99, transmutation: 88.57, eq: 'P' },
-    { from: 85.00, to: 85.99, transmutation: 89.29, eq: 'P' },
-    { from: 86.00, to: 86.99, transmutation: 90.00, eq: 'P' },
-    { from: 87.00, to: 87.99, transmutation: 90.71, eq: 'P' },
-    { from: 88.00, to: 88.99, transmutation: 91.43, eq: 'P' },
-    { from: 89.00, to: 89.99, transmutation: 92.14, eq: 'P' },
-    { from: 90.00, to: 90.99, transmutation: 92.86, eq: 'P' },
-    { from: 91.00, to: 91.99, transmutation: 93.57, eq: 'P' },
-    { from: 92.00, to: 92.99, transmutation: 94.29, eq: 'P' },
-    { from: 93.00, to: 93.99, transmutation: 95.00, eq: 'A' },
-    { from: 94.00, to: 94.99, transmutation: 95.71, eq: 'A' },
-    { from: 95.00, to: 95.99, transmutation: 96.43, eq: 'A' },
-    { from: 96.00, to: 96.99, transmutation: 97.14, eq: 'A' },
-    { from: 97.00, to: 97.50, transmutation: 97.86, eq: 'A' },
-    { from: 97.51, to: 98.00, transmutation: 98.57, eq: 'A' },
-    { from: 98.01, to: 99.00, transmutation: 99.29, eq: 'A' },
-    { from: 99.01, to: 100.00, transmutation: 100.00, eq: 'A' }
-  ],
-  
-  // EQ (Emotional Quotient) grading scale configuration
-  EQ_GRADING_SCALE: {
-    // Grade ranges and their corresponding EQ values (for transmuted grades - used in Character sheet)
-    RANGES: [
-      { min: 70, max: 74.44, value: 'NI', label: 'Needs Improvement' },
-      { min: 74.45, max: 81.45, value: 'F', label: 'Fair' },
-      { min: 81.45, max: 88.44, value: 'G', label: 'Good' },
-      { min: 88.45, max: 94.44, value: 'VG', label: 'Very Good' },
-      { min: 94.45, max: 100, value: 'O', label: 'Outstanding' }
-    ]
-  },
-  
-  // EQ grading scale for non-transmuted grades (used in MAPEH Final EQ)
-  EQ_GRADING_SCALE_NON_TRANSMUTED: {
-    RANGES: [
-      { min: 70, max: 74.44, value: 'B', label: 'Below' },
-      { min: 74.45, max: 81.44, value: 'D', label: 'Developing' },
-      { min: 81.45, max: 88.44, value: 'AP', label: 'Approaching Proficient' },
-      { min: 88.45, max: 94.44, value: 'P', label: 'Proficient' },
-      { min: 94.45, max: 100, value: 'A', label: 'Advanced' }
-    ]
   },
   
   // Alert messages for user operations
@@ -259,6 +177,7 @@ const CONFIG = {
     ERROR: {
       TEMPLATE_GENERATION: 'Error generating template: {error}',
       TEMPLATE_EXISTS: 'Template file already exists!\n\nFile: {fileName}\nFolder: {folderName}\n\nPlease delete the existing file first if you want to regenerate it.\n\nExisting file: {fileUrl}',
+      ATTENDANCE_REF_MISSING: 'Cannot generate template: no school days are set up for school year {schoolYear} in ATTENDANCE_REF.\n\nThis teacher is an advisor for Grade {gradeLevel}{section}, so an Attendance sheet must be included. Please add the monthly school days for {schoolYear} to ATTENDANCE_REF first.',
       ASSIGNMENT_ADD: 'Error adding assignment: {error}',
       ASSIGNMENT_DELETE: 'Error deleting assignment: {error}',
       SUBJECTS_BATCH_ADD: 'Error adding subjects: {error}',
@@ -276,7 +195,8 @@ const CONFIG = {
     VALIDATION: {
       SUBJECT_ALREADY_ASSIGNED: '{gradeSection} - {subject} is already assigned to {teacher}. Cannot assign the same subject to a different teacher for the same class. Please deactivate the existing assignment first.',
       SUBJECTS_CONFLICT: 'Cannot assign subject(s) to a different teacher:\n\n{conflicts}\n\nPlease deactivate the existing assignment(s) first.',
-      ADVISORY_ALREADY_ASSIGNED: '{gradeSection} already has an active advisory with {teacher}. Cannot assign another teacher to the same class. Please deactivate the existing advisory first.'
+      ADVISORY_ALREADY_ASSIGNED: '{gradeSection} already has an active advisory with {teacher}. Cannot assign another teacher to the same class. Please deactivate the existing advisory first.',
+      TEACHER_NOT_FOUND: '"{teacher}" is not an active teacher in TEACHERS_REF. Please select a teacher from the list.'
     }
   },
   

@@ -460,12 +460,6 @@
       let displayedGradeData = null;
       let studentInfo = null;
 
-      function isSHSGradeLevel(gradeLevel) {
-        if (!gradeLevel) return false;
-        const v = String(gradeLevel).trim().replace(/^Grade\s+/i, "");
-        return v === "11" || v === "12";
-      }
-
       document.addEventListener("DOMContentLoaded", function () {
         google.script.run
           .withSuccessHandler(function (sheets) {
@@ -690,7 +684,7 @@
           { label: "Full Name", value: studentInfo["Full Name"] || "-" },
           { label: "Grade Level", value: studentInfo["Grade Level"] || "-" },
           { label: "Section", value: studentInfo["Section"] || "-" },
-          { label: "Strand", value: studentInfo["Strand"] || "-" }
+          { label: "Track", value: studentInfo["Track"] || "-" }
         ];
         
         infoFields.forEach(function(field) {
@@ -703,23 +697,15 @@
           studentInfoGrid.appendChild(item);
         });
 
-        const gradeLevel = document.getElementById("gradeLevelFilter").value;
-        const isSHS = isSHSGradeLevel(gradeLevel);
         const subjectsContainer = document.getElementById("subjectsContainer");
         subjectsContainer.innerHTML = "";
 
         gradeData.forEach(function(subjectData, index) {
-          const currentGradesLine = isSHS
-            ? "1st Initial: " + (subjectData["1st Initial"] || "-") + " | 2nd Initial: " + (subjectData["2nd Initial"] || "-")
-            : "1st Initial: " + (subjectData["1st Initial"] || "-") + " | 2nd Initial: " + (subjectData["2nd Initial"] || "-") + " | 3rd Initial: " + (subjectData["3rd Initial"] || "-") + " | 4th Initial: " + (subjectData["4th Initial"] || "-");
-          const thirdFourthInputs = isSHS ? "" : `
+          const currentGradesLine = "1st Initial: " + (subjectData["1st Initial"] || "-") + " | 2nd Initial: " + (subjectData["2nd Initial"] || "-") + " | 3rd Initial: " + (subjectData["3rd Initial"] || "-");
+          const thirdInput = `
             <div class="grade-input-group">
               <label for="thirdInitial_${index}">3rd Initial:</label>
               <input type="text" id="thirdInitial_${index}" data-subject="${subjectData.Subject}" data-period="3rd Initial" placeholder="${subjectData["3rd Initial"] || ""}" value="${subjectData["3rd Initial"] || ""}" />
-            </div>
-            <div class="grade-input-group">
-              <label for="fourthInitial_${index}">4th Initial:</label>
-              <input type="text" id="fourthInitial_${index}" data-subject="${subjectData.Subject}" data-period="4th Initial" placeholder="${subjectData["4th Initial"] || ""}" value="${subjectData["4th Initial"] || ""}" />
             </div>`;
           const subjectCard = document.createElement("div");
           subjectCard.className = "subject-card";
@@ -741,7 +727,7 @@
               <label for="secondInitial_${index}">2nd Initial:</label>
               <input type="text" id="secondInitial_${index}" data-subject="${subjectData.Subject}" data-period="2nd Initial" placeholder="${subjectData["2nd Initial"] || ""}" value="${subjectData["2nd Initial"] || ""}" />
             </div>
-            ${thirdFourthInputs}
+            ${thirdInput}
             <div class="remarks-group">
               <label for="remarks_${index}">Remarks (Optional)</label>
               <input type="text" id="remarks_${index}" data-subject="${subjectData.Subject}" placeholder="Reason for update or additional notes" />
@@ -761,8 +747,6 @@
 
         const academicYear = document.getElementById("academicYear").value;
         const studentNumber = document.getElementById("studentNumber").value.trim();
-        const gradeLevel = document.getElementById("gradeLevelFilter").value;
-        const isSHS = isSHSGradeLevel(gradeLevel);
 
         const updates = [];
 
@@ -770,6 +754,7 @@
           const subject = subjectData.Subject;
           const firstInitial = document.getElementById(`firstInitial_${index}`).value.trim();
           const secondInitial = document.getElementById(`secondInitial_${index}`).value.trim();
+          const thirdInitial = document.getElementById(`thirdInitial_${index}`).value.trim();
           const remarks = document.getElementById(`remarks_${index}`).value.trim();
 
           const gradeUpdates = {};
@@ -783,21 +768,9 @@
             gradeUpdates["2nd Initial"] = secondInitial;
             hasChanges = true;
           }
-          if (!isSHS) {
-            const thirdEl = document.getElementById("thirdInitial_" + index);
-            const fourthEl = document.getElementById("fourthInitial_" + index);
-            if (thirdEl && fourthEl) {
-              const thirdInitial = thirdEl.value.trim();
-              const fourthInitial = fourthEl.value.trim();
-              if (thirdInitial !== (subjectData["3rd Initial"] || "")) {
-                gradeUpdates["3rd Initial"] = thirdInitial;
-                hasChanges = true;
-              }
-              if (fourthInitial !== (subjectData["4th Initial"] || "")) {
-                gradeUpdates["4th Initial"] = fourthInitial;
-                hasChanges = true;
-              }
-            }
+          if (thirdInitial !== (subjectData["3rd Initial"] || "")) {
+            gradeUpdates["3rd Initial"] = thirdInitial;
+            hasChanges = true;
           }
 
           if (hasChanges && Object.keys(gradeUpdates).length > 0) {

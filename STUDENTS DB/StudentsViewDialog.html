@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <title>View Students</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-sizing: border-box;
+        display: flex;
+      }
+
+      .container {
+        background: white;
+        border-radius: 12px;
+        padding: 25px 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+      }
+
+      .container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 15px;
+        flex-shrink: 0;
+      }
+
+      .header h2 {
+        color: #333;
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0 0 6px 0;
+      }
+
+      .header p {
+        color: #666;
+        font-size: 14px;
+        margin: 0;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 15px;
+        align-items: flex-end;
+        margin-bottom: 15px;
+        flex-shrink: 0;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group.grow {
+        flex: 1;
+      }
+
+      .form-label {
+        display: block;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+
+      .form-control {
+        padding: 10px 14px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+        background: #fafbfc;
+        transition: all 0.3s ease;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      #academicYear {
+        min-width: 220px;
+      }
+
+      .row-count {
+        color: #6c757d;
+        font-size: 13px;
+        white-space: nowrap;
+        padding-bottom: 10px;
+      }
+
+      .columns-menu {
+        position: relative;
+      }
+
+      .btn-columns {
+        padding: 10px 16px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        background: #fafbfc;
+        color: #333;
+        white-space: nowrap;
+      }
+
+      .btn-columns:hover {
+        background: #f0f1f3;
+      }
+
+      .columns-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 6px;
+        background: white;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: 8px 0;
+        min-width: 210px;
+        max-height: 320px;
+        overflow-y: auto;
+        z-index: 20;
+      }
+
+      .columns-dropdown.open {
+        display: block;
+      }
+
+      .columns-dropdown label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        font-size: 13px;
+        color: #333;
+        cursor: pointer;
+      }
+
+      .columns-dropdown label:hover {
+        background: #f8f9fa;
+      }
+
+      .columns-dropdown input {
+        cursor: pointer;
+      }
+
+      .table-wrap {
+        flex: 1;
+        overflow: auto;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        min-height: 0;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 13px;
+      }
+
+      thead th {
+        position: sticky;
+        top: 0;
+        background: #f8f9fa;
+        color: #333;
+        text-align: left;
+        padding: 10px 12px;
+        border-bottom: 2px solid #e1e5e9;
+        white-space: nowrap;
+        z-index: 1;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      thead th:hover {
+        background: #eef0f3;
+      }
+
+      thead th .sort-indicator {
+        display: inline-block;
+        width: 12px;
+        margin-left: 4px;
+        color: #667eea;
+        font-size: 11px;
+      }
+
+      tbody td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        white-space: nowrap;
+      }
+
+      tbody tr:hover {
+        background: #f8f9fa;
+      }
+
+      .state-message {
+        padding: 40px;
+        text-align: center;
+        color: #6c757d;
+        font-size: 14px;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 15px;
+        flex-shrink: 0;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+      }
+
+      .btn:hover {
+        background: #e9ecef;
+        color: #495057;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>View Students</h2>
+        <p>Academic year roster combined with Other Information (LRN, Email, Parent/Guardian, Date of Birth)</p>
+      </div>
+
+      <div class="toolbar">
+        <div class="form-group">
+          <label class="form-label" for="academicYear">Academic Year</label>
+          <select id="academicYear" class="form-control">
+            <option value="">Select academic year...</option>
+          </select>
+        </div>
+
+        <div class="form-group grow">
+          <label class="form-label" for="searchBox">Search</label>
+          <input
+            type="text"
+            id="searchBox"
+            class="form-control"
+            placeholder="Filter by name, student number, section, LRN..."
+            autocomplete="off"
+            disabled
+          />
+        </div>
+
+        <div class="columns-menu">
+          <label class="form-label" style="visibility: hidden;">Columns</label>
+          <button type="button" class="btn-columns" id="columnsBtn">Columns &#9662;</button>
+          <div class="columns-dropdown" id="columnsDropdown"></div>
+        </div>
+
+        <div class="row-count" id="rowCount"></div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="studentsTable" style="display: none;">
+          <thead>
+            <tr id="tableHeaderRow"></tr>
+          </thead>
+          <tbody id="studentsTableBody"></tbody>
+        </table>
+        <div class="state-message" id="stateMessage">Select an academic year to load students.</div>
+      </div>
+
+      <!-- <div class="footer">
+        <button type="button" class="btn" onclick="google.script.host.close()">Close</button>
+      </div> -->
+    </div>
+
+    <script>
+      const COLUMNS = [
+        { key: "studentNumber", label: "Student Number" },
+        { key: "lastName",      label: "Last Name" },
+        { key: "firstName",     label: "First Name" },
+        { key: "middleName",    label: "Middle Name" },
+        { key: "gradeLevel",    label: "Grade Level" },
+        { key: "section",       label: "Section" },
+        { key: "track",        label: "Track" },
+        { key: "gender",        label: "Gender" },
+        { key: "lrn",           label: "LRN" },
+        { key: "email",         label: "Email" },
+        { key: "parentName",    label: "Parent/Guardian Name" },
+        { key: "dateOfBirth",   label: "Date of Birth" }
+      ];
+
+      let allRows = [];
+      let visibleColumns = COLUMNS.map(function (c) { return c.key; });
+      let sortKey = null;
+      let sortDir = 1; // 1 = ascending, -1 = descending
+
+      function buildColumnsMenu() {
+        const dropdown = document.getElementById("columnsDropdown");
+        dropdown.innerHTML = "";
+        COLUMNS.forEach(function (col) {
+          const label = document.createElement("label");
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = visibleColumns.includes(col.key);
+          checkbox.addEventListener("change", function () {
+            if (checkbox.checked) {
+              if (!visibleColumns.includes(col.key)) visibleColumns.push(col.key);
+            } else {
+              visibleColumns = visibleColumns.filter(function (k) { return k !== col.key; });
+            }
+            renderHeader();
+            renderRows(currentDisplayedRows());
+          });
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(col.label));
+          dropdown.appendChild(label);
+        });
+      }
+
+      document.getElementById("columnsBtn").addEventListener("click", function (e) {
+        e.stopPropagation();
+        document.getElementById("columnsDropdown").classList.toggle("open");
+      });
+
+      document.addEventListener("click", function (e) {
+        const menu = document.getElementById("columnsDropdown");
+        if (!menu.contains(e.target) && e.target.id !== "columnsBtn") {
+          menu.classList.remove("open");
+        }
+      });
+
+      function renderHeader() {
+        const headerRow = document.getElementById("tableHeaderRow");
+        headerRow.innerHTML = "";
+        COLUMNS.filter(function (c) { return visibleColumns.includes(c.key); }).forEach(function (col) {
+          const th = document.createElement("th");
+          th.textContent = col.label;
+          const indicator = document.createElement("span");
+          indicator.className = "sort-indicator";
+          if (sortKey === col.key) {
+            indicator.textContent = sortDir === 1 ? "▲" : "▼";
+          }
+          th.appendChild(indicator);
+          th.addEventListener("click", function () {
+            if (sortKey === col.key) {
+              sortDir = -sortDir;
+            } else {
+              sortKey = col.key;
+              sortDir = 1;
+            }
+            renderHeader();
+            renderRows(currentDisplayedRows());
+          });
+          headerRow.appendChild(th);
+        });
+      }
+
+      function currentDisplayedRows() {
+        const term = document.getElementById("searchBox").value.toLowerCase().trim();
+        let rows = allRows;
+        if (term) {
+          rows = allRows.filter(function (row) {
+            return Object.keys(row).some(function (key) {
+              return String(row[key] || "").toLowerCase().includes(term);
+            });
+          });
+        }
+        return rows;
+      }
+
+      function sortRows(rows) {
+        if (!sortKey) return rows;
+        const sorted = rows.slice();
+        sorted.sort(function (a, b) {
+          const va = String(a[sortKey] || "").toLowerCase();
+          const vb = String(b[sortKey] || "").toLowerCase();
+          if (va < vb) return -1 * sortDir;
+          if (va > vb) return 1 * sortDir;
+          return 0;
+        });
+        return sorted;
+      }
+
+      buildColumnsMenu();
+      renderHeader();
+
+      document.addEventListener("DOMContentLoaded", function () {
+        google.script.run
+          .withSuccessHandler(function (sheets) {
+            const select = document.getElementById("academicYear");
+            sheets.forEach(function (sheetName) {
+              const option = document.createElement("option");
+              option.value = sheetName;
+              option.textContent = sheetName;
+              select.appendChild(option);
+            });
+          })
+          .withFailureHandler(function (error) {
+            console.error("Error loading sheets:", error);
+            setState("Error loading academic years: " + error.toString());
+          })
+          .getStudentSheets();
+      });
+
+      document.getElementById("academicYear").addEventListener("change", function () {
+        const academicYear = this.value;
+        document.getElementById("searchBox").value = "";
+        document.getElementById("searchBox").disabled = true;
+        allRows = [];
+
+        if (!academicYear) {
+          renderRows([]);
+          setState("Select an academic year to load students.");
+          return;
+        }
+
+        setState("Loading students...");
+
+        google.script.run
+          .withSuccessHandler(function (result) {
+            if (result.success) {
+              allRows = result.rows || [];
+              document.getElementById("searchBox").disabled = false;
+              renderRows(allRows);
+              if (allRows.length === 0) {
+                setState("No students found for " + academicYear + ".");
+              }
+            } else {
+              allRows = [];
+              renderRows([]);
+              setState("Error: " + result.message);
+            }
+          })
+          .withFailureHandler(function (error) {
+            allRows = [];
+            renderRows([]);
+            setState("Error: " + error.toString());
+          })
+          .getCombinedStudentData(academicYear);
+      });
+
+      document.getElementById("searchBox").addEventListener("input", function () {
+        const filtered = currentDisplayedRows();
+        renderRows(filtered);
+        if (filtered.length === 0) {
+          setState("No students match your search.");
+        }
+      });
+
+      function setState(message) {
+        const stateEl = document.getElementById("stateMessage");
+        const tableEl = document.getElementById("studentsTable");
+        stateEl.textContent = message;
+        stateEl.style.display = "block";
+        tableEl.style.display = "none";
+        document.getElementById("rowCount").textContent = "";
+      }
+
+      function renderRows(rows) {
+        const tbody = document.getElementById("studentsTableBody");
+        const tableEl = document.getElementById("studentsTable");
+        const stateEl = document.getElementById("stateMessage");
+
+        tbody.innerHTML = "";
+
+        if (rows.length === 0) {
+          tableEl.style.display = "none";
+          return;
+        }
+
+        const cols = COLUMNS.filter(function (c) { return visibleColumns.includes(c.key); });
+        sortRows(rows).forEach(function (row) {
+          const tr = document.createElement("tr");
+          cols.forEach(function (col) {
+            const td = document.createElement("td");
+            td.textContent = row[col.key] || "-";
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+
+        stateEl.style.display = "none";
+        tableEl.style.display = "table";
+        document.getElementById("rowCount").textContent = rows.length + " student(s)";
+      }
+    </script>
+  </body>
+</html>

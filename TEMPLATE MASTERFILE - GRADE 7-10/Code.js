@@ -312,6 +312,11 @@ function generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects)
   });
 }
 
+/**
+ * Gets the running user's email safely, with fallback to getEffectiveUser.
+ * Prevents crashes in restricted execution contexts.
+ * @return {string} The user's email, or empty string if not available
+ */
 function _getRunningUserEmail() {
   let email = '';
   try { email = (Session.getActiveUser().getEmail() || '').trim(); } catch (e) {}
@@ -319,6 +324,44 @@ function _getRunningUserEmail() {
     try { email = (Session.getEffectiveUser().getEmail() || '').trim(); } catch (e) {}
   }
   return email;
+}
+
+/**
+ * Client-callable function to generate OGS templates for multiple teachers at once.
+ * Calls generateOGSTemplate for each teacher in the batch.
+ * @param {string} schoolYear - The school year
+ * @param {string} gradeLevel - The grade level
+ * @param {string} section - The section
+ * @param {Array} teachersWithSubjects - Array of { teacher, subjects } objects
+ * @return {Object} Result object with success status, message, and per-teacher results
+ */
+function generateOGSTemplatesBatch(schoolYear, gradeLevel, section, teachersWithSubjects) {
+  const userEmail = _getRunningUserEmail();
+  console.log("Function generateOGSTemplatesBatch executed by: " + (userEmail || '(unknown)'));
+  if (!teachersWithSubjects || teachersWithSubjects.length === 0) {
+    return { success: false, message: "No teachers selected" };
+  }
+  const results = [];
+  let successCount = 0, failureCount = 0;
+  for (let i = 0; i < teachersWithSubjects.length; i++) {
+    const item = teachersWithSubjects[i];
+    const result = generateOGSTemplate(schoolYear, gradeLevel, section, item.teacher, item.subjects);
+    results.push({ teacher: item.teacher, result: result });
+    if (result && result.success) { successCount++; } else { failureCount++; }
+  }
+  // Build one line per failed teacher with their actual reason (e.g. "template
+  // already exists", "not an active teacher", "no ATTENDANCE_REF data") instead
+  // of just naming who failed - the per-teacher result.message from
+  // generateOGSTemplate already has this detail, it was previously discarded here.
+  const failureLines = results
+    .filter(r => !r.result.success)
+    .map(r => `- ${r.teacher}: ${r.result.message}`);
+  const message = successCount > 0 && failureCount === 0
+    ? `Successfully generated ${successCount} template(s)`
+    : successCount > 0
+      ? `Generated ${successCount} template(s), ${failureCount} failed:\n${failureLines.join('\n')}`
+      : `Failed to generate templates:\n${failureLines.join('\n')}`;
+  return { success: failureCount === 0, message, results };
 }
 
 /**
@@ -461,7 +504,11 @@ function deleteAdvisoriesBatch(advisories) {
  * @return {Array} Array of school year sheet names (e.g., ["2024-2025", "2023-2024"])
  */
 function getSchoolYears() {
-  return callApi("getSchoolYears", {});
+  //EBA changed calling var
+  //return callApi("getSchoolYears", {});
+
+  return _getSchoolYears();
+
 }
 
 function showWorkingInstructions() {

@@ -229,8 +229,11 @@
 
         google.script.run
           .withSuccessHandler(function(result) {
-            alert('Grades: ' + (result.gradesMessage || ''));
-            alert('Character: ' + (result.characterMessage || ''));
+            if (result.message) {
+              alert(result.message);
+            } else {
+              alert('Grades: ' + (result.gradesMessage || '') + '\n\nCharacter: ' + (result.characterMessage || '') + '\n\nAttendance: ' + (result.attendanceMessage || ''));
+            }
             if (result.success) {
               google.script.host.close();
             } else {

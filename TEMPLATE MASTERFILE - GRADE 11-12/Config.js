@@ -7,17 +7,19 @@ const CONFIG = {
   // Web App URL - Update this after deploying the script as a web app
   // To deploy: Deploy > New deployment > Select type: Web app > Execute as: Me > Who has access: Anyone
   // Then copy the Web App URL (the one ending with /exec) and paste it below
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxWJodkUTl7ql0JL9bnVqlG79G_IfdSf80d9cK1wiymMUjXksWEpstcFjpYF4ybIx97/exec", // Replace with your /exec URL after deployment
+  WEB_APP_URL: "https://script.google.com/a/macros/goldenlink.ph/s/AKfycbzLBz7EH3TBESLV08aTwGJ2oWPPQLwM2sswD-V_Z5kQTD2fV-GnWQcWhv_kaeSLo1Z8MA/exec",
+  //"https://script.google.com/a/macros/goldenlink.ph/s/AKfycbwXOFvziGvVncaoov0bFKoAxGPMRE6npGEVgupert69L51dqlYpuWpcbyx9ZuhI8STFDg/exec", // Replace with your /exec URL after deployment
+  
 
   // STUDENTS DB Spreadsheet URL - Full URL to the students database spreadsheet
-  STUDENTS_DB_URL: "https://docs.google.com/spreadsheets/d/1QNN7DAfWY7nZVQ5GccWh1yTGhsCCIb-d-aZV7Thndjk/edit?gid=639124723#gid=639124723",
+  STUDENTS_DB_URL: "https://docs.google.com/spreadsheets/d/1Yx2YepcY1EId2tleMJN-Z9jh_CLRh7npt79ycK0gaIg/edit?gid=1882876298#gid=1882876298",
   
   // API Key for securing the API - This is a unique identifier
   // Keep this secret and don't share it publicly
   API_KEY: "YTM0NzhkODItZmU4Zi00YjczLWI5ZGQtZGVhNjYxZGI4ZmFi",
   
   // Senior High School (SHS) Configuration
-  // Set to true to enable SHS features (Strand, Category, Semester fields)
+  // Set to true to enable SHS features (Track, Category, Term fields)
   // Set to false for Elementary and Junior High School (will use defaults: ALL, Core, 1ST)
   IS_SHS: true,
   
@@ -37,7 +39,8 @@ const CONFIG = {
     SECTIONS_REF: 'SECTIONS_REF',
     GRADING_REF: 'GRADING_REF',
     ATTENDANCE_REF: 'ATTENDANCE_REF',
-    CHARACTERS_REF: 'CHARACTERS_REF'
+    CHARACTERS_REF: 'CHARACTERS_REF',
+    TRANSMUTATION_REF: 'TRANSMUTATION_REF'
   },
   
   // Column mapping for MASTER_DATA (0-based index)
@@ -52,15 +55,24 @@ const CONFIG = {
     CREATED_BY: 7        // Column H
   },
   
+  // Column mapping for SECTIONS_REF (0-based index into full getDataRange() array, Column A = 0)
+  SECTIONS_REF_COLUMNS: {
+    NO: 0,               // Column A - No. (row number)
+    GRADE_LEVEL: 1,       // Column B - Grade Level
+    SECTION: 2,          // Column C - Section
+    TRACK: 3             // Column D - Track (ALL, STEM, HUMSS, ICT, ABM, GAS)
+  },
+
   // Column mapping for SUBJECTS_REF (0-based index relative to data array starting at Column B)
   // Note: Column A is "No." (row numbers) and is ignored - we read from Column B onwards
   SUBJECTS_REF_COLUMNS: {
-    SUBJECT_NAME: 0,  // Column B - Subject Name (index 0 in array when reading from column 2)
-    CATEGORY: 1,      // Column C - Category (Core, Specialized, Applied)
-    STRAND: 2,        // Column D - Strand (ALL, STEM, HUMSS, ICT, ABM, GAS)
-    SEMESTER: 3,      // Column E - Semester (1ST, 2ND)
-    LEVEL: 4,         // Column F - Level (11, 12)
-    ACTIVE: 5         // Column G - Active (✓ or blank)
+    SUBJECT_NAME: 0,     // Column B - Subject Name (index 0 in array when reading from column 2)
+    PARENT_SUBJECT: 1,   // Column C - Parent Subject (blank = standalone/parent; else name of parent subject)
+    CATEGORY: 2,         // Column D - Category (Core, Specialized, Applied)
+    TRACK: 3,           // Column E - Track (ALL, STEM, HUMSS, ICT, ABM, GAS)
+    TERM: 4,             // Column F - Term (1ST, 2ND, 3RD)
+    LEVEL: 5,            // Column G - Level (11, 12)
+    ACTIVE: 6            // Column H - Active (✓ or blank)
   },
   
   // Column mapping for GRADING_REF (0-based index)
@@ -78,13 +90,14 @@ const CONFIG = {
     SECTION: 1,          // Column B
     TEACHER: 2,       // Column C
     SUBJECT: 3,          // Column D
-    STRAND: 4,           // Column E - NEW: Strand (ALL, STEM, HUMSS, ICT, ABM, GAS)
-    CATEGORY: 5,          // Column F - NEW: Category (Core, Specialized)
-    SEMESTER: 6,         // Column G - NEW: Semester (1ST, 2ND)
-    STATUS: 7,            // Column H
-    CREATED: 8,           // Column I
-    MODIFIED: 9,          // Column J
-    CREATED_BY: 10        // Column K
+    PARENT_SUBJECT: 4,   // Column E - Parent Subject (blank = standalone/parent; else name of parent subject)
+    TRACK: 5,           // Column F - Track (ALL, STEM, HUMSS, ICT, ABM, GAS)
+    CATEGORY: 6,          // Column G - Category (Core, Specialized)
+    TERM: 7,             // Column H - Term (1ST, 2ND, 3RD)
+    STATUS: 8,            // Column I
+    CREATED: 9,           // Column J
+    MODIFIED: 10,           // Column K
+    CREATED_BY: 11        // Column L
   },
   
   // Column mapping for ADVISORY (0-based index)
@@ -102,27 +115,28 @@ const CONFIG = {
   GRADING_COMPONENTS: ['Written Work', 'Performance Task', 'Assessment'],
   
   // SHS Default Values (used when values are not provided)
-  // Note: Strands are stored in SUBJECTS_REF for each subject
+  // Note: Tracks are stored in SUBJECTS_REF for each subject
   SHS_DEFAULTS: {
-    STRAND: 'ALL',        // Default strand value
+    TRACK: 'ALL',        // Default track value
     CATEGORY: 'Core',     // Default category value
-    SEMESTER: '1ST'       // Default semester value
+    TERM: '1ST'           // Default term value
   },
-  
+
   // Subject Categories
   CATEGORIES: {
     CORE: 'Core',
     SPECIALIZED: 'Specialized'
   },
-  
-  // Semesters
-  SEMESTERS: {
+
+  // Terms
+  TERMS: {
     FIRST: '1ST',
-    SECOND: '2ND'
+    SECOND: '2ND',
+    THIRD: '3RD'
   },
 
-  // Strands (SHS)
-  STRANDS: {
+  // Tracks (SHS)
+  TRACKS: {
     ALL: 'ALL',
     STEM: 'STEM',
     HUMSS: 'HUMSS',
@@ -177,14 +191,14 @@ const CONFIG = {
       // Subject sheets protection ranges
       SUBJECT_SHEETS: {
         STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
-        HEADER_ROWS: [8, 9],  // Non-SHS: rows 8-9 (grading + column headers). When IS_SHS true, API uses [10, 11]
-        FORMULA_COLUMNS: [6, 7, 8, 12, 13, 14, 18, 19, 20, 24, 25, 26, 27, 28]  // Columns F, G, H, L, M, N, R, S, T, X, Y, Z, AA, AB
+        HEADER_ROWS: [8, 9],  // Non-SHS: rows 8-9. When IS_SHS true, API uses [10, 11]
+        FORMULA_COLUMNS: [6, 7, 8, 12, 13, 14, 18, 19, 20, 21, 22]  // Columns F, G, H, L, M, N, R, S, T, U, V
       },
       // Character sheet protection ranges
       CHARACTER_SHEET: {
         STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
         HEADER_ROW: 7,  // Row 7 (column headers)
-        FORMULA_COLUMNS: [3, 5, 7, 9, 11, 12, 13]  // Columns C, E, G, I, K, L (Final Grading), M
+        FORMULA_COLUMNS: [3, 5, 7, 9, 10, 11]  // Columns C, E, G, I, J, K (TRAITS, EQ cols, Final Grading)
       },
       // Attendance sheet protection ranges
       ATTENDANCE_SHEET: {
@@ -196,97 +210,23 @@ const CONFIG = {
           COLUMNS: [0, 2]  // Relative positions within each month group: 0 = School DAYS, 2 = Days ABSENT
         }
       },
+      // Parent subject sheet protection ranges (e.g. "Effective Communication & Mabisang
+      // Komunikasyon" rollup sheets). Unlike SUBJECT_SHEETS, every column A-V is formula
+      // driven (no Written Work/Performance Task/Assessment manual input exists on this
+      // sheet type), so the whole data area is protected as a single range - see
+      // _setupParentSubjectSheet in API.js.
+      PARENT_SUBJECT_SHEET: {
+        STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
+        HEADER_ROWS: [11, 12],  // Rows 11-12 (grading period headers and column headers)
+        FULLY_PROTECTED: true  // All 22 columns (A-V) are protected - no manual input columns
+      },
       // MAPEH sheet protection ranges
       MAPEH_SHEET: {
         STUDENT_INFO_COLUMNS: [1, 2],  // Columns A-B
         HEADER_ROWS: [8, 9],  // Rows 8-9 (grading period headers and column headers)
-        FORMULA_COLUMNS: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
+        FORMULA_COLUMNS: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
       }
     }
-  },
-  
-  // Transmutation table for converting weighted averages to transmuted grades
-  TRANSMUTATION_TABLE: [
-    { from: 44.00, to: 44.99, transmutation: 60.00, eq: '' },
-    { from: 45.00, to: 45.99, transmutation: 60.71, eq: '' },
-    { from: 46.00, to: 46.99, transmutation: 61.43, eq: '' },
-    { from: 47.00, to: 47.99, transmutation: 62.14, eq: '' },
-    { from: 48.00, to: 48.99, transmutation: 62.86, eq: '' },
-    { from: 49.00, to: 49.99, transmutation: 63.57, eq: '' },
-    { from: 50.00, to: 50.99, transmutation: 64.29, eq: '' },
-    { from: 51.00, to: 51.99, transmutation: 65.00, eq: '' },
-    { from: 52.00, to: 52.99, transmutation: 65.71, eq: '' },
-    { from: 53.00, to: 53.99, transmutation: 66.43, eq: '' },
-    { from: 54.00, to: 54.99, transmutation: 67.14, eq: '' },
-    { from: 55.00, to: 55.99, transmutation: 67.86, eq: '' },
-    { from: 56.00, to: 56.99, transmutation: 68.57, eq: '' },
-    { from: 57.00, to: 57.99, transmutation: 69.29, eq: '' },
-    { from: 58.00, to: 58.99, transmutation: 70.00, eq: 'B' },
-    { from: 59.00, to: 59.99, transmutation: 70.71, eq: 'B' },
-    { from: 60.00, to: 60.99, transmutation: 71.43, eq: 'B' },
-    { from: 61.00, to: 61.99, transmutation: 72.14, eq: 'B' },
-    { from: 62.00, to: 62.99, transmutation: 72.86, eq: 'B' },
-    { from: 63.00, to: 63.99, transmutation: 73.57, eq: 'B' },
-    { from: 64.00, to: 64.99, transmutation: 74.29, eq: 'B' },
-    { from: 65.00, to: 65.99, transmutation: 75.00, eq: 'D' },
-    { from: 66.00, to: 66.99, transmutation: 75.71, eq: 'D' },
-    { from: 67.00, to: 67.99, transmutation: 76.43, eq: 'D' },
-    { from: 68.00, to: 68.99, transmutation: 77.14, eq: 'D' },
-    { from: 69.00, to: 69.99, transmutation: 77.86, eq: 'D' },
-    { from: 70.00, to: 70.99, transmutation: 78.57, eq: 'D' },
-    { from: 71.00, to: 71.99, transmutation: 79.29, eq: 'D' },
-    { from: 72.00, to: 72.99, transmutation: 80.00, eq: 'D' },
-    { from: 73.00, to: 73.99, transmutation: 80.71, eq: 'D' },
-    { from: 74.00, to: 74.99, transmutation: 81.43, eq: 'D' },
-    { from: 75.00, to: 75.99, transmutation: 82.14, eq: 'AP' },
-    { from: 76.00, to: 76.99, transmutation: 82.86, eq: 'AP' },
-    { from: 77.00, to: 77.99, transmutation: 83.57, eq: 'AP' },
-    { from: 78.00, to: 78.99, transmutation: 84.29, eq: 'AP' },
-    { from: 79.00, to: 79.99, transmutation: 85.00, eq: 'AP' },
-    { from: 80.00, to: 80.99, transmutation: 85.71, eq: 'AP' },
-    { from: 81.00, to: 81.99, transmutation: 86.43, eq: 'AP' },
-    { from: 82.00, to: 82.99, transmutation: 87.14, eq: 'AP' },
-    { from: 83.00, to: 83.99, transmutation: 87.86, eq: 'AP' },
-    { from: 84.00, to: 84.99, transmutation: 88.57, eq: 'P' },
-    { from: 85.00, to: 85.99, transmutation: 89.29, eq: 'P' },
-    { from: 86.00, to: 86.99, transmutation: 90.00, eq: 'P' },
-    { from: 87.00, to: 87.99, transmutation: 90.71, eq: 'P' },
-    { from: 88.00, to: 88.99, transmutation: 91.43, eq: 'P' },
-    { from: 89.00, to: 89.99, transmutation: 92.14, eq: 'P' },
-    { from: 90.00, to: 90.99, transmutation: 92.86, eq: 'P' },
-    { from: 91.00, to: 91.99, transmutation: 93.57, eq: 'P' },
-    { from: 92.00, to: 92.99, transmutation: 94.29, eq: 'P' },
-    { from: 93.00, to: 93.99, transmutation: 95.00, eq: 'A' },
-    { from: 94.00, to: 94.99, transmutation: 95.71, eq: 'A' },
-    { from: 95.00, to: 95.99, transmutation: 96.43, eq: 'A' },
-    { from: 96.00, to: 96.99, transmutation: 97.14, eq: 'A' },
-    { from: 97.00, to: 97.50, transmutation: 97.86, eq: 'A' },
-    { from: 97.51, to: 98.00, transmutation: 98.57, eq: 'A' },
-    { from: 98.01, to: 99.00, transmutation: 99.29, eq: 'A' },
-    { from: 99.01, to: 100.00, transmutation: 100.00, eq: 'A' }
-  ],
-  
-  // EQ (Emotional Quotient) grading scale configuration
-  EQ_GRADING_SCALE: {
-    // Grade ranges and their corresponding EQ values (for transmuted grades - used in Character sheet)
-    RANGES: [
-      { min: 70, max: 74.44, value: 'NI', label: 'Needs Improvement' },
-      { min: 74.45, max: 81.45, value: 'F', label: 'Fair' },
-      { min: 81.45, max: 88.44, value: 'G', label: 'Good' },
-      { min: 88.45, max: 94.44, value: 'VG', label: 'Very Good' },
-      { min: 94.45, max: 100, value: 'O', label: 'Outstanding' }
-    ]
-  },
-  
-  // EQ grading scale for non-transmuted grades (used in MAPEH Final EQ)
-  EQ_GRADING_SCALE_NON_TRANSMUTED: {
-    RANGES: [
-      { min: 70, max: 74.44, value: 'B', label: 'Below' },
-      { min: 74.45, max: 81.44, value: 'D', label: 'Developing' },
-      { min: 81.45, max: 88.44, value: 'AP', label: 'Approaching Proficient' },
-      { min: 88.45, max: 94.44, value: 'P', label: 'Proficient' },
-      { min: 94.45, max: 100, value: 'A', label: 'Advanced' }
-    ]
   },
   
   // Alert messages for user operations
@@ -308,6 +248,7 @@ const CONFIG = {
     ERROR: {
       TEMPLATE_GENERATION: 'Error generating template: {error}',
       TEMPLATE_EXISTS: 'Template file already exists!\n\nFile: {fileName}\nFolder: {folderName}\n\nPlease delete the existing file first if you want to regenerate it.\n\nExisting file: {fileUrl}',
+      ATTENDANCE_REF_MISSING: 'Cannot generate template: no school days are set up for school year {schoolYear} in ATTENDANCE_REF.\n\nThis teacher is an advisor for Grade {gradeLevel}{section}, so an Attendance sheet must be included. Please add the monthly school days for {schoolYear} to ATTENDANCE_REF first.',
       ASSIGNMENT_ADD: 'Error adding assignment: {error}',
       ASSIGNMENT_DELETE: 'Error deleting assignment: {error}',
       SUBJECTS_BATCH_ADD: 'Error adding subjects: {error}',
@@ -325,7 +266,8 @@ const CONFIG = {
     VALIDATION: {
       SUBJECT_ALREADY_ASSIGNED: '{gradeSection} - {subject} is already assigned to {teacher}. Cannot assign the same subject to a different teacher for the same class. Please deactivate the existing assignment first.',
       SUBJECTS_CONFLICT: 'Cannot assign subject(s) to a different teacher:\n\n{conflicts}\n\nPlease deactivate the existing assignment(s) first.',
-      ADVISORY_ALREADY_ASSIGNED: '{gradeSection} already has an active advisory with {teacher}. Cannot assign another teacher to the same class. Please deactivate the existing advisory first.'
+      ADVISORY_ALREADY_ASSIGNED: '{gradeSection} already has an active advisory with {teacher}. Cannot assign another teacher to the same class. Please deactivate the existing advisory first.',
+      TEACHER_NOT_FOUND: '"{teacher}" is not an active teacher in TEACHERS_REF. Please select a teacher from the list.'
     }
   },
   

@@ -367,15 +367,23 @@ function generateOGSTemplatesBatch(schoolYear, gradeLevel, section, teachersWith
     }
   }
   
+  // Build one line per failed teacher with their actual reason (e.g. "template
+  // already exists", "not an active teacher", "no ATTENDANCE_REF data") instead
+  // of just naming who failed - the per-teacher result.message from
+  // generateOGSTemplate already has this detail, it was previously discarded here.
+  const failureLines = results
+    .filter(r => !r.result.success)
+    .map(r => `- ${r.teacher}: ${r.result.message}`);
+
   let message = '';
   if (successCount > 0 && failureCount === 0) {
     message = `Successfully generated ${successCount} template(s)`;
   } else if (successCount > 0 && failureCount > 0) {
-    message = `Generated ${successCount} template(s), ${failureCount} failed`;
+    message = `Generated ${successCount} template(s), ${failureCount} failed:\n${failureLines.join('\n')}`;
   } else {
-    message = `Failed to generate templates: ${results.map(r => r.teacher).join(', ')}`;
+    message = `Failed to generate templates:\n${failureLines.join('\n')}`;
   }
-  
+
   return {
     success: failureCount === 0,
     message: message,

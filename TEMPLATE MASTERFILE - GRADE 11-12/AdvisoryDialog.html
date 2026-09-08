@@ -195,6 +195,60 @@
       .form-group-autocomplete {
         position: relative;
       }
+
+      .teacher-input-wrapper {
+        position: relative;
+      }
+
+      .teacher-validity-icon {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        line-height: 1;
+        pointer-events: none;
+        display: none;
+      }
+
+      .teacher-validity-icon.valid {
+        display: block;
+        color: #28a745;
+      }
+
+      .teacher-validity-icon.invalid {
+        display: block;
+        color: #dc3545;
+      }
+
+      /* Reserve room so the icon never overlaps typed text */
+      #teacher {
+        padding-right: 40px;
+      }
+
+      .field-loading-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: 8px;
+        color: #6c757d;
+        font-size: 12px;
+        font-weight: normal;
+      }
+
+      .field-loading-spinner {
+        width: 12px;
+        height: 12px;
+        border: 2px solid #e0e0e0;
+        border-top-color: #667eea;
+        border-radius: 50%;
+        animation: field-spin 0.7s linear infinite;
+        flex-shrink: 0;
+      }
+
+      @keyframes field-spin {
+        to { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
@@ -208,15 +262,22 @@
         <div class="form-group form-group-autocomplete">
           <label class="form-label" for="teacher">
             Teacher <span style="color: #e74c3c;">*</span>
+            <span id="teacherLoadingIndicator" class="field-loading-indicator">
+              <span class="field-loading-spinner"></span>Loading teachers...
+            </span>
           </label>
-          <input
-            type="text"
-            id="teacher"
-            class="form-control"
-            placeholder="Type to search teacher..."
-            autocomplete="off"
-            required
-          />
+          <div class="teacher-input-wrapper">
+            <input
+              type="text"
+              id="teacher"
+              class="form-control"
+              placeholder="Loading teachers..."
+              autocomplete="off"
+              disabled
+              required
+            />
+            <span id="teacherValidityIcon" class="teacher-validity-icon">✓</span>
+          </div>
           <div id="teacherDropdown" class="autocomplete-dropdown" style="display: none;"></div>
         </div>
 
@@ -274,6 +335,21 @@
         });
       });
 
+      // Clears the Teacher field's loading state (spinner + disabled input) once
+      // getTeachers() resolves, whether it succeeded or failed - the field is
+      // usable either way, since a teacher name can be typed manually even
+      // without the autocomplete list.
+      function clearTeacherLoadingState(placeholderText) {
+        const indicator = document.getElementById('teacherLoadingIndicator');
+        const teacherInput = document.getElementById('teacher');
+        if (indicator) indicator.style.display = 'none';
+        if (teacherInput) {
+          teacherInput.disabled = false;
+          teacherInput.placeholder = placeholderText || 'Type to search teacher...';
+        }
+        updateTeacherValidityIcon();
+      }
+
       function loadInitialData() {
         google.script.run
           .withSuccessHandler(function(data) {
@@ -299,6 +375,7 @@
               .withSuccessHandler(function(teacherList) {
                 allTeachers = teacherList || [];
                 setupTeacherAutocomplete();
+                clearTeacherLoadingState();
                 // If teacher input already has a value, load advisories
                 const teacherInput = document.getElementById('teacher');
                 if (teacherInput && teacherInput.value.trim()) {
@@ -309,6 +386,7 @@
                 console.error('Error loading teachers:', error);
                 allTeachers = [];
                 setupTeacherAutocomplete();
+                clearTeacherLoadingState('Type to search teacher... (failed to preload list)');
               })
               .getTeachers();
           })
@@ -316,6 +394,29 @@
             alert('Error loading data: ' + error.toString());
           })
           .getAllDropdownData();
+      }
+
+      // Shows a live checkmark (exact match in allTeachers) or X (non-empty, no
+      // match) next to the Teacher field, so an invalid/mistyped name is obvious
+      // before the user ever reaches the Add Advisory button - purely a visual
+      // signal layered on top of the existing client-side and server-side
+      // validation, not a replacement for either.
+      function updateTeacherValidityIcon() {
+        const icon = document.getElementById('teacherValidityIcon');
+        const teacherInput = document.getElementById('teacher');
+        if (!icon || !teacherInput) return;
+        const value = teacherInput.value.trim();
+        icon.classList.remove('valid', 'invalid');
+        if (!value || allTeachers.length === 0) {
+          return; // empty field, or list not loaded yet - show nothing either way
+        }
+        if (allTeachers.includes(value)) {
+          icon.textContent = '✓';
+          icon.classList.add('valid');
+        } else {
+          icon.textContent = '✗';
+          icon.classList.add('invalid');
+        }
       }
 
       // Setup teacher autocomplete functionality
@@ -327,7 +428,8 @@
         teacherInput.addEventListener('input', function() {
           const searchTerm = this.value.toLowerCase().trim();
           highlightedIndex = -1;
-          
+          updateTeacherValidityIcon();
+
           if (this.value === lastSelectedTeacher) {
             teacherDropdown.style.display = 'none';
             return;
@@ -367,6 +469,7 @@
               lastSelectedTeacher = teacher;
               teacherDropdown.style.display = 'none';
               highlightedIndex = -1;
+              updateTeacherValidityIcon();
               document.getElementById('advisoriesContainer').style.display = 'block';
               document.getElementById('advisoriesPlaceholder').style.display = 'none';
               loadAdvisories();
@@ -406,6 +509,7 @@
             lastSelectedTeacher = selectedTeacher;
             teacherDropdown.style.display = 'none';
             highlightedIndex = -1;
+            updateTeacherValidityIcon();
             document.getElementById('advisoriesContainer').style.display = 'block';
             document.getElementById('advisoriesPlaceholder').style.display = 'none';
             loadAdvisories();
@@ -557,15 +661,24 @@
       document.getElementById('advisoryForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const teacher = document.getElementById('teacher').value;
+        const teacher = document.getElementById('teacher').value.trim();
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = document.getElementById('section').value;
-        
+
         if (!teacher || !gradeLevel || !section) {
           alert('Please fill in all required fields.');
           return;
         }
-        
+
+        // Fast-feedback check against the preloaded teacher list - only enforced
+        // when that list actually loaded (non-empty), so a slow/failed preload
+        // never blocks a legitimate teacher from submitting. The server-side
+        // check in _addAdvisory is the real authority either way.
+        if (allTeachers.length > 0 && !allTeachers.includes(teacher)) {
+          alert('❌ "' + teacher + '" is not a recognized teacher. Please select a teacher from the teachers list.');
+          return;
+        }
+
         // Show loading state
         const submitButton = document.querySelector('button[type="submit"]');
         const originalText = submitButton.textContent;

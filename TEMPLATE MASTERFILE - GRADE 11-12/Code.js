@@ -8,7 +8,7 @@
 
 if (typeof CONFIG !== 'undefined') {
   if (typeof CONFIG.IS_SHS === 'undefined') CONFIG.IS_SHS = false;
-  if (!CONFIG.SHS_DEFAULTS) CONFIG.SHS_DEFAULTS = { STRAND: 'ALL', CATEGORY: 'Core', SEMESTER: '1ST' };
+  if (!CONFIG.SHS_DEFAULTS) CONFIG.SHS_DEFAULTS = { TRACK: 'ALL', CATEGORY: 'Core', TERM: '1ST' };
 }
 
 /**
@@ -79,7 +79,7 @@ function getActiveSubjects() {
  * @param {string} gradeLevel - The grade level to filter by (e.g., "Grade 11" or "11")
  * @return {Array} Array of active subject names for the specified level
  */
-function getActiveSubjectsByLevel(gradeLevel, strandFilter) {
+function getActiveSubjectsByLevel(gradeLevel, trackFilter) {
   try {
     if (!CONFIG.IS_SHS) {
       return getActiveSubjects();
@@ -87,7 +87,7 @@ function getActiveSubjectsByLevel(gradeLevel, strandFilter) {
     
     return callApi("getActiveSubjectsByLevel", {
       gradeLevel: gradeLevel,
-      strandFilter: strandFilter || null
+      trackFilter: trackFilter || null
     });
   } catch (error) {
     console.error('Error getting subjects by level:', error);
@@ -97,7 +97,7 @@ function getActiveSubjectsByLevel(gradeLevel, strandFilter) {
 }
 
 /**
- * Gets subject metadata (Category, Strand, Semester, Level) from SUBJECTS_REF sheet
+ * Gets subject metadata (Category, Track, Term, Level) from SUBJECTS_REF sheet
  * @param {string} subjectName - The subject name to look up
  * @return {Object} Object with subject metadata or null if not found
  */
@@ -107,8 +107,8 @@ function getSubjectMetadata(subjectName) {
       // For non-SHS, return defaults
       return {
         category: CONFIG.SHS_DEFAULTS.CATEGORY,
-        strand: CONFIG.SHS_DEFAULTS.STRAND,
-        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+        track: CONFIG.SHS_DEFAULTS.TRACK,
+        term: CONFIG.SHS_DEFAULTS.TERM,
         level: null
       };
     }
@@ -121,8 +121,8 @@ function getSubjectMetadata(subjectName) {
     // Return defaults on error
     return {
       category: CONFIG.SHS_DEFAULTS.CATEGORY,
-      strand: CONFIG.SHS_DEFAULTS.STRAND,
-      semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+      track: CONFIG.SHS_DEFAULTS.TRACK,
+      term: CONFIG.SHS_DEFAULTS.TERM,
       level: null
     };
   }
@@ -139,8 +139,8 @@ function getSubjectsMetadata(subjectNames) {
       // Return defaults for all subjects if not SHS
       const defaults = {
         category: CONFIG.SHS_DEFAULTS.CATEGORY,
-        strand: CONFIG.SHS_DEFAULTS.STRAND,
-        semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+        track: CONFIG.SHS_DEFAULTS.TRACK,
+        term: CONFIG.SHS_DEFAULTS.TERM,
         level: null
       };
       const result = {};
@@ -158,8 +158,8 @@ function getSubjectsMetadata(subjectNames) {
     // Return defaults for all subjects on error
     const defaults = {
       category: CONFIG.SHS_DEFAULTS.CATEGORY,
-      strand: CONFIG.SHS_DEFAULTS.STRAND,
-      semester: CONFIG.SHS_DEFAULTS.SEMESTER,
+      track: CONFIG.SHS_DEFAULTS.TRACK,
+      term: CONFIG.SHS_DEFAULTS.TERM,
       level: null
     };
     const result = {};
@@ -171,30 +171,30 @@ function getSubjectsMetadata(subjectNames) {
 }
 
 /**
- * Gets metadata (category, semester) for each (subject, strand) pair. Used for SHS when same subject name has multiple strands.
- * @param {Array} subjectStrandPairs - Array of {subject, strand}
- * @return {Array} Array of {subject, strand, category, semester}
+ * Gets metadata (category, term) for each (subject, track) pair. Used for SHS when same subject name has multiple tracks.
+ * @param {Array} subjectTrackPairs - Array of {subject, track}
+ * @return {Array} Array of {subject, track, category, term}
  */
-function getSubjectsMetadataForList(subjectStrandPairs) {
+function getSubjectsMetadataForList(subjectTrackPairs) {
   try {
-    if (!subjectStrandPairs || subjectStrandPairs.length === 0) return [];
+    if (!subjectTrackPairs || subjectTrackPairs.length === 0) return [];
     if (!CONFIG.IS_SHS) {
-      return subjectStrandPairs.map(function(p) {
+      return subjectTrackPairs.map(function(p) {
         return {
           subject: p.subject,
-          strand: p.strand || CONFIG.SHS_DEFAULTS.STRAND,
+          track: p.track || CONFIG.SHS_DEFAULTS.TRACK,
           category: CONFIG.SHS_DEFAULTS.CATEGORY,
-          semester: CONFIG.SHS_DEFAULTS.SEMESTER
+          term: CONFIG.SHS_DEFAULTS.TERM
         };
       });
     }
     return callApi("getSubjectsMetadataForList", {
-      subjectStrandPairs: subjectStrandPairs
+      subjectTrackPairs: subjectTrackPairs
     });
   } catch (error) {
     console.error('Error getting subjects metadata for list:', error);
-    return subjectStrandPairs.map(function(p) {
-      return { subject: p.subject, strand: p.strand || 'ALL', category: CONFIG.SHS_DEFAULTS.CATEGORY, semester: CONFIG.SHS_DEFAULTS.SEMESTER };
+    return subjectTrackPairs.map(function(p) {
+      return { subject: p.subject, track: p.track || 'ALL', category: CONFIG.SHS_DEFAULTS.CATEGORY, term: CONFIG.SHS_DEFAULTS.TERM };
     });
   }
 }
@@ -208,19 +208,19 @@ function getCategories() {
 }
 
 /**
- * Gets all available semesters
- * @return {Array} Array of semester names (empty array if IS_SHS is false)
+ * Gets all available terms
+ * @return {Array} Array of term names (empty array if IS_SHS is false)
  */
-function getSemesters() {
-  return CONFIG.IS_SHS ? Object.values(CONFIG.SEMESTERS) : [];
+function getTerms() {
+  return CONFIG.IS_SHS ? Object.values(CONFIG.TERMS) : [];
 }
 
 /**
- * Gets all available strands (SHS)
- * @return {Array} Array of strand names (empty array if IS_SHS is false)
+ * Gets all available tracks (SHS)
+ * @return {Array} Array of track names (empty array if IS_SHS is false)
  */
-function getStrands() {
-  return CONFIG.IS_SHS ? Object.values(CONFIG.STRANDS) : [];
+function getTracks() {
+  return CONFIG.IS_SHS ? Object.values(CONFIG.TRACKS) : [];
 }
 
 /**
@@ -391,38 +391,21 @@ function getSectionsForGrade(gradeLevel) {
 }
 
 /**
- * Gets the level (Elementary/JHS/SHS) for a specific grade level
- * @param {string} gradeLevel - The grade level to look up
- * @return {string} The level (Elementary, JHS, or SHS)
+ * Gets sections for a grade level that have at least one subject assigned under
+ * a specific track (derived from SUBJECTS, since SECTIONS_REF has no track data)
+ * @param {string} gradeLevel - The grade level
+ * @param {string} track - The track to filter by
+ * @return {Array} Array of section names
  */
-function getLevelForGrade(gradeLevel) {
+function getSectionsForGradeAndTrack(gradeLevel, track) {
   try {
-    // Note: This function is not currently exposed via API, but it's only used server-side
-    // If needed, we can add an API endpoint for it
-    // For now, we'll use a try-catch to handle the case where it's called from web app context
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAMES.SECTIONS_REF);
-    if (!sheet) {
-      throw new Error('SECTIONS_REF sheet not found');
-    }
-    
-    // Normalize the input grade level for comparison
-    const normalizedGradeLevel = normalizeGradeLevel(gradeLevel);
-    
-    const data = sheet.getDataRange().getValues();
-    
-    // Skip 2 header rows (parent header + column headers)
-    for (let i = CONFIG.HEADER_ROWS; i < data.length; i++) {
-      const rowGradeLevel = normalizeGradeLevel(String(data[i][1] || '').trim());
-      if (rowGradeLevel === normalizedGradeLevel && data[i][3]) {
-        return data[i][3];
-      }
-    }
-    
-    // Default to empty string if not found
-    return '';
+    return callApi("getSectionsForGradeAndTrack", {
+      gradeLevel: gradeLevel,
+      track: track
+    });
   } catch (error) {
-    console.error('Error in getLevelForGrade:', error);
-    return '';
+    console.error('Error in getSectionsForGradeAndTrack:', error);
+    return [];
   }
 }
 
@@ -454,21 +437,27 @@ function getActiveItems(sheetName, columnIndex = 0) {
  * @param {Array} subjects - Array of subject names
  * @return {Object} Result object with success status and message
  */
-function generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects) {
+function generateOGSTemplate(schoolYear, gradeLevel, section, teacher, subjects, trackOverride) {
   const userEmail = _getRunningUserEmail();
   console.log(
     "Function generateOGSTemplate executed by: " + (userEmail || '(unknown)')
   );
-  return callApi("generateOGSTemplate", { 
-    schoolYear, 
-    gradeLevel, 
-    section, 
+  return callApi("generateOGSTemplate", {
+    schoolYear,
+    gradeLevel,
+    section,
     teacher,
     subjects,
-    userEmail: userEmail
+    userEmail: userEmail,
+    trackOverride: trackOverride || null
   });
 }
 
+/**
+ * Gets the running user's email safely, with fallback to getEffectiveUser.
+ * Prevents crashes in restricted execution contexts.
+ * @return {string} The user's email, or empty string if not available
+ */
 function _getRunningUserEmail() {
   let email = '';
   try { email = (Session.getActiveUser().getEmail() || '').trim(); } catch (e) {}
@@ -487,21 +476,21 @@ function _getRunningUserEmail() {
  * @param {Array} teachersWithSubjects - Array of objects with {teacher: string, subjects: Array}
  * @return {Object} Result object with success status and message
  */
-function generateOGSTemplatesBatch(schoolYear, gradeLevel, section, teachersWithSubjects) {
+function generateOGSTemplatesBatch(schoolYear, gradeLevel, section, teachersWithSubjects, trackOverride) {
   const userEmail = _getRunningUserEmail();
   console.log("Function generateOGSTemplatesBatch executed by: " + (userEmail || '(unknown)'));
-  
+
   if (!teachersWithSubjects || teachersWithSubjects.length === 0) {
     return {
       success: false,
       message: "No teachers selected"
     };
   }
-  
+
   const results = [];
   let successCount = 0;
   let failureCount = 0;
-  
+
   for (let i = 0; i < teachersWithSubjects.length; i++) {
     const item = teachersWithSubjects[i];
     const result = generateOGSTemplate(
@@ -509,7 +498,8 @@ function generateOGSTemplatesBatch(schoolYear, gradeLevel, section, teachersWith
       gradeLevel,
       section,
       item.teacher,
-      item.subjects
+      item.subjects,
+      trackOverride
     );
     
     results.push({
@@ -524,21 +514,25 @@ function generateOGSTemplatesBatch(schoolYear, gradeLevel, section, teachersWith
     }
   }
   
+  // Build one line per failed teacher with their actual reason (e.g. "template
+  // already exists", "not an active teacher", "no ATTENDANCE_REF data") instead
+  // of just naming who failed - the per-teacher result.message from
+  // generateOGSTemplate already has this detail. Previously only the FIRST
+  // failed teacher's reason was shown, tacked onto the full name list, which
+  // wrongly implied every failed teacher shared that one cause.
+  const failureLines = results
+    .filter(r => !r.result.success)
+    .map(r => `- ${r.teacher}: ${r.result.message}`);
+
   let message = '';
-  const failedResults = results.filter(r => !r.result.success);
-  const reason = failedResults.length > 0 && failedResults[0].result.message
-    ? failedResults[0].result.message
-    : '';
   if (successCount > 0 && failureCount === 0) {
     message = `Successfully generated ${successCount} template(s)`;
   } else if (successCount > 0 && failureCount > 0) {
-    message = `Generated ${successCount} template(s), ${failureCount} failed. ${reason}`;
+    message = `Generated ${successCount} template(s), ${failureCount} failed:\n${failureLines.join('\n')}`;
   } else {
-    message = reason
-      ? `Failed to generate templates: ${results.map(r => r.teacher).join(', ')}. ${reason}`
-      : `Failed to generate templates: ${results.map(r => r.teacher).join(', ')}`;
+    message = `Failed to generate templates:\n${failureLines.join('\n')}`;
   }
-  
+
   return {
     success: failureCount === 0,
     message: message,
@@ -552,21 +546,21 @@ function generateOGSTemplatesBatch(schoolYear, gradeLevel, section, teachersWith
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
  * @param {string} subject - The subject name
- * @param {string} strand - The strand (ALL, STEM, HUMSS, ICT, ABM, GAS)
+ * @param {string} track - The track (ALL, STEM, HUMSS, ICT, ABM, GAS)
  * @param {string} category - The category (Core, Specialized)
- * @param {string} semester - The semester (1ST, 2ND)
+ * @param {string} term - The term (1ST, 2ND, 3RD)
  * @return {Object} Result object with success status
  */
-function addAssignment(gradeLevel, section, teacher, subject, strand, category, semester) {
+function addAssignment(gradeLevel, section, teacher, subject, track, category, term) {
   const userEmail = Session.getActiveUser().getEmail();
   return callApi("addAssignment", {
     gradeLevel,
     section,
     teacher,
     subject,
-    strand: strand || CONFIG.SHS_DEFAULTS.STRAND,
+    track: track || CONFIG.SHS_DEFAULTS.TRACK,
     category: category || CONFIG.SHS_DEFAULTS.CATEGORY,
-    semester: semester || CONFIG.SHS_DEFAULTS.SEMESTER,
+    term: term || CONFIG.SHS_DEFAULTS.TERM,
     userEmail: userEmail
   });
 }
@@ -576,7 +570,7 @@ function addAssignment(gradeLevel, section, teacher, subject, strand, category, 
  * @param {string} gradeLevel - The grade level
  * @param {string} section - The section
  * @param {string} teacher - The teacher name
- * @param {Array} subjects - Array of subject objects with {subject, strand, category, semester}
+ * @param {Array} subjects - Array of subject objects with {subject, track, category, term}
  * @return {Object} Result object with success status and counts
  */
 function addSubjectsBatch(gradeLevel, section, teacher, subjects) {
@@ -692,7 +686,11 @@ function deleteAdvisoriesBatch(advisories) {
  * @return {Array} Array of school year sheet names (e.g., ["2024-2025", "2023-2024"])
  */
 function getSchoolYears() {
-  return callApi("getSchoolYears", {});
+  //EBA changed calling var
+  //return callApi("getSchoolYears", {});
+
+  return _getSchoolYears();
+
 }
 
 function showWorkingInstructions() {

@@ -344,6 +344,18 @@
         user-select: none;
       }
 
+      .subject-checkbox.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      .subject-checkbox.disabled label::after {
+        content: " (already assigned)";
+        font-size: 11px;
+        color: #999;
+        font-style: italic;
+      }
+
       .autocomplete-dropdown {
         position: absolute;
         top: 100%;
@@ -390,6 +402,36 @@
       .form-group-autocomplete {
         position: relative;
       }
+
+      .teacher-input-wrapper {
+        position: relative;
+      }
+
+      .teacher-validity-icon {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        line-height: 1;
+        pointer-events: none;
+        display: none;
+      }
+
+      .teacher-validity-icon.valid {
+        display: block;
+        color: #28a745;
+      }
+
+      .teacher-validity-icon.invalid {
+        display: block;
+        color: #dc3545;
+      }
+
+      /* Reserve room so the icon never overlaps typed text */
+      #teacher {
+        padding-right: 40px;
+      }
     </style>
   </head>
   <body>
@@ -425,14 +467,17 @@
               <label class="form-label" for="teacher">
                 Teacher <span style="color: #e74c3c;">*</span>
               </label>
-              <input
-                type="text"
-                id="teacher"
-                class="form-control"
-                placeholder="Type to search teacher..."
-                autocomplete="off"
-                required
-              />
+              <div class="teacher-input-wrapper">
+                <input
+                  type="text"
+                  id="teacher"
+                  class="form-control"
+                  placeholder="Type to search teacher..."
+                  autocomplete="off"
+                  required
+                />
+                <span id="teacherValidityIcon" class="teacher-validity-icon">✓</span>
+              </div>
               <div id="teacherDropdown" class="autocomplete-dropdown" style="display: none;"></div>
             </div>
 
@@ -452,9 +497,22 @@
 
         <!-- Middle Section: Subjects Selection -->
         <div class="subjects-selection-section">
-          <label class="form-label" style="margin-bottom: 10px; flex-shrink: 0;">
-            Subjects <span style="color: #e74c3c;">*</span>
+          <label class="form-label" style="margin-bottom: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;">
+            <span>Subjects <span style="color: #e74c3c;">*</span></span>
+            <span id="subjectsSelectedCount" style="color: #6c757d; font-weight: normal; font-size: 13px;">0 selected</span>
           </label>
+          <input
+            type="text"
+            id="subjectSearch"
+            class="form-control"
+            placeholder="Search subjects..."
+            autocomplete="off"
+            style="margin-bottom: 10px; flex-shrink: 0;"
+          />
+          <div class="select-all-container" style="margin-bottom: 8px; flex-shrink: 0;">
+            <input type="checkbox" id="selectAllSubjectsCheckbox" onchange="toggleSelectAllSubjects()">
+            <label for="selectAllSubjectsCheckbox">Select All</label>
+          </div>
           <div id="subjectsCheckboxesContainer" class="subjects-container" style="flex: 1; min-height: 0;">
             <p style="text-align: center; color: #6c757d; margin: 0;">Loading subjects...</p>
           </div>
@@ -499,14 +557,27 @@
 
       document.addEventListener('DOMContentLoaded', function() {
         loadInitialData();
-        
+
         document.getElementById('gradeLevel').addEventListener('change', function() {
           loadSections(this.value);
           loadSubjects();
         });
-        
+
         document.getElementById('section').addEventListener('change', function() {
           loadSubjects();
+        });
+
+        document.getElementById('subjectSearch').addEventListener('input', function() {
+          filterSubjectsBySearch(this.value);
+        });
+
+        // Event delegation - the subject checkboxes are all created once in
+        // loadInitialData and never rebuilt, so this single listener on the
+        // container covers every one of them without needing per-checkbox binding.
+        document.getElementById('subjectsCheckboxesContainer').addEventListener('change', function(e) {
+          if (e.target && e.target.name === 'subjects') {
+            updateSubjectsSelectedCount();
+          }
         });
       });
 
@@ -545,16 +616,19 @@
             });
             subjectsCheckboxesContainer.innerHTML = '';
             subjectsCheckboxesContainer.appendChild(subjectsFragment);
-            
+            updateSubjectsSelectedCount();
+
             // Load all teachers for autocomplete
             google.script.run
               .withSuccessHandler(function(teacherList) {
                 allTeachers = teacherList || [];
                 setupTeacherAutocomplete();
+                updateTeacherValidityIcon();
               })
               .withFailureHandler(function(error) {
                 console.error('Error loading teachers:', error);
                 allTeachers = [];
+                updateTeacherValidityIcon();
               })
               .getTeachers();
           })
@@ -562,6 +636,75 @@
             alert('Error loading data: ' + error.toString());
           })
           .getAllDropdownData();
+      }
+
+      // Filters the (already-rendered, never-rebuilt) subject checkboxes by
+      // show/hide rather than regenerating them, since loadInitialData builds
+      // every checkbox once up front and checked state should survive typing.
+      function filterSubjectsBySearch(searchTerm) {
+        const term = searchTerm.trim().toLowerCase();
+        document.querySelectorAll('#subjectsCheckboxesContainer .subject-checkbox').forEach(function(row) {
+          const checkbox = row.querySelector('input[type="checkbox"]');
+          const matches = !term || checkbox.value.toLowerCase().includes(term);
+          row.style.display = matches ? '' : 'none';
+        });
+        updateSubjectsSelectedCount();
+      }
+
+      function updateSubjectsSelectedCount() {
+        const countEl = document.getElementById('subjectsSelectedCount');
+        const checkedCount = document.querySelectorAll('#subjectsCheckboxesContainer input[name="subjects"]:checked').length;
+        if (countEl) countEl.textContent = checkedCount + ' selected';
+
+        // Keep the Select All checkbox in sync: checked only when every currently
+        // visible, selectable (non-disabled) subject is checked.
+        const selectAllCheckbox = document.getElementById('selectAllSubjectsCheckbox');
+        if (selectAllCheckbox) {
+          const visibleRows = Array.from(document.querySelectorAll('#subjectsCheckboxesContainer .subject-checkbox'))
+            .filter(row => row.style.display !== 'none');
+          const selectable = visibleRows
+            .map(row => row.querySelector('input[name="subjects"]'))
+            .filter(cb => cb && !cb.disabled);
+          const selectableChecked = selectable.filter(cb => cb.checked).length;
+          selectAllCheckbox.checked = selectable.length > 0 && selectableChecked === selectable.length;
+        }
+      }
+
+      // Selects/deselects every currently visible (respects the search filter)
+      // and selectable (not already-assigned/disabled) subject checkbox.
+      function toggleSelectAllSubjects() {
+        const selectAllCheckbox = document.getElementById('selectAllSubjectsCheckbox');
+        document.querySelectorAll('#subjectsCheckboxesContainer .subject-checkbox').forEach(function(row) {
+          if (row.style.display === 'none') return; // respect the current search filter
+          const checkbox = row.querySelector('input[name="subjects"]');
+          if (checkbox && !checkbox.disabled) {
+            checkbox.checked = selectAllCheckbox.checked;
+          }
+        });
+        updateSubjectsSelectedCount();
+      }
+
+      // Shows a live checkmark (exact match in allTeachers) or X (non-empty, no
+      // match) next to the Teacher field, so an invalid/mistyped name is obvious
+      // before the user reaches Add Subject - purely a visual signal layered on
+      // top of the existing client-side and server-side validation, not a
+      // replacement for either.
+      function updateTeacherValidityIcon() {
+        const icon = document.getElementById('teacherValidityIcon');
+        const teacherInput = document.getElementById('teacher');
+        if (!icon || !teacherInput) return;
+        const value = teacherInput.value.trim();
+        icon.classList.remove('valid', 'invalid');
+        if (!value || allTeachers.length === 0) {
+          return; // empty field, or list not loaded yet - show nothing either way
+        }
+        if (allTeachers.includes(value)) {
+          icon.textContent = '✓';
+          icon.classList.add('valid');
+        } else {
+          icon.textContent = '✗';
+          icon.classList.add('invalid');
+        }
       }
 
       // Setup teacher autocomplete functionality
@@ -572,7 +715,8 @@
         teacherInput.addEventListener('input', function() {
           const searchTerm = this.value.toLowerCase().trim();
           highlightedIndex = -1;
-          
+          updateTeacherValidityIcon();
+
           if (searchTerm === '' || allTeachers.length === 0) {
             teacherDropdown.style.display = 'none';
             return;
@@ -602,6 +746,7 @@
               teacherInput.value = teacher;
               teacherDropdown.style.display = 'none';
               highlightedIndex = -1;
+              updateTeacherValidityIcon();
             });
             teacherDropdown.appendChild(item);
           });
@@ -685,6 +830,22 @@
           .getSectionsForGrade(gradeLevel);
       }
 
+      function syncSubjectCheckboxes(assignedSubjects) {
+        const assignedSet = new Set(assignedSubjects);
+        document.querySelectorAll('#subjectsCheckboxesContainer .subject-checkbox').forEach(function(row) {
+          const checkbox = row.querySelector('input[type="checkbox"]');
+          if (assignedSet.has(checkbox.value)) {
+            checkbox.checked = false;
+            checkbox.disabled = true;
+            row.classList.add('disabled');
+          } else {
+            checkbox.disabled = false;
+            row.classList.remove('disabled');
+          }
+        });
+        updateSubjectsSelectedCount();
+      }
+
       function loadSubjects() {
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = document.getElementById('section').value;
@@ -699,6 +860,7 @@
           if (container) container.style.display = 'none';
           if (placeholder) placeholder.style.display = 'flex';
           if (divider2) divider2.style.display = 'none';
+          syncSubjectCheckboxes([]);
           return;
         }
         
@@ -751,6 +913,10 @@
             });
             if (listDiv) listDiv.innerHTML = html;
             
+            // Sync subject checkboxes — gray out already-assigned subjects
+            const assignedSubjectNames = subjects.map(function(a) { return a.subject; });
+            syncSubjectCheckboxes(assignedSubjectNames);
+
             // Reset select all checkbox and count
             const selectAllCheckbox = document.getElementById('selectAllCheckbox');
             if (selectAllCheckbox) selectAllCheckbox.checked = false;
@@ -856,17 +1022,26 @@
         
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = document.getElementById('section').value;
-        const teacher = document.getElementById('teacher').value;
-        
+        const teacher = document.getElementById('teacher').value.trim();
+
+        // Fast-feedback check against the preloaded teacher list - only enforced
+        // when that list actually loaded (non-empty), so a slow/failed preload
+        // never blocks a legitimate teacher from submitting. The server-side
+        // check in _addAssignment/_addSubjectsBatch is the real authority either way.
+        if (allTeachers.length > 0 && !allTeachers.includes(teacher)) {
+          alert('❌ "' + teacher + '" is not a recognized teacher. Please select a teacher from the teachers list.');
+          return;
+        }
+
         // Get selected subjects
         const checkboxes = document.querySelectorAll('input[name="subjects"]:checked');
         const selectedSubjects = Array.from(checkboxes).map(cb => cb.value);
-        
+
         if (selectedSubjects.length === 0) {
           alert('Please select at least one subject.');
           return;
         }
-        
+
         // Disable submit button
         const submitBtn = document.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
@@ -885,6 +1060,11 @@
               alert(`✅ ${result.message}`);
               document.getElementById('assignmentForm').reset();
               document.getElementById('section').disabled = true;
+              // subjectSearch lives outside <form>, so .reset() above doesn't
+              // touch it - clear it explicitly since loadInitialData below
+              // rebuilds the checkbox list unfiltered either way.
+              const subjectSearchInput = document.getElementById('subjectSearch');
+              if (subjectSearchInput) subjectSearchInput.value = '';
               // Reload subjects checkboxes
               loadInitialData();
               loadSubjects();

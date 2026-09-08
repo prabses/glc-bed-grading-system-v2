@@ -13,12 +13,19 @@ function onOpen() {
     .addItem("Import OGS Template", "showImportOGSTemplateDialog")
     .addItem("Update Student Grades", "showUpdateGradesDialog")
     .addItem("Update Student Character", "showUpdateCharacterDialog")
+    .addItem("Update Student Attendance", "showUpdateAttendanceDialog")
     .addToUi();
 
   ui.createMenu("Export for SRMS")
     .addItem("Export Student Grades", "showExportGradesDialog")
-    .addItem("Export Student Characters", "showExportCharactersDialog")
+    // .addItem("Export Student Characters", "showExportCharactersDialog")
     .addToUi();
+
+  // ui.createMenu("Setup")
+  //   .addItem("Update Transmutation Formulas", "updateGradesDBTransmutation")
+  //   .addItem("Migrate Character DB to Trimester Layout", "migrateCharacterDBToTrimester")
+  //   .addItem("Migrate Grades DB - Add Parent Subject Column", "migrateGradesDBAddParentSubject")
+  //   .addToUi();
 
   ui.createMenu("Manual")
     .addItem("Open Working Instruction", "showWorkingInstructions")
@@ -70,18 +77,28 @@ function importOGSTemplate(ogsTemplateUrl, academicYearSheet, spreadsheetId) {
   }
 
   let sheetNames = [];
+  let ogsSpreadsheetId = '';
+  let ogsSpreadsheetName = '';
   try {
-    const ogsSpreadsheetId = extractSpreadsheetId(trimmedUrl);
+    ogsSpreadsheetId = extractSpreadsheetId(trimmedUrl);
     const ogsSpreadsheet = SpreadsheetApp.openById(ogsSpreadsheetId);
+    ogsSpreadsheetName = ogsSpreadsheet.getName();
     sheetNames = ogsSpreadsheet.getSheets().map(function(s) { return s.getName(); });
   } catch (error) {
     const errMsg = error.message || error.toString();
     return { success: false, message: "Could not open OGS template. " + errMsg };
   }
 
+  const sourceCheck = _validateOGSTemplateSource(ogsSpreadsheetId, ogsSpreadsheetName);
+  if (!sourceCheck.valid) {
+    return { success: false, message: sourceCheck.message };
+  }
+
   const hasCharacter = sheetNames.indexOf("Character") >= 0;
+  const hasAttendance = sheetNames.indexOf("Attendance") >= 0;
   let gradesMsg = '';
   let characterMsg = '';
+  let attendanceMsg = '';
   let gradesOk = false;
   let characterOk = false;
   let gradesResult = null;
@@ -114,26 +131,42 @@ function importOGSTemplate(ogsTemplateUrl, academicYearSheet, spreadsheetId) {
     characterMsg = "Not in template.";
   }
 
+  if (hasAttendance && CONFIG.ATTENDANCE_DB_SHEET_URL) {
+    try {
+      const msg = callApi("importAttendance", { ogsTemplateUrl: trimmedUrl, academicYearSheet: academicYearSheet });
+      if (msg && msg.success !== false) {
+        attendanceMsg = msg.message || "Imported successfully.";
+      } else {
+        attendanceMsg = "Failed. " + (msg && msg.message ? msg.message : "Unknown error.");
+      }
+    } catch (error) {
+      attendanceMsg = "Failed. " + (error.message || error.toString());
+    }
+  } else {
+    attendanceMsg = "Not in template.";
+  }
+
   const allOk = gradesOk && (!hasCharacter || characterOk);
   const gradeLevel = gradesOk && gradesResult ? (gradesResult.gradeLevel || '') : '';
   const section = gradesOk && gradesResult ? (gradesResult.section || '') : '';
-  const semester = (gradesOk && gradesResult && gradesResult.semester) ? gradesResult.semester : 'N/A';
-  const strand = (gradesOk && gradesResult && gradesResult.strand) ? gradesResult.strand : 'N/A';
+  const term = (gradesOk && gradesResult && gradesResult.term) ? gradesResult.term : 'N/A';
+  const track = (gradesOk && gradesResult && gradesResult.track) ? gradesResult.track : 'N/A';
   const teacher = gradesOk && gradesResult ? (gradesResult.teacher || '') : '';
-  logImport(trimmedUrl, academicYearSheet, userEmail, gradeLevel, section, semester, strand, teacher, spreadsheetId);
+  logImport(trimmedUrl, academicYearSheet, userEmail, gradeLevel, section, term, track, teacher, spreadsheetId);
   return {
     success: allOk,
     gradesMessage: gradesMsg,
-    characterMessage: characterMsg
+    characterMessage: characterMsg,
+    attendanceMessage: attendanceMsg
   };
 }
 
 /**
- * Returns semester options from config (for Update Grades dialog)
+ * Returns term options from config (for Update Grades / Import dialogs)
  * @return {Array<string>}
  */
-function getSemesterOptions() {
-  return CONFIG.SEMESTERS ? Object.values(CONFIG.SEMESTERS) : [];
+function getTerms() {
+  return CONFIG.TERMS ? Object.values(CONFIG.TERMS) : [];
 }
 
 /**
@@ -154,6 +187,14 @@ function showUpdateCharacterDialog() {
     .setHeight(700)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Update Student Character");
+}
+
+function showUpdateAttendanceDialog() {
+  const htmlOutput = HtmlService.createHtmlOutputFromFile("UpdateAttendanceDialog")
+    .setWidth(1100)
+    .setHeight(700)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Update Student Attendance");
 }
 
 function _getCharacterSpreadsheet() {
@@ -259,7 +300,7 @@ function getCharacterInfo(studentNumber, academicYearSheet, section, trait) {
   return _callCharacterApi("getCharacterInfo", { studentNumber: studentNumber, academicYearSheet: academicYearSheet, section: section, trait: trait });
 }
 
-function updateCharacter(studentNumber, academicYearSheet, section, trait, firstGrade, secondGrade, thirdGrade, fourthGrade, remarks) {
+function updateCharacter(studentNumber, academicYearSheet, section, trait, firstGrade, secondGrade, thirdGrade, remarks) {
   const userEmail = Session.getActiveUser().getEmail();
   return _callCharacterApi("updateCharacter", {
     studentNumber: studentNumber,
@@ -269,10 +310,107 @@ function updateCharacter(studentNumber, academicYearSheet, section, trait, first
     firstGrade: firstGrade,
     secondGrade: secondGrade,
     thirdGrade: thirdGrade,
-    fourthGrade: fourthGrade,
     remarks: remarks,
     userEmail: userEmail
   });
+}
+
+// ---------------------------------------------------------------------------
+// ATTENDANCE DB helpers
+// ---------------------------------------------------------------------------
+
+function _getAttendanceSpreadsheet() {
+  const url = CONFIG.ATTENDANCE_DB_SHEET_URL;
+  if (!url) return null;
+  try {
+    return SpreadsheetApp.openById(extractSpreadsheetId(url));
+  } catch (e) {
+    return null;
+  }
+}
+
+function getAttendanceStudentSheets() {
+  const spreadsheet = _getAttendanceSpreadsheet();
+  if (!spreadsheet) return [];
+  const sheets = spreadsheet.getSheets();
+  const yearPattern = /^\d{4}-\d{4}$/;
+  const sheetNames = [];
+  for (let i = 0; i < sheets.length; i++) {
+    const name = sheets[i].getName().trim();
+    if (yearPattern.test(name)) sheetNames.push(name);
+  }
+  return sheetNames;
+}
+
+function getAttendanceStudentNumbers(academicYearSheet) {
+  if (!academicYearSheet) return [];
+  const spreadsheet = _getAttendanceSpreadsheet();
+  if (!spreadsheet) return [];
+  const targetSheet = spreadsheet.getSheetByName(academicYearSheet);
+  if (!targetSheet || targetSheet.getLastRow() < 2) return [];
+  const lastRow = targetSheet.getLastRow();
+  const data = targetSheet.getRange(2, 1, lastRow, 1).getValues();
+  const formulas = targetSheet.getRange(2, 1, lastRow, 1).getFormulas();
+  const unique = new Set();
+  for (let i = 0; i < data.length; i++) {
+    if (formulas[i][0] && typeof formulas[i][0] === 'string' && formulas[i][0].includes('HYPERLINK')) continue;
+    const sn = String(data[i][0] || '').trim();
+    if (sn) unique.add(sn);
+  }
+  return Array.from(unique).sort();
+}
+
+function getAttendanceSections(academicYearSheet, studentNumber) {
+  if (!academicYearSheet || !studentNumber) return [];
+  const spreadsheet = _getAttendanceSpreadsheet();
+  if (!spreadsheet) return [];
+  const targetSheet = spreadsheet.getSheetByName(academicYearSheet);
+  if (!targetSheet || targetSheet.getLastRow() < 2) return [];
+  const lastRow = targetSheet.getLastRow();
+  const data = targetSheet.getRange(2, 1, lastRow, 4).getValues();
+  const formulas = targetSheet.getRange(2, 1, lastRow, 1).getFormulas();
+  const unique = new Set();
+  const sn = studentNumber.toString().trim();
+  for (let i = 0; i < data.length; i++) {
+    if (formulas[i][0] && typeof formulas[i][0] === 'string' && formulas[i][0].includes('HYPERLINK')) continue;
+    if (String(data[i][0] || '').trim() === sn) {
+      const sec = String(data[i][3] || '').trim();
+      if (sec) unique.add(sec);
+    }
+  }
+  return Array.from(unique).sort();
+}
+
+function getAttendanceMonths(academicYearSheet, studentNumber, section) {
+  if (!academicYearSheet || !studentNumber || !section) return [];
+  const spreadsheet = _getAttendanceSpreadsheet();
+  if (!spreadsheet) return [];
+  const targetSheet = spreadsheet.getSheetByName(academicYearSheet);
+  if (!targetSheet || targetSheet.getLastRow() < 2) return [];
+  const lastRow = targetSheet.getLastRow();
+  const data = targetSheet.getRange(2, 1, lastRow, 6).getValues();
+  const formulas = targetSheet.getRange(2, 1, lastRow, 1).getFormulas();
+  const sn = studentNumber.toString().trim();
+  const sec = section.toString().trim();
+  const ordered = [];
+  const seen = new Set();
+  for (let i = 0; i < data.length; i++) {
+    if (formulas[i][0] && typeof formulas[i][0] === 'string' && formulas[i][0].includes('HYPERLINK')) continue;
+    if (String(data[i][0] || '').trim() === sn && String(data[i][3] || '').trim() === sec) {
+      const month = String(data[i][5] || '').trim();
+      if (month && !seen.has(month)) { seen.add(month); ordered.push(month); }
+    }
+  }
+  return ordered;
+}
+
+function getAttendanceInfo(studentNumber, academicYearSheet, section, month) {
+  return callApi("getAttendanceInfo", { studentNumber, academicYearSheet, section, month });
+}
+
+function updateAttendance(studentNumber, academicYearSheet, section, month, schoolDays, daysPresent, remarks) {
+  const userEmail = Session.getActiveUser().getEmail();
+  return callApi("updateAttendance", { studentNumber, academicYearSheet, section, month, schoolDays, daysPresent, remarks, userEmail });
 }
 
 /**
@@ -827,11 +965,10 @@ function exportGrades(academicYearSheet, gradeLevel, section, subject) {
           data[i][2] || '', // Grade Level
           data[i][3] || '', // Section
           data[i][4] || '', // Subject
-          data[i][7] || '', // Teacher
-          data[i][9] || '', // 1st Transmuted
-          data[i][12] || '', // 2nd Transmuted
-          data[i][15] || '', // 3rd Transmuted
-          data[i][18] || ''  // 4th Transmuted
+          data[i][8] || '', // Teacher
+          data[i][10] || '', // 1st Transmuted
+          data[i][13] || '', // 2nd Transmuted
+          data[i][16] || ''  // 3rd Transmuted
         ]);
       }
     }
@@ -848,8 +985,7 @@ function exportGrades(academicYearSheet, gradeLevel, section, subject) {
       'Teacher',
       '1st Transmuted',
       '2nd Transmuted',
-      '3rd Transmuted',
-      '4th Transmuted'
+      '3rd Transmuted'
     ];
     
     const csvRows = [headers];
@@ -953,4 +1089,19 @@ function showWorkingInstructions() {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Working Instructions");
+}
+
+/**
+ * Rebuilds transmutation ARRAYFORMULA columns across all academic year tabs.
+ * Reads values from the TRANSMUTATION_REF sheet (created automatically if missing).
+ * Run this from Setup > Update Transmutation Formulas after editing the TRANSMUTATION_REF sheet.
+ */
+function updateGradesDBTransmutation() {
+  const result = _updateGradesDBTransmutation();
+  const ui = SpreadsheetApp.getUi();
+  if (result.success) {
+    ui.alert('Done', result.message, ui.ButtonSet.OK);
+  } else {
+    ui.alert('Error', result.message, ui.ButtonSet.OK);
+  }
 }

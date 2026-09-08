@@ -355,19 +355,19 @@
               </select>
             </div>
 
-            <div id="strandSemesterGroup" class="form-group">
-              <label class="form-label" for="strandFilter">Filter by Strand &amp; Semester <span class="required">*</span></label>
+            <div id="trackTermGroup" class="form-group">
+              <label class="form-label" for="trackFilter">Filter by Track &amp; Term <span class="required">*</span></label>
               <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 120px;">
-                  <label for="strandFilter" style="font-size: 12px; color: #6c757d;">Strand <span class="required">*</span></label>
-                  <select id="strandFilter" class="form-control">
-                    <option value="">Select strand...</option>
+                  <label for="trackFilter" style="font-size: 12px; color: #6c757d;">Track <span class="required">*</span></label>
+                  <select id="trackFilter" class="form-control">
+                    <option value="">Select track...</option>
                   </select>
                 </div>
                 <div style="flex: 1; min-width: 120px;">
-                  <label for="semesterFilter" style="font-size: 12px; color: #6c757d;">Semester <span class="required">*</span></label>
-                  <select id="semesterFilter" class="form-control">
-                    <option value="">Select semester...</option>
+                  <label for="termFilter" style="font-size: 12px; color: #6c757d;">Term <span class="required">*</span></label>
+                  <select id="termFilter" class="form-control">
+                    <option value="">Select term...</option>
                   </select>
                 </div>
               </div>
@@ -400,7 +400,7 @@
               >
                 Cancel
               </button>
-              <button type="submit" class="btn btn-primary" id="submitBtn">
+              <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
                 Generate Template
               </button>
             </div>
@@ -432,10 +432,10 @@
       let subjects = [];
       let teachers = [];
       let filteredTeachers = []; // Filtered teachers based on grade/section
-      let teacherSubjectsMap = {}; // Map of teacher -> array of { subject, strand, category, semester }
+      let teacherSubjectsMap = {}; // Map of teacher -> array of { subject, track, category, term }
       let isSHS = false;
-      let strands = [];
-      let semesters = [];
+      let tracks = [];
+      let terms = [];
 
       // Populate dropdowns when page loads - OPTIMIZED: Load all at once
       document.addEventListener('DOMContentLoaded', function() {
@@ -496,16 +496,23 @@
             gradeSelect.innerHTML = '';
             gradeSelect.appendChild(gradeFragment);
             
-            const strandGroup = document.getElementById('strandSemesterGroup');
-            if (strandGroup) strandGroup.style.display = isSHS ? 'block' : 'none';
+            const trackGroup = document.getElementById('trackTermGroup');
+            if (trackGroup) trackGroup.style.display = isSHS ? 'block' : 'none';
             if (typeof updateSectionVisibility === 'function') updateSectionVisibility();
             if (isSHS) {
-              google.script.run.withSuccessHandler(function(strandList) {
-                strands = strandList || [];
-                const sel = document.getElementById('strandFilter');
+              google.script.run.withSuccessHandler(function(trackList) {
+                // "ALL" is kept as a dropdown option - selecting it triggers the bulk
+                // generate-every-section-at-once mode (see updateSectionVisibility,
+                // loadTeachersForSection(gradeLevel, 'ALL'), and allSectionsMode in
+                // _generateOGSTemplate). Separately, a teacher's ALL-track subjects
+                // are also merged into whatever specific track you pick instead
+                // (see getFilteredAssignmentsForTeacher) - these are two different
+                // uses of "ALL" that both need to keep working.
+                tracks = trackList || [];
+                const sel = document.getElementById('trackFilter');
                 if (sel) {
-                  sel.innerHTML = '<option value="">Select strand...</option>';
-                  strands.forEach(function(s) {
+                  sel.innerHTML = '<option value="">Select track...</option>';
+                  tracks.forEach(function(s) {
                     const opt = document.createElement('option');
                     opt.value = s;
                     opt.textContent = s;
@@ -513,20 +520,20 @@
                   });
                 }
                 if (typeof updateSectionVisibility === 'function') updateSectionVisibility();
-              }).getStrands();
-              google.script.run.withSuccessHandler(function(semesterList) {
-                semesters = semesterList || [];
-                const sel = document.getElementById('semesterFilter');
+              }).getTracks();
+              google.script.run.withSuccessHandler(function(termList) {
+                terms = termList || [];
+                const sel = document.getElementById('termFilter');
                 if (sel) {
-                  sel.innerHTML = '<option value="">Select semester...</option>';
-                  semesters.forEach(function(s) {
+                  sel.innerHTML = '<option value="">Select term...</option>';
+                  terms.forEach(function(s) {
                     const opt = document.createElement('option');
                     opt.value = s;
                     opt.textContent = s;
                     sel.appendChild(opt);
                   });
                 }
-              }).getSemesters();
+              }).getTerms();
             }
           })
           .withFailureHandler(function(error) {
@@ -539,13 +546,13 @@
       function updateSectionVisibility() {
         const sectionGroup = document.getElementById('sectionGroup');
         const sectionSelect = document.getElementById('section');
-        const strandVal = document.getElementById('strandFilter') ? document.getElementById('strandFilter').value : '';
+        const trackVal = document.getElementById('trackFilter') ? document.getElementById('trackFilter').value : '';
         const teachersPlaceholder = document.getElementById('teachersPlaceholder');
-        const hideSection = isSHS && (strandVal === '' || strandVal === 'ALL');
+        const hideSection = isSHS && (trackVal === '' || trackVal === 'ALL');
         if (hideSection) {
           if (sectionGroup) sectionGroup.style.display = 'none';
           sectionSelect.removeAttribute('required');
-          if (teachersPlaceholder) teachersPlaceholder.textContent = strandVal === 'ALL' ? 'Select grade level first...' : 'Select grade level and strand first...';
+          if (teachersPlaceholder) teachersPlaceholder.textContent = trackVal === 'ALL' ? 'Select grade level first...' : 'Select grade level and track first...';
         } else {
           if (sectionGroup) sectionGroup.style.display = 'block';
           sectionSelect.setAttribute('required', 'required');
@@ -553,55 +560,31 @@
         }
       }
 
-      document.getElementById('strandFilter').addEventListener('change', function() {
-        updateSectionVisibility();
-        const gradeLevel = document.getElementById('gradeLevel').value;
-        if (isSHS && this.value === 'ALL' && gradeLevel) {
-          loadTeachersForSection(gradeLevel, 'ALL');
-        } else {
-          updateSubjectsDisplay();
-        }
-      });
-      document.getElementById('semesterFilter').addEventListener('change', function() { updateSubjectsDisplay(); });
-
-      // Handle grade level change - load sections
-      document.getElementById('gradeLevel').addEventListener('change', function() {
-        const gradeLevel = this.value;
+      // Loads the Section dropdown's options for a grade level, optionally
+      // narrowed to sections that have at least one subject assigned under a
+      // specific track (see _getSectionsForGradeAndTrack - SECTIONS_REF itself
+      // has no track data, so this is derived from SUBJECTS instead). Called on
+      // both Grade Level change and Track change, since either can affect which
+      // sections should be offered.
+      function loadSections(gradeLevel, track) {
         const sectionSelect = document.getElementById('section');
-        const subjectsInfoDiv = document.getElementById('subjectsInfo');
-        const subjectsPlaceholder = document.getElementById('subjectsPlaceholder');
-        const divider = document.getElementById('divider1');
-        
-        teacherSubjectsMap = {};
-        if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'none';
-        if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'flex';
-        if (divider) divider.style.display = 'none';
-        const teachersContainer = document.getElementById('teachersContainer');
-        const teachersPlaceholder = document.getElementById('teachersPlaceholder');
-        if (teachersContainer) teachersContainer.style.display = 'none';
-        if (teachersPlaceholder) teachersPlaceholder.textContent = 'Select grade level and section first...';
-        filteredTeachers = [];
-        
-        const teachersList = document.getElementById('teachersList');
-        if (teachersList) teachersList.innerHTML = '';
-        
+
         if (!gradeLevel) {
           sectionSelect.innerHTML = '<option value="">Select grade level first...</option>';
           sectionSelect.disabled = true;
           return;
         }
-        
-        // Show loading state
+
         sectionSelect.innerHTML = '<option value="">Loading sections...</option>';
         sectionSelect.disabled = true;
-        
-        // Load sections for the selected grade level
-        google.script.run
+
+        const useTrackFilter = isSHS && track && track !== 'ALL';
+
+        const run = google.script.run
           .withSuccessHandler(function(sections) {
-            // OPTIMIZATION: Use DocumentFragment for faster DOM updates
             const fragment = document.createDocumentFragment();
-            
-            if (sections.length === 0) {
+
+            if (!sections || sections.length === 0) {
               const option = document.createElement('option');
               option.value = '';
               option.textContent = 'No sections available';
@@ -611,23 +594,23 @@
               sectionSelect.disabled = true;
               return;
             }
-            
+
             const defaultOption = document.createElement('option');
             defaultOption.value = '';
             defaultOption.textContent = 'Select section...';
             fragment.appendChild(defaultOption);
-            
+
             sections.forEach(function(section) {
               const option = document.createElement('option');
               option.value = section;
               option.textContent = section;
               fragment.appendChild(option);
             });
-            
+
             sectionSelect.innerHTML = '';
             sectionSelect.appendChild(fragment);
             sectionSelect.disabled = false;
-            if (isSHS && document.getElementById('strandFilter').value === 'ALL') {
+            if (isSHS && document.getElementById('trackFilter').value === 'ALL') {
               loadTeachersForSection(gradeLevel, 'ALL');
             }
           })
@@ -635,8 +618,61 @@
             console.error('Error loading sections:', error);
             sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
             alert('Error loading sections: ' + error.toString());
-          })
-          .getSectionsForGrade(gradeLevel);
+          });
+
+        if (useTrackFilter) {
+          run.getSectionsForGradeAndTrack(gradeLevel, track);
+        } else {
+          run.getSectionsForGrade(gradeLevel);
+        }
+      }
+
+      document.getElementById('trackFilter').addEventListener('change', function() {
+        updateSectionVisibility();
+        const gradeLevel = document.getElementById('gradeLevel').value;
+        // Switching track invalidates whichever teachers/subjects were shown for
+        // the previous track's section - reset before loading the new one so
+        // stale checked checkboxes don't linger in the UI.
+        resetTeacherSelection();
+        if (isSHS && this.value === 'ALL' && gradeLevel) {
+          loadTeachersForSection(gradeLevel, 'ALL');
+        } else {
+          if (gradeLevel) loadSections(gradeLevel, this.value);
+        }
+      });
+      document.getElementById('termFilter').addEventListener('change', function() { updateSubjectsDisplay(); });
+
+      // Clears the Teacher checkbox list and its dependent Assigned Subjects
+      // panel back to their empty/placeholder state. Any dropdown change that
+      // invalidates the current section/track context (Grade Level, Track) must
+      // call this - otherwise stale teacher checkboxes from the previous
+      // selection stay checked and visible even though they no longer apply.
+      function resetTeacherSelection(placeholderText) {
+        const subjectsInfoDiv = document.getElementById('subjectsInfo');
+        const subjectsPlaceholder = document.getElementById('subjectsPlaceholder');
+        const divider = document.getElementById('divider1');
+        const teachersContainer = document.getElementById('teachersContainer');
+        const teachersPlaceholder = document.getElementById('teachersPlaceholder');
+        const teachersList = document.getElementById('teachersList');
+
+        teacherSubjectsMap = {};
+        filteredTeachers = [];
+        if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'none';
+        if (subjectsPlaceholder) subjectsPlaceholder.style.display = 'flex';
+        if (divider) divider.style.display = 'none';
+        if (teachersContainer) teachersContainer.style.display = 'none';
+        if (teachersPlaceholder) teachersPlaceholder.textContent = placeholderText || 'Select grade level and section first...';
+        if (teachersList) teachersList.innerHTML = '';
+        updateGenerateButtonState();
+      }
+
+      // Handle grade level change - load sections
+      document.getElementById('gradeLevel').addEventListener('change', function() {
+        const gradeLevel = this.value;
+        resetTeacherSelection();
+
+        const trackVal = document.getElementById('trackFilter') ? document.getElementById('trackFilter').value : '';
+        loadSections(gradeLevel, trackVal);
       });
 
       function loadTeachersForSection(gradeLevel, section) {
@@ -698,20 +734,32 @@
       document.getElementById('section').addEventListener('change', function() {
         const gradeLevel = document.getElementById('gradeLevel').value;
         const section = this.value;
-        if (isSHS && document.getElementById('strandFilter').value === 'ALL') return;
+        if (isSHS && document.getElementById('trackFilter').value === 'ALL') return;
         loadTeachersForSection(gradeLevel, section);
       });
 
+      // "Generate Template" only makes sense once at least one teacher checkbox
+      // is checked - disabled otherwise (initial load, mid-fetch, grade/track
+      // just changed with nothing loaded yet, or every teacher unchecked).
+      function updateGenerateButtonState() {
+        const submitButton = document.getElementById('submitBtn');
+        if (!submitButton) return;
+        const anyChecked = document.querySelectorAll('input[name="teachers"]:checked').length > 0;
+        submitButton.disabled = !anyChecked;
+      }
+
       function updateSubjectsDisplay() {
         const gradeLevel = document.getElementById('gradeLevel').value;
-        const section = (isSHS && document.getElementById('strandFilter') && document.getElementById('strandFilter').value === 'ALL')
+        const section = (isSHS && document.getElementById('trackFilter') && document.getElementById('trackFilter').value === 'ALL')
           ? 'ALL' : document.getElementById('section').value;
         const checkboxes = document.querySelectorAll('input[name="teachers"]:checked');
         const subjectsListDiv = document.getElementById('subjectsList');
         const subjectsInfoDiv = document.getElementById('subjectsInfo');
         const subjectsPlaceholder = document.getElementById('subjectsPlaceholder');
         const divider = document.getElementById('divider1');
-        
+
+        updateGenerateButtonState();
+
         if (checkboxes.length === 0) {
           teacherSubjectsMap = {};
           if (subjectsInfoDiv) subjectsInfoDiv.style.display = 'none';
@@ -759,14 +807,20 @@
       function getFilteredAssignmentsForTeacher(teacher) {
         const raw = teacherSubjectsMap[teacher] || [];
         if (!isSHS) {
-          return raw.map(function(a) { return typeof a === 'object' && a && a.subject != null ? a : { subject: a, strand: '', category: '', semester: '' }; });
+          return raw.map(function(a) { return typeof a === 'object' && a && a.subject != null ? a : { subject: a, track: '', category: '', term: '' }; });
         }
-        const strandVal = (document.getElementById('strandFilter') && document.getElementById('strandFilter').value) || '';
-        const semesterVal = (document.getElementById('semesterFilter') && document.getElementById('semesterFilter').value) || '';
+        const trackVal = (document.getElementById('trackFilter') && document.getElementById('trackFilter').value) || '';
+        const termVal = (document.getElementById('termFilter') && document.getElementById('termFilter').value) || '';
+        // "ALL"-track subjects apply to every track's classes (same convention used
+        // everywhere else - SUBJECTS_REF, reports), so when a specific track (not
+        // ALL itself) is selected, a teacher's ALL-track subjects are included
+        // alongside their track-specific ones - otherwise a teacher assigned both
+        // e.g. STEM subjects and ALL subjects would need two separate OGS
+        // generations, one per track, to get all their subjects into one file.
         return raw.filter(function(a) {
-          const item = typeof a === 'object' && a && a.subject != null ? a : { subject: a, strand: '', category: '', semester: '' };
-          if (strandVal && item.strand !== strandVal) return false;
-          if (semesterVal && item.semester !== semesterVal) return false;
+          const item = typeof a === 'object' && a && a.subject != null ? a : { subject: a, track: '', category: '', term: '' };
+          if (trackVal && item.track !== trackVal && !(trackVal !== 'ALL' && item.track === 'ALL')) return false;
+          if (termVal && item.term !== termVal) return false;
           return true;
         });
       }
@@ -803,7 +857,7 @@
         });
         
         if (!hasSubjects) {
-          html = '<p style="margin: 0; color: #6c757d;">No subjects assigned to selected teachers.' + (isSHS ? ' Try changing Strand or Semester filter.' : '') + '</p>';
+          html = '<p style="margin: 0; color: #6c757d;">No subjects assigned to selected teachers.' + (isSHS ? ' Try changing Track or Term filter.' : '') + '</p>';
         }
         
         subjectsListDiv.innerHTML = html;
@@ -820,8 +874,8 @@
 
         const schoolYear = document.getElementById("schoolYear").value.trim();
         const gradeLevel = document.getElementById("gradeLevel").value;
-        const strandVal = document.getElementById("strandFilter") ? document.getElementById("strandFilter").value : '';
-        const section = (isSHS && strandVal === 'ALL') ? '' : document.getElementById("section").value;
+        const trackVal = document.getElementById("trackFilter") ? document.getElementById("trackFilter").value : '';
+        const section = (isSHS && trackVal === 'ALL') ? '' : document.getElementById("section").value;
         const checkboxes = document.querySelectorAll('input[name="teachers"]:checked');
         const selectedTeachers = Array.from(checkboxes).map(cb => cb.value);
 
@@ -836,18 +890,18 @@
         }
 
         if (isSHS) {
-          if (!strandVal) {
-            alert("Please select a strand.");
+          if (!trackVal) {
+            alert("Please select a track.");
             return;
           }
-          const semesterVal = document.getElementById("semesterFilter") ? document.getElementById("semesterFilter").value : '';
-          if (!semesterVal) {
-            alert("Please select a semester.");
+          const termVal = document.getElementById("termFilter") ? document.getElementById("termFilter").value : '';
+          if (!termVal) {
+            alert("Please select a term.");
             return;
           }
         }
 
-        if (!(isSHS && strandVal === 'ALL') && !section) {
+        if (!(isSHS && trackVal === 'ALL') && !section) {
           alert("Please select a section.");
           return;
         }
@@ -863,8 +917,8 @@
           const assignments = getFilteredAssignmentsForTeacher(teacher);
           const subjectsPayload = isSHS
             ? assignments.map(function(a) {
-                const item = typeof a === 'object' && a && a.subject != null ? a : { subject: a, strand: 'ALL', semester: '1ST' };
-                return { subject: item.subject, strand: item.strand || 'ALL', semester: item.semester || '1ST' };
+                const item = typeof a === 'object' && a && a.subject != null ? a : { subject: a, track: 'ALL', term: '1ST' };
+                return { subject: item.subject, track: item.track || 'ALL', term: item.term || '1ST' };
               })
             : assignments.map(function(a) { return typeof a === 'object' && a && a.subject != null ? a.subject : a; });
           if (subjectsPayload.length > 0) {
@@ -874,7 +928,7 @@
         });
 
         if (!hasSubjects) {
-          alert("No subjects assigned to selected teachers for the selected grade level and section." + (isSHS ? " Try changing Strand or Semester filter." : " Please add subjects first."));
+          alert("No subjects assigned to selected teachers for the selected grade level and section." + (isSHS ? " Try changing Track or Term filter." : " Please add subjects first."));
           return;
         }
 
@@ -901,7 +955,7 @@
             submitButton.textContent = originalText;
             submitButton.disabled = false;
           })
-          .generateOGSTemplatesBatch(schoolYear, gradeLevel, section || '', teachersWithSubjects);
+          .generateOGSTemplatesBatch(schoolYear, gradeLevel, section || '', teachersWithSubjects, trackVal || null);
       });
     </script>
   </body>

@@ -145,13 +145,97 @@
         background: #e9ecef;
         color: #495057;
       }
+
+      .btn-danger-light {
+        background: #fdecea;
+        color: #c0392b;
+        border: 2px solid #f5c6c0;
+      }
+
+      .btn-danger-light:hover {
+        background: #fbdbd7;
+        color: #a5311f;
+      }
+
+      .template-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: #f8f9ff;
+        border: 2px dashed #c9d0f5;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 22px;
+      }
+
+      .template-card .icon {
+        font-size: 26px;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+
+      .template-card .text {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .template-card .text strong {
+        display: block;
+        color: #333;
+        font-size: 14px;
+        margin-bottom: 2px;
+      }
+
+      .template-card .text span {
+        display: block;
+        color: #6c757d;
+        font-size: 12.5px;
+        line-height: 1.4;
+      }
+
+      .btn-download {
+        flex-shrink: 0;
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        cursor: pointer;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transition: all 0.3s ease;
+      }
+
+      .btn-download:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-download:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="header">
         <h2>Import Student Data</h2>
-         <p>Select academic year and upload CSV file</p>
+         <p>Select academic year and upload the filled-in Excel template</p>
+      </div>
+
+      <div class="template-card" id="templateCard">
+        <!-- <div class="icon">📄</div> -->
+        <div class="text">
+          <strong>Need the import template?</strong>
+          <span id="templateDescription">Download the Excel template with an example row, fill it in, then upload the same .xlsx file below.</span>
+        </div>
+        <button type="button" class="btn-download" id="downloadTemplateBtn" title="Download Template">📄</button>
       </div>
 
       <form id="importForm">
@@ -163,14 +247,19 @@
          </div>
 
         <div class="form-group">
-          <label class="form-label" for="csvFile">CSV File</label>
+          <label class="form-label" for="csvFile">Excel File (.xlsx)</label>
           <input
             type="file"
             id="csvFile"
             class="file-input"
-            accept=".csv"
+            accept=".xlsx"
             required
           />
+          <div id="errorReportRow" style="display: none; margin-top: 10px;">
+            <button type="button" id="downloadErrorReportBtn" class="btn btn-danger-light" style="width: 100%;">
+              Download Error Report (.csv)
+            </button>
+          </div>
         </div>
 
         <div class="button-group">
@@ -205,6 +294,59 @@
            .getStudentSheets();
        });
 
+       // Attach the exact column names as a hover tooltip on the card, so
+       // the compact one-line description stays short but the full detail
+       // is still available on demand — and can never drift out of sync
+       // with what _importStudentData actually validates.
+       google.script.run
+         .withSuccessHandler(function (data) {
+           document.getElementById('templateCard').title =
+             'Required: ' + data.required.join(', ') + '\n' +
+             'Optional: ' + data.optional.join(', ');
+         })
+         .withFailureHandler(function () { /* tooltip is a nice-to-have, ignore failure */ })
+         .getImportTemplateHeaders();
+
+       // Download the import template as a real .xlsx workbook (built
+       // server-side by getImportTemplateFile), so the LRN and Date of Birth
+       // columns are pre-formatted as plain text — preventing Excel from
+       // mangling a 12-digit LRN into scientific notation — and so the
+       // workbook's single tab is always literally "student_import_template",
+       // no matter how many times the user has downloaded it before.
+       document.getElementById('downloadTemplateBtn').addEventListener('click', function () {
+         const btn = this;
+         btn.disabled = true;
+
+         google.script.run
+           .withSuccessHandler(function (data) {
+             btn.disabled = false;
+             const binary = atob(data.base64);
+             const bytes = new Uint8Array(binary.length);
+             for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+             const blob = new Blob([bytes], { type: data.mimeType });
+             const url = URL.createObjectURL(blob);
+             const a = document.createElement('a');
+             a.href = url;
+             a.download = data.fileName;
+             document.body.appendChild(a);
+             a.click();
+             document.body.removeChild(a);
+             URL.revokeObjectURL(url);
+           })
+           .withFailureHandler(function (error) {
+             btn.disabled = false;
+             alert('Could not prepare the template: ' + error);
+           })
+           .getImportTemplateFile();
+       });
+
+       // A previously downloaded error report describes the OLD file, not
+       // whatever the user just picked — hide it so it can't be mistaken
+       // for feedback on the new selection.
+       document.getElementById('csvFile').addEventListener('change', function () {
+         document.getElementById('errorReportRow').style.display = 'none';
+       });
+
        document
          .getElementById("importForm")
          .addEventListener("submit", function (e) {
@@ -219,33 +361,62 @@
           }
 
           if (!fileInput.files[0]) {
-            alert("Please select a CSV file.");
+            alert("Please select an Excel (.xlsx) file.");
             return;
           }
 
-          // Read the CSV file and import the data
+          // Read the .xlsx file as base64 and send it for server-side
+          // conversion — no CSV round-trip, so LRN/Date of Birth stay
+          // exactly as entered in the template (no re-mangling risk from
+          // Excel's CSV export step).
           const file = fileInput.files[0];
           const reader = new FileReader();
-          
+
           reader.onload = function(e) {
-            const csvContent = e.target.result;
-            
+            const arrayBuffer = e.target.result;
+            const bytes = new Uint8Array(arrayBuffer);
+            let binary = '';
+            for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+            const base64Xlsx = btoa(binary);
+
             // Show loading message
             const submitButton = document.querySelector('button[type="submit"]');
             const originalText = submitButton.textContent;
             submitButton.textContent = 'Importing...';
             submitButton.disabled = true;
-            
+
             // Call the import function
             google.script.run
               .withSuccessHandler(function(result) {
                 if (result.success) {
+                  document.getElementById('errorReportRow').style.display = 'none';
                   alert('Success!\n\n' + result.message);
                   google.script.host.close();
                 } else {
                   alert('Import Failed!\n\n' + result.message);
                   submitButton.textContent = originalText;
                   submitButton.disabled = false;
+
+                  const errorReportRow = document.getElementById('errorReportRow');
+                  if (result.errorReportCsv) {
+                    errorReportRow.style.display = 'block';
+                    document.getElementById('downloadErrorReportBtn').onclick = function () {
+                      // Prepend a UTF-8 BOM so Excel (which otherwise guesses
+                      // the file's codepage and can mangle non-ASCII
+                      // characters, e.g. accented names) opens it as UTF-8.
+                      const blob = new Blob(['﻿', result.errorReportCsv], { type: 'text/csv;charset=utf-8;' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'import_errors_' + academicYear.replace(/[^\w-]/g, '_') + '.csv';
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    };
+                  } else {
+                    errorReportRow.style.display = 'none';
+                  }
                 }
               })
               .withFailureHandler(function(error) {
@@ -253,14 +424,14 @@
                 submitButton.textContent = originalText;
                 submitButton.disabled = false;
               })
-              .importStudentData(csvContent, academicYear);
+              .importStudentDataXlsx(base64Xlsx, academicYear);
           };
-          
+
           reader.onerror = function() {
-            alert('Error reading the CSV file.');
+            alert('Error reading the Excel file.');
           };
-          
-          reader.readAsText(file);
+
+          reader.readAsArrayBuffer(file);
         });
      </script>
   </body>
