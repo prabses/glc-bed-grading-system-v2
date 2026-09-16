@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GLC Reports — Student Report Generator</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple-start: #667eea;
+      --purple-end:   #764ba2;
+      --green-start:  #34a853;
+      --green-end:    #1e7e34;
+      --bg:           #eef0f5;
+      --surface:      #ffffff;
+      --border:       #e0e0e8;
+      --text-primary: #1a1a2e;
+      --text-secondary: #6b7080;
+      --text-label:   #4a4f66;
+      --radius-sm:    6px;
+      --radius-md:    10px;
+      --radius-lg:    16px;
+      --shadow-card:  0 4px 24px rgba(80,80,160,0.10);
+      --shadow-hover: 0 8px 32px rgba(80,80,160,0.16);
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ---- Header ---- */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      width: 100%;
+      background: linear-gradient(135deg, var(--purple-start), var(--purple-end));
+      color: #fff;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 2px 12px rgba(102,126,234,0.25);
+    }
+    .header-icon {
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .header-text h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.2px; }
+    .header-text p  { font-size: 12px; opacity: 0.80; margin-top: 1px; }
+    .user-badge {
+      margin-left: auto;
+      /* background: rgba(255,255,255,0.15); */
+      /* border: 1px solid rgba(255,255,255,0.25); */
+      border-radius: 8px;
+      padding: 6px 14px 6px 6px;
+      font-size: 12px;
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .user-badge:hover {
+      background: rgba(255,255,255,0.22);
+      border-color: rgba(255,255,255,0.35);
+    }
+    .user-avatar {
+      position: relative;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.22);
+      border: 1.5px solid rgba(255,255,255,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.3px;
+      flex-shrink: 0;
+    }
+    /* .user-avatar::after {
+      content: '';
+      position: absolute;
+      right: -1px; bottom: -1px;
+      width: 8px; height: 8px;
+      border-radius: 8px;
+      background: #86efac;
+      border: 1.5px solid var(--purple-start);
+    } */
+    .user-badge-text { display: flex; flex-direction: column; line-height: 1.35; }
+    .user-badge-name { font-weight: 600; }
+    .user-badge-role { font-size: 10.5px; opacity: 0.75; }
+
+    /* ---- Main layout ---- */
+    .main-wrapper {
+      width: 100%;
+      max-width: 700px;
+      padding: 32px 16px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ---- Step card ---- */
+    .step-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .step-card:hover { box-shadow: var(--shadow-hover); }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple-start), var(--purple-end));
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-title    { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+    .step-subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+    .step-body     { padding: 20px 24px; }
+
+    /* ---- Form grid ---- */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group-full { grid-column: 1 / -1; }
+
+    .field-hint {
+      font-size: 11.5px;
+      color: #92400e;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius-sm);
+      padding: 7px 10px;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    label.field-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-label);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: '';
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      width: 0; height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid var(--text-secondary);
+      pointer-events: none;
+    }
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 36px 10px 12px;
+      font-size: 14px;
+      color: var(--text-primary);
+      background: #fafbff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+    select:focus {
+      outline: none;
+      border-color: var(--purple-start);
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.12);
+      background: #fff;
+    }
+    select:disabled { opacity: 0.45; cursor: not-allowed; background: #f0f0f8; }
+
+    /* ---- Tab switcher ---- */
+    .tab-bar {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 18px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      background: none;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { color: var(--purple-start); }
+    .tab-btn.active {
+      color: var(--purple-start);
+      border-bottom-color: var(--purple-start);
+    }
+    .tab-btn.active-green {
+      color: var(--green-start);
+      border-bottom-color: var(--green-start);
+    }
+    .tab-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .tab-btn:disabled:hover { color: var(--text-secondary); }
+    .tab-btn .tab-icon { font-size: 15px; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ---- Checklist toolbar ---- */
+    .checklist-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .search-wrap { flex: 1; position: relative; }
+    .search-wrap .search-icon {
+      position: absolute;
+      left: 10px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      color: var(--text-secondary);
+      pointer-events: none;
+    }
+    .search-wrap input {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px 9px 32px;
+      font-size: 13px;
+      color: var(--text-primary);
+      background: #fafbff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-wrap input:focus {
+      outline: none;
+      border-color: var(--purple-start);
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.12);
+      background: #fff;
+    }
+    .search-wrap input::placeholder { color: var(--text-secondary); }
+
+    .btn-select-all {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fafbff;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-label);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .btn-select-all:hover {
+      border-color: var(--purple-start);
+      color: var(--purple-start);
+      background: rgba(102,126,234,0.05);
+    }
+
+    .checklist-meta {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .checklist-meta .meta-count span { font-weight: 700; color: var(--purple-start); }
+
+    /* ---- Refresh contacts btn ---- */
+    .btn-refresh {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      background: none;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-refresh:hover { border-color: var(--green-start); color: var(--green-start); }
+    .btn-refresh:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-refresh .refresh-icon { display: inline-block; transition: transform 0.4s; }
+    .btn-refresh.spinning .refresh-icon { animation: spin 0.65s linear infinite; }
+
+    /* ---- Student list ---- */
+    .student-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    .student-list::-webkit-scrollbar { width: 5px; }
+    .student-list::-webkit-scrollbar-track { background: transparent; }
+    .student-list::-webkit-scrollbar-thumb { background: #d0d0e0; border-radius: 4px; }
+
+    .student-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+      user-select: none;
+    }
+    .student-row:hover                { background: #f4f4ff; border-color: #e0e0f4; }
+    .student-row.checked              { background: rgba(102,126,234,0.07); border-color: rgba(102,126,234,0.22); }
+    .student-row.no-email             { cursor: pointer; }
+    .student-row.no-email:hover       { background: #fffbeb; border-color: #fde68a; }
+    .student-row.no-email.checked     { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.28); }
+    .student-row.hidden               { display: none; }
+
+    .student-row.invalid-domain           { cursor: not-allowed; opacity: 0.6; }
+    .student-row.invalid-domain:hover      { background: #fff1f2; border-color: #fecdd3; }
+
+    .custom-checkbox {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      color: #fff;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .student-row.checked .custom-checkbox {
+      background: linear-gradient(135deg, var(--purple-start), var(--purple-end));
+      border-color: var(--purple-start);
+    }
+    .student-row.no-email.checked .custom-checkbox {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-color: #f59e0b;
+    }
+
+    .student-info { flex: 1; min-width: 0; }
+    .student-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .student-num { font-size: 11px; color: var(--text-secondary); }
+
+    /* Email badge shown in Send tab */
+    .email-badge {
+      display: none;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .send-tab-active .email-badge { display: inline-flex; align-items: center; gap: 4px; }
+    .email-badge.has-email          { background: #dcfce7; color: #166534; }
+    .email-badge.no-email-tag       { background: #fef3c7; color: #92400e; }
+    .email-badge.invalid-domain-tag { background: #ffebee; color: #c62828; }
+
+    /* ---- Checklist states ---- */
+    .checklist-loading {
+      text-align: center;
+      padding: 28px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      display: none;
+    }
+    .mini-spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid #d0d0e8;
+      border-top-color: var(--purple-start);
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    .checklist-empty {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      display: none;
+    }
+    .contacts-notice {
+      display: none;
+      font-size: 12px;
+      color: #92400e;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .contacts-notice strong { color: #78350f; }
+
+    /* ---- Action buttons ---- */
+    .actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.18s, transform 0.12s, box-shadow 0.18s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: 0.1px;
+    }
+    .btn:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: 0.40; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-generate  { background: linear-gradient(135deg, var(--purple-start), var(--purple-end)); color: #fff; box-shadow: 0 3px 10px rgba(102,126,234,0.30); }
+    .btn-mailmerge { background: linear-gradient(135deg, var(--green-start), var(--green-end)); color: #fff; box-shadow: 0 3px 10px rgba(52,168,83,0.28); }
+
+    .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- Inline alert ---- */
+    .alert { display: none; padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; margin-top: 14px; gap: 8px; align-items: center; }
+    .alert.error { background: #ffebee; color: #c62828; display: flex; }
+
+    /* ---- Results panel ---- */
+    #resultsPanel { display: none; }
+    .results-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .results-header { padding: 16px 24px; border-bottom: 1px solid var(--border); }
+    .results-title  { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+
+    .summary-banner {
+      margin: 16px 24px 0;
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .summary-banner.success { background: #e8f5e9; color: #1b5e20; }
+    .summary-banner.partial { background: #fff8e1; color: #e65100; }
+    .summary-banner.error   { background: #ffebee; color: #b71c1c; }
+    .banner-icon { font-size: 16px; }
+
+    .stat-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .stat-pill  { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .stat-pill.ok            { background: #e3f2fd; color: #0d47a1; }
+    .stat-pill.sent          { background: #c8e6c9; color: #1b5e20; }
+    .stat-pill.skipped       { background: #fff3cd; color: #856404; }
+    .stat-pill.not_generated { background: #ede9fe; color: #5b21b6; }
+    .stat-pill.failed        { background: #ffcdd2; color: #b71c1c; }
+
+    .result-list { list-style: none; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      border: 1px solid transparent;
+      transition: transform 0.1s;
+    }
+    .result-item:hover { transform: translateX(2px); }
+    .result-item.ok            { background: #f0f7ff; border-color: #dbeafe; }
+    .result-item.sent          { background: #f0fdf4; border-color: #bbf7d0; }
+    .result-item.skipped       { background: #fffbeb; border-color: #fef08a; }
+    .result-item.not_generated { background: #f5f3ff; border-color: #ddd6fe; }
+    .result-item.failed,
+    .result-item.err           { background: #fff1f2; border-color: #fecdd3; }
+
+    .result-status-icon {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .result-item.ok            .result-status-icon { background: #dbeafe; }
+    .result-item.sent          .result-status-icon { background: #bbf7d0; }
+    .result-item.skipped       .result-status-icon { background: #fef9c3; }
+    .result-item.not_generated .result-status-icon { background: #ede9fe; }
+    .result-item.failed        .result-status-icon,
+    .result-item.err           .result-status-icon { background: #fecdd3; }
+
+    .result-name { flex: 1; font-weight: 600; color: var(--text-primary); }
+    .result-meta { font-size: 11px; color: var(--text-secondary); }
+    .result-err  { font-size: 11px; color: #c62828; }
+
+    .btn-open-pdf {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, var(--purple-start), var(--purple-end));
+      border-radius: 4px;
+      padding: 4px 10px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-open-pdf:hover { opacity: 0.85; }
+
+    /* ---- Custom modal ---- */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(20,20,40,0.45);
+      backdrop-filter: blur(3px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      max-width: 420px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      animation: modalIn 0.2s ease;
+    }
+    @keyframes modalIn {
+      from { opacity:0; transform: scale(0.94); }
+      to   { opacity:1; transform: scale(1); }
+    }
+    .modal-icon  { font-size: 32px; margin-bottom: 12px; }
+    .modal-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+    .modal-body  { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; }
+    .modal-body strong { color: var(--text-primary); }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .modal-btn-cancel {
+      padding: 9px 20px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .modal-btn-cancel:hover { border-color: #aaa; }
+    .modal-btn-confirm {
+      padding: 9px 22px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--green-start), var(--green-end));
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .modal-btn-confirm:hover { opacity: 0.88; }
+  </style>
+</head>
+<body>
+
+  <div class="app-header">
+    <div class="header-icon">📋</div>
+    <div class="header-text">
+      <h1>GLC Reports</h1>
+      <p>Student Report Generator</p>
+    </div>
+    <div class="user-badge">
+      <div class="user-avatar" id="userAvatar"></div>
+      <div class="user-badge-text">
+        <span class="user-badge-name" id="userBadgeName"><?= currentEmail ?></span>
+        <span class="user-badge-role" id="userBadgeRole"><?= currentRole ?></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-wrapper">
+
+    <!-- Step 1: Select Report Type -->
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-title">Select Report Type</div>
+          <div class="step-subtitle">Choose which report you want to generate</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="form-group">
+          <label class="field-label" for="reportType">Report Type</label>
+          <div class="select-wrap">
+            <select id="reportType" onchange="onReportTypeChange()">
+              <option value="">Loading...</option>
+            </select>
+          </div>
+          <div class="field-hint" id="reportTypeHint" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Select Period -->
+    <div class="step-card" id="step2Card" style="display:none;">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-title">Select Period</div>
+          <div class="step-subtitle" id="step2Subtitle">Choose the school year and term</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="form-grid">
+          <div class="form-group" id="schoolYearGroup">
+            <label class="field-label" for="schoolYear">School Year</label>
+            <div class="select-wrap">
+              <select id="schoolYear" onchange="onSchoolYearChange()">
+                <option value="">Loading...</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" id="trimesterGroup">
+            <label class="field-label" for="trimester">Term</label>
+            <div class="select-wrap">
+              <select id="trimester" onchange="checkActionBtns()">
+                <option value="">Select term</option>
+                <option value="1">1st</option>
+                <option value="2">2nd</option>
+                <option value="3">3rd</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Select Class -->
+    <div class="step-card" id="step2ClassCard" style="display:none;">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">Select Class</div>
+          <div class="step-subtitle">Choose grade level and section</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="field-label" for="gradeLevel">Grade Level</label>
+            <div class="select-wrap">
+              <select id="gradeLevel" disabled onchange="onGradeLevelChange()">
+                <option value="">Select grade level</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="section">Section</label> 
+            <div class="select-wrap">
+              <select id="section" disabled onchange="onSectionChange()">
+                <option value="">Select section</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Tab panel -->
+    <div class="step-card" id="step3Card" style="display:none;">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div>
+          <div class="step-title">Select Students &amp; Action</div>
+          <div class="step-subtitle" id="step3Subtitle">Loading students…</div>
+        </div>
+      </div>
+      <div class="step-body">
+
+        <!-- Tab bar -->
+        <div class="tab-bar">
+          <button class="tab-btn active" id="tabGenBtn" onclick="switchTab('generate')">
+            <span class="tab-icon">📄</span> Generate Reports
+          </button>
+          <button class="tab-btn" id="tabSendBtn" onclick="switchTab('send')" disabled>
+            <span class="tab-icon">✉</span> Send via Email
+          </button>
+        </div>
+
+        <!-- Shared loading state -->
+        <div class="checklist-loading" id="checklistLoading">
+          <span class="mini-spinner"></span> Loading students…
+        </div>
+
+        <!-- ---- GENERATE TAB ---- -->
+        <div class="tab-panel active" id="panelGenerate">
+          <div id="genBody" style="display:none;">
+            <div class="checklist-toolbar">
+              <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="genSearch" placeholder="Search students…" oninput="onSearch('gen')" />
+              </div>
+              <button class="btn-select-all" id="genSelectAllBtn" onclick="toggleSelectAll('gen')">Deselect All</button>
+            </div>
+            <div class="checklist-meta" id="genMeta">
+              <span class="meta-count"></span>
+            </div>
+            <ul class="student-list" id="genList"></ul>
+            <div class="checklist-empty" id="genEmpty">No students match your search.</div>
+          </div>
+
+          <div class="alert" id="genError"></div>
+          <div class="actions">
+            <button class="btn btn-generate" id="generateBtn" onclick="onGenerate()" disabled>
+              <span>📄</span>
+              <span id="btnText">Generate Reports</span>
+              <div class="spinner" id="btnSpinner"></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- ---- SEND TAB ---- -->
+        <div class="tab-panel" id="panelSend">
+
+          <!-- Contacts loading -->
+          <div class="checklist-loading" id="contactsLoading">
+            <span class="mini-spinner"></span> Loading contacts…
+          </div>
+
+          <div id="sendBody" style="display:none;">
+            <!-- Notice when some students have no email -->
+            <div class="contacts-notice" id="contactsNotice">
+              <strong>⚠ Missing emails.</strong> Auto-unchecked below — update in the <strong>Other Information</strong> sheet, then click <strong>Refresh Contacts</strong>.
+            </div>
+
+            <div class="checklist-toolbar">
+              <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="sendSearch" placeholder="Search students…" oninput="onSearch('send')" />
+              </div>
+              <button class="btn-select-all" id="sendSelectAllBtn" onclick="toggleSelectAll('send')">Deselect All</button>
+            </div>
+            <div class="checklist-meta" id="sendMeta">
+              <span class="meta-count"></span>
+              <button class="btn-refresh" id="refreshContactsBtn" onclick="loadContacts()">
+                <span class="refresh-icon">↻</span> Refresh Contacts
+              </button>
+            </div>
+            <ul class="student-list send-tab-active" id="sendList"></ul>
+            <div class="checklist-empty" id="sendEmpty">No students match your search.</div>
+          </div>
+
+          <div class="alert" id="sendError"></div>
+          <div class="actions">
+            <button class="btn btn-mailmerge" id="mailMergeBtn" onclick="onMailMergeConfirm()" disabled>
+              <span>✉</span>
+              <span id="mailBtnText">Send Reports via Email</span>
+              <div class="spinner" id="mailBtnSpinner"></div>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="resultsPanel">
+      <div class="results-card">
+        <div class="results-header">
+          <div class="results-title" id="resultsTitle">Results</div>
+        </div>
+        <div class="summary-banner" id="resultSummary"></div>
+        <ul class="result-list" id="resultList"></ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Confirm modal -->
+  <div class="modal-overlay" id="mailModal">
+    <div class="modal-box">
+      <div class="modal-icon">✉</div>
+      <div class="modal-title">Send Reports via Email?</div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-actions">
+        <button class="modal-btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-btn-confirm" onclick="onMailMerge()">Yes, Send Emails</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -------------------------------------------------------------------------
+    // State
+    // -------------------------------------------------------------------------
+    let _gradeSections = {};
+    let _students      = []; // [{ studentNumber, fullName }]
+    let _contacts      = {}; // { studentNumber: { parentEmail, parentName } }
+    let _activeTab     = 'generate';
+    let _contactsLoaded = false;
+    let _reportTypes    = <?!= reportTypesJson ?>; // [{ id, label, enabled }]
+    let _schoolYearsLoaded = false;
+    let _currentRole    = '';
+    const REQUIRED_EMAIL_DOMAIN = '@goldenlink.ph';
+
+    // Registrar never has access to PG (the only report type emailing is
+    // available for — see CONFIG.REPORT_TYPES/sendRoles in Config.js), so the
+    // Send tab is hidden outright for this role rather than shown-disabled.
+    function isRegistrarRole() {
+      return String(_currentRole || '').trim().toLowerCase() === 'registrar';
+    }
+
+    function isValidEmailDomain(email) {
+      return String(email || '').trim().toLowerCase().endsWith(REQUIRED_EMAIL_DOMAIN);
+    }
+
+    // -------------------------------------------------------------------------
+    // Init
+    // -------------------------------------------------------------------------
+    window.onload = function () {
+      _currentRole = <?!= JSON.stringify(currentRole || '') ?>;
+      const _currentName  = <?!= JSON.stringify(currentName || '') ?>;
+      const _currentEmail = <?!= JSON.stringify(currentEmail || '') ?>;
+      document.getElementById('userBadgeName').textContent = _currentEmail || 'Unknown user';
+      document.getElementById('userBadgeRole').textContent = _currentRole;
+      document.getElementById('userAvatar').textContent = getInitials(_currentName || _currentEmail);
+
+      if (isRegistrarRole()) {
+        document.getElementById('tabSendBtn').style.display = 'none';
+      }
+
+      renderReportTypes();
+    };
+
+    function getInitials(nameOrEmail) {
+      const raw = String(nameOrEmail || '').trim();
+      if (!raw) return '?';
+      const namePart = raw.includes('@') ? raw.split('@')[0] : raw;
+      const words = namePart.replace(/[._-]+/g, ' ').trim().split(/\s+/).filter(Boolean);
+      if (words.length === 0) return '?';
+      if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+      return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+    }
+
+    function renderReportTypes() {
+      const sel = document.getElementById('reportType');
+      sel.innerHTML = '';
+      if (!_reportTypes.length) {
+        sel.innerHTML = '<option value="">No report types available</option>';
+        return;
+      }
+      _reportTypes.forEach(function (t) {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = t.label + (t.enabled ? '' : ' (Coming soon)');
+        sel.appendChild(opt);
+      });
+      const firstEnabled = _reportTypes.find(function (t) { return t.enabled; });
+      sel.value = firstEnabled ? firstEnabled.id : _reportTypes[0].id;
+      onReportTypeChange();
+    }
+
+    function onReportTypeChange() {
+      const id = document.getElementById('reportType').value;
+      const type = _reportTypes.find(function (t) { return t.id === id; });
+      const hint = document.getElementById('reportTypeHint');
+      const isEnabled = !!(type && type.enabled);
+      const canSend = selectedReportTypeCanSend();
+
+      if (type && !type.enabled) {
+        hint.textContent = '⚠ "' + type.label + '" is coming soon and not yet available for generation.';
+        hint.style.display = 'block';
+      } else {
+        hint.style.display = 'none';
+      }
+
+      const sendTabBtn = document.getElementById('tabSendBtn');
+      sendTabBtn.disabled = !canSend;
+      sendTabBtn.title = canSend ? '' : 'Emailing is only available for the Periodical Letter Grade report.';
+      if (!canSend && _activeTab === 'send') {
+        switchTab('generate');
+      }
+
+      document.getElementById('step2Card').style.display      = isEnabled ? 'block' : 'none';
+      document.getElementById('step2ClassCard').style.display = isEnabled ? 'block' : 'none';
+
+      const periodScoped = selectedReportTypeIsPeriodScoped();
+      document.getElementById('trimesterGroup').style.display = periodScoped ? '' : 'none';
+      document.getElementById('schoolYearGroup').className = 'form-group' + (periodScoped ? '' : ' form-group-full');
+      document.getElementById('step2Subtitle').textContent = periodScoped
+        ? 'Choose the school year and term'
+        : 'Choose the school year';
+      if (!periodScoped) document.getElementById('trimester').value = '';
+
+      if (isEnabled) {
+        if (!_schoolYearsLoaded) {
+          _schoolYearsLoaded = true;
+          loadSchoolYears();
+        }
+      } else {
+        resetDropdown('schoolYear', 'Select school year', false);
+        resetDropdown('gradeLevel', 'Select grade level', true);
+        resetDropdown('section', 'Select section', true);
+        document.getElementById('trimester').value = '';
+        _gradeSections = {};
+        _schoolYearsLoaded = false;
+        resetStudentState();
+      }
+
+      checkActionBtns();
+    }
+
+    function loadSchoolYears() {
+      google.script.run
+        .withSuccessHandler(function (res) {
+          console.log({res});
+          const sel = document.getElementById('schoolYear');
+          sel.innerHTML = '<option value="">Select school year</option>';
+          if (res.success && res.data.length) {
+            res.data.forEach(function (y) {
+              const opt = document.createElement('option');
+              opt.value = y; opt.textContent = y;
+              sel.appendChild(opt);
+            });
+            sel.value = res.data[0];
+            onSchoolYearChange();
+          }
+        })
+        .withFailureHandler(handleError)
+        .getSchoolYears();
+    }
+
+    // -------------------------------------------------------------------------
+    // Cascading dropdowns
+    // -------------------------------------------------------------------------
+    function onSchoolYearChange() {
+      const sy = document.getElementById('schoolYear').value;
+      resetDropdown('gradeLevel', 'Select grade level', true);
+      resetDropdown('section', 'Select section', true);
+      _gradeSections = {};
+      resetStudentState();
+      if (!sy) return;
+
+      google.script.run
+        .withSuccessHandler(function (res) {
+          //if (!res.success) return;
+
+          if (!res.success) {
+          console.error('getGradelevelsAndSections failed:', res.message);
+          alert('Failed to load grade levels: ' + (res.message || 'Unknown error'));
+          return;
+        }
+
+          _gradeSections = res.data || {};
+          console.log(res.data)
+          const grades = Object.keys(_gradeSections).sort(function (a, b) { return parseInt(a) - parseInt(b); });
+          const sel = document.getElementById('gradeLevel');
+          sel.innerHTML = '<option value="">Select grade level</option>';
+          grades.forEach(function (g) {
+            const opt = document.createElement('option');
+            opt.value = g; opt.textContent = 'Grade ' + g;
+            sel.appendChild(opt);
+          });
+          sel.disabled = false;
+        })
+        .withFailureHandler(handleError)
+        .getGradelevelsAndSections(sy);
+    }
+
+    function onGradeLevelChange() {
+      const grade = document.getElementById('gradeLevel').value;
+      resetDropdown('section', 'Select section', true);
+      resetStudentState();
+      if (!grade || !_gradeSections[grade]) return;
+
+      const sel = document.getElementById('section');
+      sel.innerHTML = '<option value="">Select section</option>';
+      _gradeSections[grade].forEach(function (s) {
+        const opt = document.createElement('option');
+        opt.value = s; opt.textContent = s;
+        sel.appendChild(opt);
+      });
+      sel.disabled = false;
+    }
+
+    function onSectionChange() {
+      const sy      = document.getElementById('schoolYear').value;
+      const grade   = document.getElementById('gradeLevel').value;
+      const section = document.getElementById('section').value;
+
+      resetStudentState();
+      if (!sy || !grade || !section) return;
+
+      document.getElementById('step3Card').style.display = 'block';
+      document.getElementById('checklistLoading').style.display = 'block';
+      document.getElementById('genBody').style.display  = 'none';
+      document.getElementById('step3Subtitle').textContent = 'Loading students…';
+
+      google.script.run
+        .withSuccessHandler(function (res) {
+          document.getElementById('checklistLoading').style.display = 'none';
+          if (!res.success || !res.data.length) {
+            document.getElementById('step3Subtitle').textContent = 'No students found in this section';
+            return;
+          }
+          _students = res.data;
+          renderGenList(_students);
+          document.getElementById('genBody').style.display = 'block';
+          document.getElementById('step3Subtitle').textContent =
+            _students.length + ' student' + (_students.length !== 1 ? 's' : '') + ' in this class';
+          updateMeta('gen');
+          checkActionBtns();
+
+          // Reset send tab state so contacts reload fresh next time
+          _contacts = {};
+          _contactsLoaded = false;
+          document.getElementById('sendBody').style.display     = 'none';
+          document.getElementById('contactsLoading').style.display = 'none';
+          document.getElementById('sendList').innerHTML = '';
+        })
+        .withFailureHandler(function (err) {
+          document.getElementById('checklistLoading').style.display = 'none';
+          document.getElementById('step3Subtitle').textContent = 'Failed to load students';
+          showTabError('gen', err && err.message ? err.message : String(err));
+        })
+        .getStudentsInClass(sy, grade, section);
+    }
+
+    // -------------------------------------------------------------------------
+    // Tab switching
+    // -------------------------------------------------------------------------
+    function switchTab(tab) {
+      if (tab === 'send' && !selectedReportTypeCanSend()) return;
+      _activeTab = tab;
+
+      document.getElementById('tabGenBtn').className  = 'tab-btn' + (tab === 'generate' ? ' active' : '');
+      document.getElementById('tabSendBtn').className = 'tab-btn' + (tab === 'send' ? ' active-green' : '');
+      document.getElementById('panelGenerate').className = 'tab-panel' + (tab === 'generate' ? ' active' : '');
+      document.getElementById('panelSend').className     = 'tab-panel' + (tab === 'send' ? ' active' : '');
+
+      hideResults();
+      clearTabError('gen');
+      clearTabError('send');
+
+      if (tab === 'send' && !_contactsLoaded && _students.length > 0) {
+        loadContacts();
+      }
+
+      checkActionBtns();
+    }
+
+    // -------------------------------------------------------------------------
+    // Load parent contacts (Send tab)
+    // -------------------------------------------------------------------------
+    function loadContacts() {
+      if (!_students.length) return;
+
+      const refreshBtn = document.getElementById('refreshContactsBtn');
+      refreshBtn.disabled = true;
+      refreshBtn.classList.add('spinning');
+      document.getElementById('contactsLoading').style.display = 'block';
+      document.getElementById('sendBody').style.display = 'none';
+
+      const studentNumbers = _students.map(function (s) { return s.studentNumber; });
+
+      google.script.run
+        .withSuccessHandler(function (res) {
+          refreshBtn.disabled = false;
+          refreshBtn.classList.remove('spinning');
+          document.getElementById('contactsLoading').style.display = 'none';
+
+          if (!res.success) {
+            showTabError('send', 'Failed to load contacts: ' + res.message);
+            return;
+          }
+
+          _contacts = res.contacts || {};
+          _contactsLoaded = true;
+          renderSendList(_students);
+          document.getElementById('sendBody').style.display = 'block';
+          updateMeta('send');
+          checkActionBtns();
+        })
+        .withFailureHandler(function (err) {
+          refreshBtn.disabled = false;
+          refreshBtn.classList.remove('spinning');
+          document.getElementById('contactsLoading').style.display = 'none';
+          showTabError('send', err && err.message ? err.message : String(err));
+        })
+        .getParentContacts(studentNumbers);
+    }
+
+    // -------------------------------------------------------------------------
+    // Render checklists
+    // -------------------------------------------------------------------------
+    function renderGenList(students) {
+      const ul = document.getElementById('genList');
+      ul.innerHTML = '';
+      document.getElementById('genSearch').value = '';
+      students.forEach(function (s) {
+        ul.appendChild(makeStudentRow(s, true, false, 'gen'));
+      });
+      syncSelectAllBtn('gen');
+    }
+
+    function renderSendList(students) {
+      const ul = document.getElementById('sendList');
+      ul.innerHTML = '';
+      document.getElementById('sendSearch').value = '';
+
+      let missingCount = 0;
+      students.forEach(function (s) {
+        const contact       = _contacts[s.studentNumber] || {};
+        const email         = (contact.parentEmail || '').trim();
+        const hasEmail      = !!email;
+        const validDomain   = hasEmail && isValidEmailDomain(email);
+        const disabled      = !hasEmail || !validDomain;
+        if (!hasEmail) missingCount++;
+        ul.appendChild(makeStudentRow(s, hasEmail && validDomain, disabled, 'send', !validDomain && hasEmail));
+      });
+
+      const notice = document.getElementById('contactsNotice');
+      notice.style.display = missingCount > 0 ? 'block' : 'none';
+
+      syncSelectAllBtn('send');
+    }
+
+    function makeStudentRow(student, checkedByDefault, disabled, prefix, invalidDomain) {
+      const contact   = _contacts[student.studentNumber] || {};
+      const email     = (contact.parentEmail || '').trim();
+
+      const li = document.createElement('li');
+      li.className = 'student-row' +
+        (checkedByDefault ? ' checked' : '') +
+        (disabled ? ' no-email' : '') +
+        (invalidDomain ? ' invalid-domain' : '');
+      li.dataset.sn   = student.studentNumber;
+      li.dataset.name = student.fullName.toLowerCase();
+      if (disabled) li.dataset.disabled = 'true';
+
+      let emailBadgeHtml = '';
+      if (prefix === 'send') {
+        if (invalidDomain) {
+          emailBadgeHtml = '<span class="email-badge invalid-domain-tag">✗ ' + email + ' (wrong domain)</span>';
+        } else if (email) {
+          emailBadgeHtml = '<span class="email-badge has-email">✓ ' + email + '</span>';
+        } else {
+          emailBadgeHtml = '<span class="email-badge no-email-tag">⚠ No email on file</span>';
+        }
+      }
+
+      li.innerHTML =
+        '<div class="custom-checkbox">' + (checkedByDefault ? '✓' : '') + '</div>' +
+        '<div class="student-info">' +
+          '<div class="student-name">' + student.fullName + '</div>' +
+          '<div class="student-num">' + student.studentNumber + '</div>' +
+        '</div>' +
+        emailBadgeHtml;
+
+      li.addEventListener('click', function () { toggleRow(li, prefix); });
+      return li;
+    }
+
+    // -------------------------------------------------------------------------
+    // Checklist interaction
+    // -------------------------------------------------------------------------
+    function toggleRow(li, prefix) {
+      if (li.dataset.disabled === 'true') return;
+      const isChecked = li.classList.toggle('checked');
+      li.querySelector('.custom-checkbox').textContent = isChecked ? '✓' : '';
+      updateMeta(prefix);
+      checkActionBtns();
+      syncSelectAllBtn(prefix);
+    }
+
+    function toggleSelectAll(prefix) {
+      const rows = visibleRows(prefix).filter(function (r) { return r.dataset.disabled !== 'true'; });
+      const allChecked = rows.every(function (r) { return r.classList.contains('checked'); });
+      rows.forEach(function (r) {
+        const nowChecked = !allChecked;
+        r.classList.toggle('checked', nowChecked);
+        r.querySelector('.custom-checkbox').textContent = nowChecked ? '✓' : '';
+      });
+      updateMeta(prefix);
+      checkActionBtns();
+      syncSelectAllBtn(prefix);
+    }
+
+    function syncSelectAllBtn(prefix) {
+      const rows = visibleRows(prefix).filter(function (r) { return r.dataset.disabled !== 'true'; });
+      const allChecked = rows.length > 0 && rows.every(function (r) { return r.classList.contains('checked'); });
+      document.getElementById(prefix === 'gen' ? 'genSelectAllBtn' : 'sendSelectAllBtn').textContent =
+        allChecked ? 'Deselect All' : 'Select All';
+    }
+
+    function onSearch(prefix) {
+      const inputId = prefix === 'gen' ? 'genSearch' : 'sendSearch';
+      const listId  = prefix === 'gen' ? 'genList'   : 'sendList';
+      const emptyId = prefix === 'gen' ? 'genEmpty'  : 'sendEmpty';
+      const q = document.getElementById(inputId).value.toLowerCase().trim();
+      const rows = document.querySelectorAll('#' + listId + ' .student-row');
+      let visible = 0;
+      rows.forEach(function (r) {
+        const match = !q || r.dataset.name.includes(q);
+        r.classList.toggle('hidden', !match);
+        if (match) visible++;
+      });
+      document.getElementById(emptyId).style.display = visible === 0 ? 'block' : 'none';
+      syncSelectAllBtn(prefix);
+    }
+
+    function visibleRows(prefix) {
+      const listId = prefix === 'gen' ? 'genList' : 'sendList';
+      return Array.prototype.slice.call(
+        document.querySelectorAll('#' + listId + ' .student-row:not(.hidden)')
+      );
+    }
+
+    function checkedStudentNumbers(prefix) {
+      const listId = prefix === 'gen' ? 'genList' : 'sendList';
+      return Array.prototype.slice.call(
+        document.querySelectorAll('#' + listId + ' .student-row.checked')
+      ).map(function (r) { return r.dataset.sn; });
+    }
+
+    function updateMeta(prefix) {
+      const listId  = prefix === 'gen' ? 'genList'  : 'sendList';
+      const metaId  = prefix === 'gen' ? 'genMeta'  : 'sendMeta';
+      const total   = document.querySelectorAll('#' + listId + ' .student-row').length;
+      const checked = document.querySelectorAll('#' + listId + ' .student-row.checked').length;
+      const el = document.querySelector('#' + metaId + ' .meta-count');
+      if (el) el.innerHTML = '<span>' + checked + '</span> of ' + total + ' student' + (total !== 1 ? 's' : '') + ' selected';
+    }
+
+    // -------------------------------------------------------------------------
+    // Validation
+    // -------------------------------------------------------------------------
+    function selectedReportTypeEnabled() {
+      const id = document.getElementById('reportType').value;
+      const type = _reportTypes.find(function (t) { return t.id === id; });
+      return !!(type && type.enabled);
+    }
+
+    // Emailing is only ever available for the PG report type, regardless of
+    // role — see onReportTypeChange and the server-side canSend computation
+    // in Code.js _serveAppForEmail.
+    function selectedReportTypeCanSend() {
+      const id = document.getElementById('reportType').value;
+      const type = _reportTypes.find(function (t) { return t.id === id; });
+      return !!(type && type.canSend) && id === 'PG';
+    }
+
+    // Report types with no per-term meaning (e.g. School Clearance is a
+    // point-in-time certificate, not scoped to a trimester) hide/skip the
+    // Term field entirely — see onReportTypeChange and checkActionBtns.
+    var NON_PERIOD_SCOPED_REPORT_TYPES = ['SC'];
+
+    function selectedReportTypeIsPeriodScoped() {
+      const id = document.getElementById('reportType').value;
+      return NON_PERIOD_SCOPED_REPORT_TYPES.indexOf(id) === -1;
+    }
+
+    function checkActionBtns() {
+      const sy      = document.getElementById('schoolYear').value;
+      const trim    = document.getElementById('trimester').value;
+      const grade   = document.getElementById('gradeLevel').value;
+      const section = document.getElementById('section').value;
+      const termOk  = selectedReportTypeIsPeriodScoped() ? !!trim : true;
+      const baseOk  = !!(sy && grade && section) && termOk && selectedReportTypeEnabled();
+
+      const genChecked  = checkedStudentNumbers('gen').length;
+      const sendChecked = checkedStudentNumbers('send').length;
+
+      document.getElementById('generateBtn').disabled  = !(baseOk && genChecked > 0);
+      document.getElementById('mailMergeBtn').disabled = !(baseOk && selectedReportTypeCanSend() && sendChecked > 0 && _contactsLoaded);
+    }
+
+    // -------------------------------------------------------------------------
+    // Generate
+    // -------------------------------------------------------------------------
+    function onGenerate() {
+      const reportType     = document.getElementById('reportType').value;
+      const sy             = document.getElementById('schoolYear').value;
+      const trim           = document.getElementById('trimester').value;
+      const grade          = document.getElementById('gradeLevel').value;
+      const section        = document.getElementById('section').value;
+      const studentNumbers = checkedStudentNumbers('gen');
+
+      setBusy(true);
+      hideResults();
+      clearTabError('gen');
+
+      google.script.run
+        .withSuccessHandler(showGenerateResults)
+        .withFailureHandler(function (err) { setBusy(false); showTabError('gen', err && err.message ? err.message : String(err)); })
+        .generateReports(sy, grade, section, trim, studentNumbers, reportType);
+    }
+
+    function showGenerateResults(res) {
+      setBusy(false);
+      if (!res || !res.results) { showTabError('gen', res ? res.message : 'An unexpected error occurred.'); return; }
+
+      const ok  = res.results.filter(function (r) { return !r.error; });
+      const err = res.results.filter(function (r) { return  r.error; });
+
+      document.getElementById('resultsTitle').textContent = 'Generated Reports';
+      const summary = document.getElementById('resultSummary');
+      if (err.length === 0) {
+        summary.className = 'summary-banner success';
+        summary.innerHTML = '<span class="banner-icon">✓</span> ' + ok.length + ' report(s) generated successfully.';
+      } else if (ok.length === 0) {
+        summary.className = 'summary-banner error';
+        summary.innerHTML = '<span class="banner-icon">✗</span> All ' + err.length + ' report(s) failed.';
+      } else {
+        summary.className = 'summary-banner partial';
+        summary.innerHTML = '<span class="banner-icon">⚠</span><span class="stat-pills"><span class="stat-pill ok">✓ ' + ok.length + ' Generated</span><span class="stat-pill failed">✗ ' + err.length + ' Failed</span></span>';
+      }
+
+      const list = document.getElementById('resultList');
+      list.innerHTML = '';
+      res.results.forEach(function (r) {
+        const li = document.createElement('li');
+        li.className = 'result-item ' + (r.error ? 'err' : 'ok');
+        li.innerHTML = r.error
+          ? '<div class="result-status-icon">✗</div><span class="result-name">' + r.fullName + '</span><span class="result-err">' + r.error + '</span>'
+          : '<div class="result-status-icon">✓</div><span class="result-name">' + r.fullName + '</span><a class="btn-open-pdf" href="' + r.driveUrl + '" target="_blank">Open PDF ↗</a>';
+        list.appendChild(li);
+      });
+
+      document.getElementById('resultsPanel').style.display = 'block';
+      document.getElementById('resultsPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // -------------------------------------------------------------------------
+    // Mail Merge
+    // -------------------------------------------------------------------------
+    function onMailMergeConfirm() {
+      const sy      = document.getElementById('schoolYear').value;
+      const trim    = document.getElementById('trimester').value;
+      const grade   = document.getElementById('gradeLevel').value;
+      const section = document.getElementById('section').value;
+      const count   = checkedStudentNumbers('send').length;
+      const trimLabel = { '1': '1st Term', '2': '2nd Term', '3': '3rd Term' }[trim] || trim;
+
+      document.getElementById('modalBody').innerHTML =
+        'This will email the already-generated report cards for <strong>' + count + ' selected student' + (count !== 1 ? 's' : '') +
+        '</strong> in <strong>Grade ' + grade + ' – ' + section + '</strong> (' + sy + ', ' + trimLabel + ') to their parents.<br><br>' +
+        'Students without an email on file have been unchecked and will be skipped.';
+
+      document.getElementById('mailModal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('mailModal').classList.remove('open');
+    }
+
+    function onMailMerge() {
+      closeModal();
+      const reportType     = document.getElementById('reportType').value;
+      const sy             = document.getElementById('schoolYear').value;
+      const trim           = document.getElementById('trimester').value;
+      const grade          = document.getElementById('gradeLevel').value;
+      const section        = document.getElementById('section').value;
+      const studentNumbers = checkedStudentNumbers('send');
+
+      setSendBusy(true);
+      hideResults();
+      clearTabError('send');
+
+      google.script.run
+        .withSuccessHandler(showMailMergeResults)
+        .withFailureHandler(function (err) { setSendBusy(false); showTabError('send', err && err.message ? err.message : String(err)); })
+        .sendMailMerge(sy, grade, section, trim, studentNumbers, reportType);
+    }
+
+    function showMailMergeResults(res) {
+      setSendBusy(false);
+      if (!res || !res.results) { showTabError('send', res ? res.message : 'An unexpected error occurred.'); return; }
+
+      const sentCount         = res.results.filter(function (r) { return r.status === 'sent';          }).length;
+      const skippedCount      = res.results.filter(function (r) { return r.status === 'skipped';       }).length;
+      const notGeneratedCount = res.results.filter(function (r) { return r.status === 'not_generated'; }).length;
+      const failedCount       = res.results.filter(function (r) { return r.status === 'failed';        }).length;
+
+      document.getElementById('resultsTitle').textContent = 'Email Results';
+      const summary = document.getElementById('resultSummary');
+
+      if (failedCount === 0 && skippedCount === 0 && notGeneratedCount === 0) {
+        summary.className = 'summary-banner success';
+        summary.innerHTML = '<span class="banner-icon">✓</span> ' + sentCount + ' email(s) sent successfully.';
+      } else if (sentCount === 0 && failedCount === 0 && notGeneratedCount === 0) {
+        summary.className = 'summary-banner partial';
+        summary.innerHTML = '<span class="banner-icon">⚠</span> All ' + skippedCount + ' student(s) skipped — no email on file.';
+      } else if (sentCount === 0 && failedCount === 0 && skippedCount === 0) {
+        summary.className = 'summary-banner error';
+        summary.innerHTML = '<span class="banner-icon">📄</span> No reports found in Drive — run Generate Reports first.';
+      } else {
+        summary.className = 'summary-banner partial';
+        summary.innerHTML =
+          '<span class="banner-icon">✉</span><span class="stat-pills">' +
+          (sentCount         ? '<span class="stat-pill sent">✓ '          + sentCount         + ' Sent</span>'          : '') +
+          (skippedCount      ? '<span class="stat-pill skipped">— '       + skippedCount      + ' Skipped</span>'       : '') +
+          (notGeneratedCount ? '<span class="stat-pill not_generated">📄 ' + notGeneratedCount + ' Not Generated</span>' : '') +
+          (failedCount       ? '<span class="stat-pill failed">✗ '        + failedCount       + ' Failed</span>'        : '') +
+          '</span>';
+      }
+
+      const icons = { sent: '✉', skipped: '—', not_generated: '📄', failed: '✗' };
+      const list = document.getElementById('resultList');
+      list.innerHTML = '';
+      res.results.forEach(function (r) {
+        const li = document.createElement('li');
+        li.className = 'result-item ' + r.status;
+        let metaHtml = '';
+        if (r.status === 'skipped')            metaHtml = '<span class="result-err">No email on file</span>';
+        else if (r.status === 'not_generated') metaHtml = '<span class="result-meta" style="color:#7c3aed;">No report generated yet — run Generate Reports first</span>';
+        else if (r.status === 'failed')        metaHtml = '<span class="result-err">' + (r.error || 'Send failed') + '</span>';
+        else if (r.parentEmail)                metaHtml = '<span class="result-meta">' + r.parentEmail + '</span>';
+        li.innerHTML =
+          '<div class="result-status-icon">' + (icons[r.status] || '?') + '</div>' +
+          '<span class="result-name">' + r.fullName + '</span>' +
+          metaHtml;
+        list.appendChild(li);
+      });
+
+      document.getElementById('resultsPanel').style.display = 'block';
+      document.getElementById('resultsPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+    function setBusy(on) {
+      document.getElementById('generateBtn').disabled     = on;
+      document.getElementById('btnText').style.display    = on ? 'none' : '';
+      document.getElementById('btnSpinner').style.display = on ? 'block' : 'none';
+    }
+
+    function setSendBusy(on) {
+      document.getElementById('mailMergeBtn').disabled        = on;
+      document.getElementById('mailBtnText').style.display    = on ? 'none' : '';
+      document.getElementById('mailBtnSpinner').style.display = on ? 'block' : 'none';
+    }
+
+    function resetDropdown(id, placeholder, disabled) {
+      const sel = document.getElementById(id);
+      sel.innerHTML = '<option value="">' + placeholder + '</option>';
+      sel.disabled  = disabled;
+      sel.value     = '';
+    }
+
+    function resetStudentState() {
+      _students = [];
+      _contacts = {};
+      _contactsLoaded = false;
+      document.getElementById('step3Card').style.display      = 'none';
+      document.getElementById('genBody').style.display        = 'none';
+      document.getElementById('sendBody').style.display       = 'none';
+      document.getElementById('checklistLoading').style.display  = 'none';
+      document.getElementById('contactsLoading').style.display   = 'none';
+      document.getElementById('genList').innerHTML  = '';
+      document.getElementById('sendList').innerHTML = '';
+      document.getElementById('genSearch').value    = '';
+      document.getElementById('sendSearch').value   = '';
+      document.getElementById('genEmpty').style.display  = 'none';
+      document.getElementById('sendEmpty').style.display = 'none';
+      document.getElementById('contactsNotice').style.display = 'none';
+      clearTabError('gen');
+      clearTabError('send');
+      checkActionBtns();
+      hideResults();
+    }
+
+    function hideResults() {
+      document.getElementById('resultsPanel').style.display = 'none';
+      document.getElementById('resultList').innerHTML = '';
+    }
+
+    function showTabError(prefix, msg) {
+      const el = document.getElementById(prefix === 'gen' ? 'genError' : 'sendError');
+      el.innerHTML = '<span>⚠</span> ' + msg;
+      el.className = 'alert error';
+    }
+
+    function clearTabError(prefix) {
+      const el = document.getElementById(prefix === 'gen' ? 'genError' : 'sendError');
+      el.className = 'alert';
+      el.innerHTML = '';
+    }
+
+    function handleError(err) {
+      setBusy(false);
+      setSendBusy(false);
+      showTabError(_activeTab === 'send' ? 'send' : 'gen', err && err.message ? err.message : String(err));
+    }
+
+    document.getElementById('mailModal').addEventListener('click', function (e) {
+      if (e.target === this) closeModal();
+    });
+
+  </script>
+</body>
+</html>
