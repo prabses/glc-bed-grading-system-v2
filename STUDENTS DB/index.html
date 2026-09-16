@@ -1047,7 +1047,7 @@
       <h4 id="21-accessing-the-import-student-data-form">
         2.1 Accessing the Import Student Data Form
       </h4>
-      <p><img src="assets/cSDB-1.png" alt="Image" /></p>
+      <p><img src="assets/import-student.png" alt="Image" /></p>
       <blockquote>
         <p>
           <strong>Important</strong>: You must create the academic year sheet
@@ -1069,7 +1069,7 @@
         </li>
         <li>The Import Student Data Form will open in a modal dialog window</li>
       </ol>
-      <p><img src="assets/1sdb.png" alt="Image" /></p>
+      <p><img src="assets/import-student-2.png" alt="Image" /></p>
       <hr />
       <h4 id="22-step-by-step-import-process">
         2.2 Step-by-Step Import Process
@@ -1077,6 +1077,13 @@
       <h3 id="step-1-select-academic-year">
         <strong>Step 1: Select Academic Year</strong>
       </h3>
+      <blockquote>
+        <p>
+          <strong>Note</strong>: If the year you need doesn't appear, see
+          <a href="#42-creating-a-new-academic-year-sheet">Section 4.2</a> to
+          create a new academic year sheet.
+        </p>
+      </blockquote>
       <ol>
         <li>Click the <strong>Academic Year</strong> dropdown</li>
       </ol>
@@ -1086,80 +1093,51 @@
           Select the academic year sheet where you want to import the data
         </li>
       </ol>
-      <p><img src="assets/2.1sdb.png" alt="Image" /></p>
-      <blockquote>
-        <p>
-          <strong>Note</strong>: If the year you need doesn't appear, see
-          <a href="#42-creating-a-new-academic-year-sheet">Section 4.2</a> to
-          create a new academic year sheet.
-        </p>
-      </blockquote>
+      <p><img src="assets/import-student-3.png" alt="Image" /></p>
       <hr />
       <h3 id="step-2-prepare-your-students-information-csv-file">
         <strong>Step 2: Prepare Your Students Information CSV File</strong>
       </h3>
-      <p>Your CSV file must have the following headers in this exact order:</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Column 1</th>
-            <th>Column 2</th>
-            <th>Column 3</th>
-            <th>Column 4</th>
-            <th>Column 5</th>
-            <th>Column 6</th>
-            <th>Column 7</th>
-            <th>Column 8</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Student Number</td>
-            <td>Last Name</td>
-            <td>First Name</td>
-            <td>Middle Name</td>
-            <td>Grade Level</td>
-            <td>Section</td>
-            <td>Strand</td>
-            <td>Gender</td>
-          </tr>
-        </tbody>
-      </table>
-      <p><strong>Sample CSV File Format with Students Data:</strong></p>
-      <p><img src="assets/asampleCSVFile.png" alt="Sample CSV File" /></p>
-      <p><strong>Important Requirements:</strong></p>
-      <ul>
-        <li>
-          The first row must contain these exact headers (spelling and
-          capitalization matter)
-        </li>
-        <li>Student data rows should start from the second row</li>
-        <li>Each student number must be unique within the file</li>
-        <li>Save your file in CSV (.csv) format</li>
-      </ul>
       <blockquote>
         <p>
-          <strong>Tip</strong>: You can create a CSV file by exporting from
-          Excel (<strong>File → Save As → CSV</strong>) or Google Sheets
-          (<strong>File → Download → Comma-separated values</strong>).
+          <strong>Note</strong>: Download the Excel Template; use this file 
+          in every import. It has a standard format and validations.
         </p>
       </blockquote>
+      <ol>
+        <li>The downloaded standard student import .xlsx file 
+          must have the following headers in this exact order:</li>
+      </ol>
+      <p><img src="assets/import-student-4.png" alt="Image" /></p>
+      
+      <p><strong>Sample standard .xlsx File Format with Students Data:</strong></p>
+      <p><img src="assets/import-student-5.png" alt="Sample CSV File" /></p>
+      <p>Important Requirements and Header Field Validations:</p>
+      <ul>
+        <li>1. Student data rows should start from the second row.</li>
+        <li>2. Each student number must be unique within the file and follow the format [NN-NN-NNNNN].</li>
+        <li>3. Section, Strand, and Gender fields are dropdown lists.</li>
+        <li>4. LRN No. must contain 12 characters.</li>
+        <li>5. Email address must have a @goldenlink.ph domain.</li>
+        <li>6. Date of birth must be in MM/DD/YYYY format. </li>
+      </ul>
       <hr />
       <h3 id="step-3-upload-the-students-information-csv-file">
-        <strong>Step 3: Upload the Students Information CSV File</strong>
+        <strong>Step 3: Upload the Students Information Template</strong>
       </h3>
       <ol>
         <li>Click the <strong>Choose File</strong> button</li>
       </ol>
-      <p><img src="assets/3.1sdb.png" alt="Image" /></p>
       <ol start="2">
-        <li>Navigate to your CSV file and select it</li>
+        <li>Select the student data file to import.</li>
       </ol>
-      <p><img src="assets/4.1sdb.png" alt="Image" /></p>
       <ol start="3">
         <li>The file name will appear in the input field once selected</li>
       </ol>
-      <p><img src="assets/5.1sdb.png" alt="Image" /></p>
+      <ol start="4">
+        <li>Click the <strong>Import Data</strong> button. </li>
+        <p><img src="assets/import-student-6.png" alt="image" /></p>
+      </ol>
       <hr />
       <h3 id="step-4-import-the-data">
         <strong>Step 4: Import the Data</strong>
