@@ -832,248 +832,127 @@
       });
     </script>
   </head>
-   <body for="html-export">
+    <body for="html-export">
     <div class="crossnote markdown-preview">
       <a id="top"></a>
-      <h2 id="c-reports-and-glc-report-generation---working-instructions">
-        C. Reports and GLC Report Generation — Working Instructions
+      <h2 id="c-reports-and-glc-report-generation--working-instructions">
+        Reports and GLC Report Generation — Working Instructions
       </h2>
       <h3 id="table-of-contents">Table of Contents</h3>
       <ol>
         <li>
-          <a href="#1-system-overview">1. System Overview</a>
-          <ul>
-            <li>
-              1.1 <a href="#11-target-users--core-functions">Target Users &amp; Core Functions</a>
-            </li>
-          </ul>
+          <a href="#system-overview">System Overview</a>
         </li>
         <li>
-          <a href="#2-key-sheets--controls">2. Key Sheets &amp; Controls</a>
-          <ul>
-            <li>
-              2.1 <a href="#21-glc-reports-button">GLC Reports Button</a>
-            </li>
-            <li>
-              2.2 <a href="#22-authorized-users-sheet">Authorized Users Sheet</a>
-            </li>
-            <li>
-              2.3 <a href="#23-signatories-sheet">Signatories Sheet</a>
-            </li>
-            <li>
-              2.4 <a href="#24-generation-log-sheet">Generation Log Sheet</a>
-            </li>
-            <li>
-              2.5 <a href="#25-mail-log-sheet">Mail Log Sheet</a>
-            </li>
-          </ul>
+          <a href="#key-sheets--controls">Key Sheets &amp; Controls:</a>
         </li>
         <li>
-          <a href="#3-how-to-generate-a-report">3. How to Generate a Report</a>
+          <a href="#how-to-generate-a-report">How to Generate a Report</a>
           <ul>
             <li>
-              3.1 <a href="#31-step-1-choose-the-report-type">Step 1: Choose the Report Type</a>
+              <a href="#step-1-choose-the-report-type">Step 1: Choose the Report Type.</a>
             </li>
             <li>
-              3.2 <a href="#32-step-2-choose-the-period">Step 2: Choose the Period</a>
+              <a href="#step-2-choose-the-period">Step 2: Choose the Period</a>
             </li>
             <li>
-              3.3 <a href="#33-step-3-choose-the-class">Step 3: Choose the Class</a>
+              <a href="#step-3-choose-the-class">Step 3: Choose the Class.</a>
             </li>
             <li>
-              3.4 <a href="#34-step-4-choose-students--action">Step 4: Choose Students &amp; Action</a>
+              <a href="#step-4-choose-students--action">Step 4: Choose Students &amp; Action.</a>
               <ul>
-                <li><a href="#option-a-generate-reports-drive-export">Option A: Generate Reports (Drive Export)</a></li>
-                <li><a href="#option-b-send-via-email-principal-only">Option B: Send via Email (Principal Only)</a></li>
+                <li>
+                  <a href="#option-a-generate-reports-drive-export">Option A: Generate Reports (Drive Export)</a>
+                </li>
+                <li>
+                  <a href="#option-b-send-via-email-principal-only">Option B: Send via Email (Principal Only):</a>
+                </li>
               </ul>
             </li>
           </ul>
         </li>
       </ol>
       <hr />
-      <h3 id="1-system-overview">1. System Overview</h3>
+      <h3 id="system-overview">System Overview</h3>
       <p>
-        The <strong>GLC Reports module</strong> is an automated, web-based interface integrated within Google Sheets, engineered to manage, generate, and distribute official academic records, report cards, and clearance forms directly from live grading databases.
+        The GLC Reports module is an automated interface designed to manage, generate, 
+        and distribute official academic records, report cards, and clearance forms directly 
+        from the grading databases.
       </p>
-      <h4 id="11-target-users--core-functions">1.1 Target Users &amp; Core Functions</h4>
-      <ul>
-        <li>
-          <strong>Target Users:</strong> <code>Principal</code>, <code>Registrar</code>, and <code>Coordinator</code>.
-        </li>
-        <li>
-          <strong>Core Function:</strong> Consolidates recorded student grades, attendance figures, and character evaluations across trimesters into standardized PDF documents and direct Google Drive exports.
-        </li>
-      </ul>
-      <blockquote>
-        <p>
-          <strong>Note:</strong> All operations performed within the GLC Reports system strictly adhere to role-based access control configured in the administrative sheets.
-        </p>
-      </blockquote>
+      <p>
+        Target Users: Principal, Registrar, and Coordinator.<br />
+        Core Function: Consolidates recorded student grades, attendance, and character 
+        evaluations across trimesters into standardized PDF documents and Google Drive exports.
+      </p>
       <hr />
-      <h3 id="2-key-sheets--controls">2. Key Sheets &amp; Controls</h3>
+      <h3 id="key-sheets--controls">Key Sheets &amp; Controls:</h3>
       <p>
-        The report generation environment relies on specific spreadsheet controls and dedicated administrative sheets to maintain security, dynamic signatory data, and audit logging.
+        <strong>GLC Reports (Button):</strong> Opens the Report Generator web app from the top menu.<br />
+        <strong>Authorized Users Sheet:</strong> Sets user roles and permissions:<br />
+        Principal &amp; Coordinator: Can generate and save Periodical Letter Grade reports.<br />
+        Principal Only: Sends the Periodical Letter Grade directly to the parent or guardian's email.<br />
+        Registrar Only: Generates and prints official school forms across Elementary, JHS, and SHS:<br />
+        School Clearance (SC)<br />
+        School Form 9 (SF9 / Report Card)<br />
+        School Form 10 (SF10 / Permanent Record)<br />
+        <strong>Signatories Sheet:</strong> Stores and updates the names, titles, and designations of 
+        signatories (e.g., Certified Correct, Principal). Changes are updated automatically in Numerical 
+        Grade Reports, SF9, and School Clearance documents.<br />
+        <strong>Generation Log Sheet:</strong> Automatically logs every report created with the date, 
+        student name, user email, and Google Drive file link.<br />
+        <strong>Mail Log Sheet:</strong> Tracks all emailed Periodical Letter Grades, recording the 
+        timestamp, student name, parent email, and delivery status (sent).
       </p>
-      <h4 id="21-glc-reports-button">2.1 GLC Reports Button</h4>
-      <p>
-        Located directly in the top spreadsheet menu bar. Clicking the <strong>GLC Reports</strong> button initiates and launches the Report Generator web application in a dedicated dialog/modal window.
-      </p>
-      <h4 id="22-authorized-users-sheet">2.2 Authorized Users Sheet</h4>
-      <p>
-        Defines system access permissions and privileges based on authenticated user email addresses. Access rights are structured as follows:
-      </p>
-      <table>
-        <thead>
-          <tr>
-            <th>Assigned Role</th>
-            <th>Allowed Report Types &amp; Document Generation</th>
-            <th>Distribution &amp; Email Permissions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Principal &amp; Coordinator</strong></td>
-            <td>Generate and save <strong>Periodical Letter Grade</strong> reports.</td>
-            <td>Save to Google Drive folder destination.</td>
-          </tr>
-          <tr>
-            <td><strong>Principal Only</strong></td>
-            <td>Generate and save <strong>Periodical Letter Grade</strong> reports.</td>
-            <td><strong>Send Periodical Letter Grade directly</strong> to the parent or guardian's registered email address.</td>
-          </tr>
-          <tr>
-            <td><strong>Registrar Only</strong></td>
-            <td>
-              Generate, compile, and print official school forms across <strong>Elementary, JHS, and SHS</strong>:
-              <ul>
-                <li><strong>School Clearance (SC)</strong></li>
-                <li><strong>School Form 9 (SF9 / Report Card)</strong></li>
-                <li><strong>School Form 10 (SF10 / Permanent Record)</strong></li>
-                <li><strong>Numerical Grade Reports</strong></li>
-              </ul>
-            </td>
-            <td>Export and compile official PDF records to designated Google Drive repositories.</td>
-          </tr>
-        </tbody>
-      </table>
-      <h4 id="23-signatories-sheet">2.3 Signatories Sheet</h4>
-      <p>
-        Stores, manages, and updates the official names, titles, and designations of authorized institutional signatories (e.g., <em>Certified Correct</em>, <em>Principal</em>, <em>Registrar</em>). 
-      </p>
-      <blockquote>
-        <p>
-          <strong>Automatic Sync:</strong> Updates made in the Signatories Sheet are automatically reflected in all newly generated <strong>Numerical Grade Reports</strong>, <strong>SF9 (Report Cards)</strong>, and <strong>School Clearance (SC)</strong> documents without requiring script redeployment.
-        </p>
-      </blockquote>
-      <h4 id="24-generation-log-sheet">2.4 Generation Log Sheet</h4>
-      <p>
-        Maintains an immutable audit trail of document creation. Automatically records every generated report with key operational metadata:
-      </p>
-      <ul>
-        <li><strong>Timestamp / Date:</strong> Exact date and time of file compilation.</li>
-        <li><strong>Student Name:</strong> Complete name of the student for whom the report was generated.</li>
-        <li><strong>User Email:</strong> Authenticated email of the user executing the generation.</li>
-        <li><strong>Google Drive File Link:</strong> Direct hyperlink to the created PDF document in Google Drive.</li>
-      </ul>
-      <h4 id="25-mail-log-sheet">2.5 Mail Log Sheet</h4>
-      <p>
-        Tracks and audits all electronic dispatches of Periodical Letter Grades sent to parents and guardians:
-      </p>
-      <ul>
-        <li><strong>Timestamp:</strong> Date and time when the email was transmitted.</li>
-        <li><strong>Student Name:</strong> Target student associated with the report card.</li>
-        <li><strong>Parent Email:</strong> Recipient email address to which the record was delivered.</li>
-        <li><strong>Delivery Status:</strong> Status flag (e.g., <code>Sent</code>, delivery confirmation).</li>
-      </ul>
       <hr />
-      <h3 id="3-how-to-generate-a-report">3. How to Generate a Report</h3>
+      <h3 id="how-to-generate-a-report">How to Generate a Report</h3>
+      <p>Click the GLC Reports button in the spreadsheet menu bar.</p>
+      <p><img src="assets/reports-1.png" alt="Image" /></p>
+      <h4 id="step-1-choose-the-report-type">Step 1: Choose the Report Type.</h4>
       <p>
-        To start the generation workflow, click the <strong>GLC Reports</strong> button in the spreadsheet top menu bar to open the Report Generator web application. Follow the step-by-step procedure below:
+        Under Select Report Type, select report based on your assigned role:<br />
+        Periodical Letter Grade (Principal or Coordinator)
       </p>
-      <h4 id="31-step-1-choose-the-report-type">3.1 Step 1: Choose the Report Type</h4>
+      <p><img src="assets/reports-2.png" alt="Image" /></p>
       <p>
-        Under the <strong>Select Report Type</strong> dropdown, pick the required document based on your assigned institutional role:
+        Numerical Grade, School Clearance SF9, or SF10 (Registrar).
       </p>
-      <ul>
-        <li><strong>Principal / Coordinator:</strong> Select <code>Periodical Letter Grade</code>.</li>
-        <li><strong>Registrar:</strong> Select <code>Numerical Grade</code>, <code>School Clearance (SC)</code>, <code>SF9 (Report Card)</code>, or <code>SF10 (Permanent Record)</code>.</li>
-      </ul>
-      <h4 id="32-step-2-choose-the-period">3.2 Step 2: Choose the Period</h4>
-      <ol>
-        <li>Select the target <strong>School Year</strong> (e.g., <code>2026-2027</code>).</li>
-        <li>Select the specific <strong>Term</strong>:
-          <ul>
-            <li><code>1st Trimester</code></li>
-            <li><code>2nd Trimester</code></li>
-            <li><code>3rd Trimester</code></li>
-          </ul>
-        </li>
-      </ol>
-      <h4 id="33-step-3-choose-the-class">3.3 Step 3: Choose the Class</h4>
-      <ol>
-        <li>Select the <strong>Grade Level</strong> and corresponding <strong>Section</strong>.</li>
-        <li>
-          <strong>Senior High School (SHS) Classes:</strong> Select the applicable <strong>Strand</strong> (e.g., ABM, STEM, HUMSS, GAS).
-        </li>
-        <li>
-          <strong>Basic Education (BED) Elementary &amp; JHS Classes:</strong> Choose <code>N/A</code> for the strand selection.
-        </li>
-      </ol>
-      <h4 id="34-step-4-choose-students--action">3.4 Step 4: Choose Students &amp; Action</h4>
+        <p><img src="assets/reports-3.png" alt="Image" /></p>
+      <hr />
+      <h4 id="step-2-choose-the-period">Step 2: Choose the Period</h4>
       <p>
-        Once the class roster is loaded into the interface, choose between the two execution options depending on your operational goal:
+        Select the School Year (e.g., 2026-2027).<br />
+        Select the Term (1st Trimester, 2nd Trimester, or 3rd Trimester).
       </p>
+        <p><img src="assets/reports-4.png" alt="Image" /></p>
+      <hr />
+      <h4 id="step-3-choose-the-class">Step 3: Choose the Class.</h4>
+      <p>
+        Select the Grade Level and Section.<br />
+        (SHS only)Select the Strand (or choose N/A for standard BED classes).
+      </p>
+        <p><img src="assets/reports-5.png" alt="Image" /></p>
+      <hr />
+      <h4 id="step-4-choose-students--action">Step 4: Choose Students &amp; Action.</h4>
       <h5 id="option-a-generate-reports-drive-export">Option A: Generate Reports (Drive Export)</h5>
-      <ol>
-        <li>Click the <strong>Generate Reports</strong> tab in the web application.</li>
-        <li>
-          Use the <strong>search bar</strong> to filter students, or use the <strong>checkboxes</strong> to select specific individuals (or leave all students selected for batch generation).
-        </li>
-        <li>
-          Click the <strong>Generate Reports</strong> button.
-        </li>
-        <li>
-          The system will generate standardized PDF documents, store them in the designated Google Drive folder, and automatically log the creation details in the <strong>Generation Log</strong> sheet.
-        </li>
-      </ol>
-      <h5 id="option-b-send-via-email-principal-only">Option B: Send via Email (Principal Only)</h5>
-      <blockquote>
-        <p>
-          <strong>Access Restriction:</strong> This action is strictly restricted to the <strong>Principal</strong> role.
-        </p>
-      </blockquote>
-      <ol>
-        <li>Click the <strong>Send via Email</strong> tab in the web application.</li>
-        <li>
-          Inspect the student recipient list and verify email validity indicators:
-          <ul>
-            <li>
-              <strong>Valid Email Address:</strong> Displayed in <span style="color: #2e7d32; font-weight: 600;">green</span> with a checkmark (e.g., <code>✓ system.center@goldenlink.ph</code>).
-            </li>
-            <li>
-              <strong>Missing / Unregistered Email:</strong> Displayed with a warning indicator (<code>⚠ No email on file</code>) and is <em>automatically unchecked</em> by default to prevent failed dispatches.
-            </li>
-          </ul>
-        </li>
-        <li>
-          <strong>Handling Missing Email Addresses:</strong>
-          <ul>
-            <li>Navigate to the <code>Other Information</code> sheet in the spreadsheet.</li>
-            <li>Input the missing parent or guardian email address for the student.</li>
-            <li>Return to the GLC Reports web application and click the <strong>Refresh Contacts</strong> button.</li>
-          </ul>
-        </li>
-        <li>
-          Select the verified student recipients and click <strong>Send Reports via Email</strong>.
-        </li>
-        <li>
-          The system dispatches the Periodical Letter Grade reports directly to the parent/guardian emails and automatically logs the transaction in the <strong>Mail Log</strong> sheet.
-        </li>
-      </ol>
-      <hr />
       <p>
-        <em>This working instruction document covers the complete functionality and operational workflow for the GLC Reports and Report Generation module. For additional support, system modifications, or role configuration, contact your systems developer.</em>
+        Click the Generate Reports tab.<br />
+        Use the search bar or checkboxes to select specific students (or keep all selected).<br />
+        Click Generate Reports to create the PDF files in Google Drive and update the Generation Log.
       </p>
+        <p><img src="assets/reports-6.png" alt="Image" /></p>
+      <h5 id="option-b-send-via-email-principal-only">Option B: Send via Email (Principal Only):</h5>
+      <p>
+        Click the Send via Email tab.<br />
+        Check the student recipient list.<br />
+        Students with valid emails will display in green :<br />
+        (e.g., ✓ system.center@goldenlink.ph).<br />
+        Students without email addresses will show ⚠ No email on file and are automatically unchecked.<br />
+        (If emails are missing): Add the email address in the Other Information sheet, return to the web app, 
+        and click Refresh Contacts.<br />
+        Select the verified recipients and click Send Reports via Email to dispatch files and update the Mail Log.
+      </p>
+        <p><img src="assets/reports-7.png" alt="Image" /></p>
+      <hr />
     </div>
     <a id="backToTop" href="#top" style="display: none">Back to Top</a>
     <script>
